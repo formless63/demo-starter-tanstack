@@ -1,0 +1,1 @@
+Upgrade the requested dependency using current official release and migration guidance. Avoid prereleases unless required, update the lockfile and stack notes, and run the checks most likely to expose compatibility issues.
