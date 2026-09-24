@@ -1,0 +1,1 @@
+Follow `AGENTS.md` as canonical guidance. Load only the relevant `.agents/context` file and matching skill. Preserve TanStack-native boundaries, explicit authorization, Bun commands, committed migrations, and secret hygiene; run affected checks to completion.
