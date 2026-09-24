@@ -1,0 +1,30 @@
+{
+  "projectName": "tanstack-launchpad",
+  "mode": "file-router",
+  "typescript": true,
+  "tailwind": true,
+  "packageManager": "bun",
+  "git": false,
+  "install": true,
+  "intent": true,
+  "addOnOptions": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "projectPreset": "default",
+  "includeExamples": false,
+  "routerOnly": false,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": [
+    "drizzle",
+    "tanstack-query",
+    "form",
+    "better-auth",
+    "shadcn",
+    "t3env",
+    "biome",
+    "nitro"
+  ]
+}
