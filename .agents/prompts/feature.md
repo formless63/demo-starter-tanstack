@@ -1,0 +1,1 @@
+Implement the requested cross-layer feature using existing architecture. Include server authorization, validation, usable UI states, focused tests, and updated documentation. Finish by running and repairing affected checks.
