@@ -62,7 +62,7 @@ export const auth = betterAuth({
 				}
 			: {},
 	account: {
-		accountLinking: { enabled: true, trustedProviders: ["github", "oidc"] },
+		accountLinking: { enabled: true },
 	},
 	advanced: { useSecureCookies: env.NODE_ENV === "production" },
 	plugins,

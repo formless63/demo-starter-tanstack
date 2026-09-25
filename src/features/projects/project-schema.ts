@@ -16,10 +16,3 @@ export const projectMutationSchema = projectInputSchema.extend({
 export const projectIdSchema = z.object({ id: z.string().uuid() });
 export type ProjectInput = z.input<typeof projectInputSchema>;
 export type ProjectData = z.output<typeof projectInputSchema>;
-
-export function ownsProject(
-	projectOwnerId: string,
-	authenticatedUserId: string,
-) {
-	return projectOwnerId === authenticatedUserId;
-}
