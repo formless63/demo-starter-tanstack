@@ -9,4 +9,4 @@
 - `bun run lint`, `bun run typecheck`, `bun test`: static and unit verification.
 - `bun run test:e2e`: Playwright landing/protection smoke test (browser install required).
 - `bun run build`, `bun run start`: create and run the Node-compatible production output.
-- `bun run check`: lint, types, unit tests, and production build.
+- `bun run check`: lint, types, unit tests, and production build. CI additionally migrates clean PostgreSQL and runs Playwright.

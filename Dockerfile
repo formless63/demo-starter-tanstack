@@ -9,5 +9,6 @@ FROM node:24.21.0-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000 HOST=0.0.0.0
 COPY --from=build /app/.output ./.output
+COPY scripts/start.mjs ./scripts/start.mjs
 EXPOSE 3000
-CMD ["node", ".output/server/index.mjs"]
+CMD ["node", "scripts/start.mjs"]
