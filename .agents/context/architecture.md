@@ -14,3 +14,6 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 - `scripts`: local operational tooling; no runtime imports.
 
 Prefer direct framework primitives and explicit checks. Do not add repository/service layers, a separate API, queues, RBAC, or other speculative abstractions.
+
+## Production containers
+`compose.yaml` is the provider-neutral production orchestration contract. `app` runs the Node-compatible framework output and never mutates schema during startup. The explicit one-shot `migrate` service applies committed Drizzle SQL before an operator starts or updates `app`; both services use the same immutable image. Compose constructs their database URL with the `postgres` service hostname. The runtime image is unprivileged, contains no development bind mounts, and exposes the database-backed `/api/health` readiness signal.
