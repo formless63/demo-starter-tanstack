@@ -10,11 +10,9 @@ import { authClient } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/app")({
 	beforeLoad: async () => {
-		try {
-			return { user: await getCurrentUser() };
-		} catch {
-			throw redirect({ to: "/" });
-		}
+		const user = await getCurrentUser();
+		if (!user) throw redirect({ to: "/" });
+		return { user };
 	},
 	component: AppShell,
 });

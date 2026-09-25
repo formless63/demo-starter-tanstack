@@ -16,7 +16,7 @@ bun run db:migrate
 bun run dev
 ```
 
-The development database defaults in `.env.example` match Compose. Generate a strong `BETTER_AUTH_SECRET` before any shared deployment. Environment validation separates unprefixed server secrets from the only browser-visible setting, `VITE_APP_NAME`.
+The development database defaults in `.env.example` match Compose. Production starts fail closed unless `DATABASE_URL`, a non-default 32+ character `BETTER_AUTH_SECRET`, and a non-localhost `APP_BASE_URL` are explicitly configured. Environment validation separates unprefixed server secrets from the only browser-visible setting, `VITE_APP_NAME`.
 
 ## Authentication
 
@@ -52,7 +52,7 @@ bun run test:e2e
 bun run check
 ```
 
-Playwright covers the public landing page and anonymous protected-route redirect. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
+Playwright covers the public landing page and anonymous protected-route redirect. CI starts a clean PostgreSQL service, applies migrations, installs Chromium, and runs this browser path after static, unit, and build checks. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
 
 ## Production and Docker
 

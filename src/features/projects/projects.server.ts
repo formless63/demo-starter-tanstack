@@ -11,7 +11,8 @@ export async function requireUser() {
 	return session.user;
 }
 export async function currentUser() {
-	return requireUser();
+	const session = await auth.api.getSession({ headers: getRequestHeaders() });
+	return session?.user ?? null;
 }
 export async function findProjects() {
 	const user = await requireUser();

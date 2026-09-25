@@ -2,7 +2,7 @@
 
 ## Versions and official scaffold
 
-The evaluated baseline uses Bun 1.4.2, Node 24.21, PostgreSQL 18, React 19, TanStack Start/Router 1.x, Query 5, Form 1, Tailwind 4, Better Auth 1, Drizzle 0.45, Vite 8, and TypeScript 6. Exact resolved versions are recorded in `.agents/context/stack.md` and `bun.lock`.
+The evaluated baseline uses Bun 1.4.2, Node 24.21, PostgreSQL 18, React 19, TanStack Start/Router 1.x, Query 5, Form 1, Tailwind 4, Better Auth 1, Drizzle 0.45, Vite 8, and TypeScript 6. Explicit tested semver ranges are recorded in `package.json`; exact resolved versions are recorded in `.agents/context/stack.md` and `bun.lock`, so lockfile regeneration cannot silently follow `latest` tags.
 
 The current official `@tanstack/cli` scaffold provided file-based Start routing, SSR Query plumbing, Vite, Tailwind, Biome, and devtools. Its inspected add-on catalog was used for `drizzle` (PostgreSQL), `tanstack-query`, `form`, `better-auth`, `shadcn`, and `t3env`. Table was correctly omitted because a small card list does not benefit from table machinery.
 
@@ -19,7 +19,7 @@ Manual packages are Tabler Icons (the scaffold chose Lucide), Sonner, Vitest, an
 - **UI friction:** the shadcn add-on attempted to run its component installer and reported failure. Its catalog description still said Radix even though current requirements favor Base UI. The starter uses the generated Tailwind conventions, native controls where sufficient, Tabler, and Sonner rather than carrying unused primitives.
 - **Bun:** installation, route generation, tests, and Vite builds work under Bun. TanStack's production artifact is most conservatively run with Node-compatible semantics, so the runtime image uses Node 24 rather than forcing Bun.
 - **Docker/deployment:** the generic output is pleasantly provider-neutral. Database migrations remain an explicit release task rather than container startup side effects.
-- **Testing:** unit and public browser testing are straightforward. Fully automated real OAuth requires disposable provider credentials; authorization remains testable below that boundary.
+- **Testing:** unit and public browser testing are straightforward. CI supplies PostgreSQL, migrates a blank database, installs Chromium, and runs the E2E smoke path. Fully automated real OAuth still requires disposable provider credentials; authorization remains testable below that boundary.
 
 ## Undocumented behavior and prereleases
 
@@ -27,4 +27,4 @@ The CLI emitted a circular `replaceRouteChunk` warning during route generation a
 
 ## Permanent-starter changes
 
-For permanent use I would add a real transactional email adapter only when a mail provider is selected, expand integration tests with a disposable PostgreSQL database and signed Better Auth sessions, and select a deployment adapter only at the first real deployment. I would also re-evaluate the shadcn add-on once its Base UI path and the Intent hook installer are consistently successful.
+For permanent use I would add a real transactional email adapter only when a mail provider is selected, expand authenticated integration tests with signed Better Auth sessions, and select a deployment adapter only at the first real deployment. I would also re-evaluate the shadcn add-on once its Base UI path and the Intent hook installer are consistently successful.
