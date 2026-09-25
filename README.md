@@ -40,7 +40,15 @@ The command uses Pocket ID's current `/api/oidc/clients` and `/secrets` APIs, up
 
 ## Development and migrations
 
-`bun run dev` starts the app. Edit `src/db/schema.ts`, run `bun run db:generate`, review the SQL under `drizzle/`, and commit it. Deploy with `bun run db:migrate`; schema push is intentionally not a script.
+`bun run dev` starts the app. Edit `src/db/schema.ts`, run `bun run db:generate`, review the SQL under `drizzle/`, and commit it. For local development, apply migrations with `bun run db:migrate`; schema push is intentionally not a script.
+
+The Postgres-only development workflow remains:
+
+```bash
+docker compose up -d postgres
+```
+
+Targeting `postgres` does not build or start the application.
 
 ## Verification
 
@@ -52,19 +60,53 @@ bun run test:e2e
 bun run check
 ```
 
-Playwright covers the public landing page and anonymous protected-route redirect. CI starts a clean PostgreSQL service, applies migrations, installs Chromium, and runs this browser path after static, unit, and build checks. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
+Playwright covers the public landing page and anonymous protected-route redirect. CI runs the static, unit, build, and browser checks, then proves the production artifact by building the image, migrating a clean Compose PostgreSQL database through the containerized migration job, waiting for the application healthcheck, and curling `/api/health`. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
 
-## Production and Docker
+## Production containers
 
-```bash
-bun run build
-bun run start
-docker build -t tanstack-launchpad .
-docker run --rm -p 3000:3000 --env-file .env tanstack-launchpad
-curl http://localhost:3000/api/health
+Compose defines PostgreSQL, an explicit one-shot `migrate` job, and the production `app`. Both application services use the same `${APP_IMAGE:-tanstack-launchpad:local}` image built from the production Dockerfile. The image contains the Node-compatible TanStack Start output, a bundled migration runner, and committed migration SQL; it runs as the unprivileged `node` user and has no source bind mounts.
+
+Create a deployment `.env` (Compose reads this file automatically) and set at least:
+
+```dotenv
+BETTER_AUTH_SECRET=replace-with-a-random-secret-of-at-least-32-characters
+APP_BASE_URL=https://app.example.com
+APP_PORT=3000
 ```
 
-The multi-stage image builds with Bun and runs the framework's portable Node-compatible output on Node 24. Apply migrations as a separate release step. `/api/health` verifies database connectivity.
+Provider credentials remain optional for a smoke deployment. `DATABASE_URL` inside containers is constructed by Compose with the `postgres` service hostname and is never taken from a localhost value. `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT`, `APP_PORT`, and `APP_IMAGE` can be overridden in `.env`.
+
+`docker compose build` builds every buildable service; `docker compose build app` is the optimized form because `app` and `migrate` share one image definition. Build once, run the migration job, and only start the application after migration succeeds:
+
+```bash
+docker compose build app
+docker compose up -d --wait postgres
+docker compose run --rm migrate
+docker compose up -d --wait app
+curl --fail http://localhost:${APP_PORT:-3000}/api/health
+```
+
+The migration command exits nonzero on failure, so stop the release and do not start or update `app` unless it succeeds. Application startup never runs migrations itself.
+
+Operational commands:
+
+```bash
+# Follow production application logs
+docker compose logs -f app
+
+# Stop containers but retain PostgreSQL data
+docker compose down
+
+# Stop containers and remove PostgreSQL data
+docker compose down --volumes
+
+# Build and release a new application revision with the same explicit gate
+docker compose build # or: docker compose build app
+docker compose run --rm migrate
+docker compose up -d --wait app
+```
+
+For registries, set `APP_IMAGE` to the immutable image reference and use that same reference for both `migrate` and `app`. The stack is plain Compose and remains deployment-provider neutral.
 
 ## Repository conventions
 

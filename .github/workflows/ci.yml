@@ -3,20 +3,6 @@ on: [push, pull_request]
 jobs:
   verify:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18.1-alpine
-        env:
-          POSTGRES_DB: starter
-          POSTGRES_USER: starter
-          POSTGRES_PASSWORD: starter
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U starter -d starter"
-          --health-interval 2s
-          --health-timeout 3s
-          --health-retries 20
     env:
       DATABASE_URL: postgresql://starter:starter@127.0.0.1:5432/starter
       BETTER_AUTH_SECRET: ci-only-secret-with-at-least-32-characters
@@ -27,10 +13,16 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with: { bun-version-file: package.json }
       - run: bun install --frozen-lockfile
-      - run: bun run db:migrate
+      - run: docker compose build app
+      - run: docker compose up -d --wait postgres
+      - run: docker compose run --rm migrate
       - run: bun run lint
       - run: bun run typecheck
       - run: bun test
       - run: bun run build
       - run: bunx playwright install --with-deps chromium
       - run: bun run test:e2e
+      - run: docker compose up -d --wait app
+      - run: curl --fail --show-error http://127.0.0.1:3000/api/health
+      - if: always()
+        run: docker compose down --volumes --remove-orphans

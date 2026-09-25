@@ -18,8 +18,8 @@ Manual packages are Tabler Icons (the scaffold chose Lucide), Sonner, Vitest, an
 - **Database friction:** Drizzle setup was direct and migration generation was reliable. Better Auth schema still needs care when maintained manually. Generated SQL is committed; push is not treated as deployment.
 - **UI friction:** the shadcn add-on attempted to run its component installer and reported failure. Its catalog description still said Radix even though current requirements favor Base UI. The starter uses the generated Tailwind conventions, native controls where sufficient, Tabler, and Sonner rather than carrying unused primitives.
 - **Bun:** installation, route generation, tests, and Vite builds work under Bun. TanStack's production artifact is most conservatively run with Node-compatible semantics, so the runtime image uses Node 24 rather than forcing Bun.
-- **Docker/deployment:** the generic output is pleasantly provider-neutral. Database migrations remain an explicit release task rather than container startup side effects.
-- **Testing:** unit and public browser testing are straightforward. CI supplies PostgreSQL, migrates a blank database, installs Chromium, and runs the E2E smoke path. Fully automated real OAuth still requires disposable provider credentials; authorization remains testable below that boundary.
+- **Docker/deployment:** the generic output is provider-neutral. Plain Compose now proves PostgreSQL, an explicit one-shot migration job, and the health-checked production application. Migration and runtime use the same non-root Node image; application startup has no schema side effects.
+- **Testing:** unit and public browser testing are straightforward. CI builds the production image, migrates blank Compose PostgreSQL through the image, runs the browser path, starts the production container, and verifies its database-backed health endpoint. Fully automated real OAuth still requires disposable provider credentials; authorization remains testable below that boundary.
 
 ## Undocumented behavior and prereleases
 
@@ -28,3 +28,7 @@ The CLI emitted a circular `replaceRouteChunk` warning during route generation a
 ## Permanent-starter changes
 
 For permanent use I would add a real transactional email adapter only when a mail provider is selected, expand authenticated integration tests with signed Better Auth sessions, and select a deployment adapter only at the first real deployment. I would also re-evaluate the shadcn add-on once its Base UI path and the Intent hook installer are consistently successful.
+
+### Container orchestration
+
+The evaluated release path is now executable rather than Dockerfile-only: `compose.yaml` preserves Postgres-only development while adding a one-shot migration job and production application service. The explicit migration gate makes failure visible before rollout, image reuse prevents migration/runtime revision skew, and the healthcheck validates real database reachability. No provider-specific infrastructure is required.
