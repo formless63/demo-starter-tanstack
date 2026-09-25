@@ -5,21 +5,28 @@ import {
 	IconSparkles,
 } from "@tabler/icons-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { z } from "zod";
 import { authClient } from "#/lib/auth-client";
+import { safeInternalRedirect } from "#/lib/safe-redirect";
 
-export const Route = createFileRoute("/")({ component: Landing });
+export const Route = createFileRoute("/")({
+	validateSearch: z.object({ redirect: z.string().optional() }),
+	component: Landing,
+});
 
 function Landing() {
 	const { data: session, isPending } = authClient.useSession();
+	const { redirect } = Route.useSearch();
+	const callbackURL = safeInternalRedirect(redirect);
 	const signIn = (provider: "github" | "oidc") =>
 		provider === "github"
 			? authClient.signIn.social({
 					provider: "github",
-					callbackURL: "/app/projects",
+					callbackURL,
 				})
 			: authClient.signIn.social({
 					provider: "oidc",
-					callbackURL: "/app/projects",
+					callbackURL,
 				});
 	return (
 		<main className="min-h-screen bg-background text-foreground">

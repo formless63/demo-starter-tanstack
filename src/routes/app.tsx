@@ -7,11 +7,16 @@ import {
 } from "@tanstack/react-router";
 import { getCurrentUser } from "#/features/projects/projects.functions";
 import { authClient } from "#/lib/auth-client";
+import { safeInternalRedirect } from "#/lib/safe-redirect";
 
 export const Route = createFileRoute("/app")({
-	beforeLoad: async () => {
+	beforeLoad: async ({ location }) => {
 		const user = await getCurrentUser();
-		if (!user) throw redirect({ to: "/" });
+		if (!user)
+			throw redirect({
+				to: "/",
+				search: { redirect: safeInternalRedirect(location.href) },
+			});
 		return { user };
 	},
 	component: AppShell,
