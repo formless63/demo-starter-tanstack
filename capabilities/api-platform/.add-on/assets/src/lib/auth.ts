@@ -17,17 +17,19 @@ const plugins = [] as ReturnType<
 plugins.push(
 	apiKey({
 		apiKeyHeaders: "x-api-key",
-		defaultPrefix: "lp_",
+		defaultKeyLength: 64,
+		defaultPrefix: "app_",
 		disableKeyHashing: false,
 		enableSessionForAPIKeys: false,
+		keyExpiration: { defaultExpiresIn: null },
 		references: "user",
 		requireName: true,
 		startingCharactersConfig: { shouldStore: true, charactersLength: 8 },
 		permissions: { defaultPermissions: { projects: ["read"] } },
 		rateLimit: {
 			enabled: true,
-			timeWindow: 24 * 60 * 60 * 1000,
-			maxRequests: 10_000,
+			timeWindow: 60 * 1000,
+			maxRequests: 1_000,
 		},
 	}),
 );

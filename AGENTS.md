@@ -17,4 +17,4 @@ Inspect existing patterns, make coherent changes, run affected checks, fix regre
 Read only what matches the work: `.agents/context/architecture.md` for boundaries, `.agents/context/stack.md` for integrations, `.agents/context/commands.md` for verification, and a matching `.agents/skills/*/SKILL.md` for the defined workflows.
 
 ## Reusable capabilities
-Reusable capabilities and their relationships are tracked in `ROADMAP.md` and `capabilities/catalog.json`. Before installing, removing, creating, or changing capability dependencies, use the capability-change skill. Hard dependencies must be explicit and must not form cycles.
+Reusable capabilities and their relationships are tracked in `ROADMAP.md` and `capabilities/catalog.json`; reference-app enablement is separate from generated-consumer defaults. Before installing, removing, creating, or changing capability dependencies, use the capability-change skill. Hard dependencies must be explicit and must not form cycles.

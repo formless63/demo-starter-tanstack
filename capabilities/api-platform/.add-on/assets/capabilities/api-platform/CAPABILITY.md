@@ -40,6 +40,8 @@ The current official TanStack CLI add-on IDs are `better-auth` and `drizzle`. AP
 
 `drizzle/0001_pretty_kat_farrell.sql` adds Better Auth's `apikey` model, indexes hashed lookup values, and safely converts the older nullable timestamp `user.email_verified` representation to Better Auth 1.7's required boolean representation. The conversion treats any prior non-null verification timestamp as verified. Normal application startup never runs migrations.
 
+`drizzle/0002_even_nighthawk.sql` normalizes persisted API-key rate-limit defaults to the v1 contract: 1,000 requests per 60 seconds. It changes defaults for newly created rows without rewriting existing per-key limits.
+
 Raw API keys are generated and returned once by Better Auth. PostgreSQL stores only the plugin's hash plus safe prefix/start characters and lifecycle metadata. `reference_id` is intentionally not a foreign key because Better Auth uses that column for user or future organization ownership according to configuration; this capability configures only user ownership.
 
 ### Runtime processes
@@ -80,6 +82,8 @@ Native TanStack Start server routes remain the router:
 
 Keys may be named, assigned `projects.read` and/or `projects.write`, optionally expired, listed as safe metadata, and revoked by setting `enabled: false`. Rotation is deliberately non-atomic because the plugin has no first-class atomic rotate operation: create the replacement, present it once, migrate the client, then revoke the old key.
 
+The v1 credential defaults are deliberately explicit and shared across runtime code, persistence defaults, tests, add-on fixtures, and documentation: `X-API-Key`; hashing enabled; browser-session creation disabled; user ownership; no default expiry; 64 generated characters after the `app_` prefix; and 1,000 requests per 60-second window. Callers may request a supported expiry or a reviewed per-key rate override without changing the public authentication scheme.
+
 True standalone service principals are deferred. Better Auth 1.7 cleanly supports user- and organization-owned keys but not a first-class userless service principal appropriate here. The principal union boundary can add organization/service variants later without inventing fake users or another credential store.
 
 ## Installation
@@ -94,13 +98,14 @@ True standalone service principals are deferred. Better Auth 1.7 cleanly support
 
 ## Removal
 
+The verified application-removal recipe is maintained in `docs/STARTING-A-PROJECT.md`. In summary:
+
 1. Revoke or delete active API keys and stop clients using `/api/v1`.
 2. Remove the API routes, docs route, management page, server functions, and `src/integrations/api-platform`.
-3. Remove the API-key plugin from the shared Better Auth configuration without disturbing GitHub/OIDC/cookie plugins.
-4. Remove API Platform-only packages and `api-platform:smoke` when unused.
-5. Keep the `apikey` table by default so removal is non-destructive. Drop it only through a separately reviewed migration after credential-retention review.
-6. Do not revert `email_verified` to the obsolete timestamp model.
-7. Update the roadmap, catalog, add-on source/distributable, and evaluation together.
+3. Remove only the API-key plugin from the shared Better Auth configuration; preserve GitHub, generic OIDC, magic-link, cookie, and protected-return behavior.
+4. Remove API Platform-only packages, tests, CI probes, navigation, and `api-platform:smoke` when unused.
+5. Remove `api-platform` from `referenceApplication.enabledCapabilities`. Keep the catalog entry and add-on authoring workspace when the repository should still distribute the capability; pruning reusable source is a separate governance action.
+6. Keep the `apikey` table, committed migrations, and boolean `email_verified` model by default. Any data removal requires a separately reviewed migration.
 
 The official CLI has no general uninstall transaction for custom add-ons, so removal remains an explicit reviewed procedure.
 
@@ -119,6 +124,7 @@ Run:
 
 ```bash
 bun run capabilities:check
+bun run capabilities:status
 bun run add-ons:test api-platform
 bun run db:migrate
 bun test src/integrations/api-platform

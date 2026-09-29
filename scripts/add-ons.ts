@@ -35,6 +35,7 @@ interface CleanInstallFixture {
 	addOnConfig?: Record<string, unknown>;
 	expectedOfficialAddOns: string[];
 	expectedFiles: string[];
+	expectedFileText?: Record<string, string[]>;
 	verificationCommands?: string[][];
 	build: boolean;
 }
@@ -191,6 +192,18 @@ async function cleanInstall(capability: Capability & { tanstackAddOn: AddOnMetad
 		}
 		for (const path of fixture.expectedFiles) {
 			if (!existsSync(resolve(target, path))) throw new Error(`${capability.id}: clean install is missing ${path}`);
+		}
+		for (const [path, snippets] of Object.entries(fixture.expectedFileText ?? {})) {
+			const installedPath = resolve(target, path);
+			if (!existsSync(installedPath)) {
+				throw new Error(`${capability.id}: clean install is missing expected text file ${path}`);
+			}
+			const installedText = await readFile(installedPath, "utf8");
+			for (const snippet of snippets) {
+				if (!installedText.includes(snippet)) {
+					throw new Error(`${capability.id}: ${path} is missing expected text ${JSON.stringify(snippet)}`);
+				}
+			}
 		}
 
 		const installedPackage = await readJson<PackageJson>(resolve(target, "package.json"));

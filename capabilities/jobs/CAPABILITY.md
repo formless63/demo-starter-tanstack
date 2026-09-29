@@ -1,6 +1,6 @@
 # Jobs capability
 
-Status: done and default-installed. Evaluation: `JOBS_MODULE_EVALUATION.md`.
+Status: done and optional (`defaultInstalled: false`). The root reference application enables Jobs so its integrated path remains continuously tested; a clean generated consumer does not receive it unless selected. Evaluation: `JOBS_MODULE_EVALUATION.md`.
 
 ## Requirements
 
@@ -31,7 +31,7 @@ The add-on package metadata declares all three packages and the framework-native
 - `capabilities/jobs/add-on.json` is the retained distributable produced by `bun run add-ons:compile jobs`.
 - `capabilities/jobs/test/clean-install.json` owns the disposable scaffold expectations used by `bun run add-ons:test jobs`.
 
-The Jobs directory is independent of future `capabilities/<id>` add-ons. Jobs is default-installed in this reference application, but its distributable can be installed alone and does not pull unrelated capabilities.
+The Jobs directory is independent of future `capabilities/<id>` add-ons. Its distributable can be installed alone and does not pull unrelated capabilities. Reference-application enablement is separate from the catalog's `defaultInstalled` field.
 
 ### Environment
 
@@ -90,12 +90,14 @@ After package installation:
 
 ## Removal
 
+The verified application-removal recipe is maintained in `docs/STARTING-A-PROJECT.md`. In summary:
+
 1. Stop every worker and prevent new producers from enqueueing.
 2. Decide how retained jobs must be drained or archived.
-3. Remove Jobs API usage, registry tasks, scripts, tests, Docker bundles, and the `jobs-migrate`/`worker` Compose services.
+3. Remove Jobs API usage, registry tasks, operational scripts, tests, Docker bundles, and the `jobs-migrate`/`worker` Compose services.
 4. Remove `pg-boss` only when no other code uses it; retain baseline Drizzle and Zod dependencies.
-5. Remove the catalog entry or change its status and update `ROADMAP.md` in the same change.
-6. Drop the dedicated PostgreSQL schema only as an explicit destructive database operation after backup/retention review. Uninstalling code must not silently delete queued job data.
+5. Remove `jobs` from `referenceApplication.enabledCapabilities`. Keep the catalog entry and add-on authoring workspace when the repository should still distribute Jobs; pruning that reusable source is a separate governance action.
+6. Keep the `pgboss` schema and applied database history by default. Drop the dedicated schema only through an explicit destructive operation after backup and retention review.
 
 The TanStack CLI does not provide a general automatic uninstall transaction for this custom add-on, so removal is reviewed and verified rather than inferred.
 
@@ -114,6 +116,7 @@ Run:
 
 ```bash
 bun run capabilities:check
+bun run capabilities:status
 bun run add-ons:test jobs
 bun run jobs:migrate
 bun run jobs:doctor

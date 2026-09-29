@@ -23,8 +23,8 @@ try {
 			userId,
 			name: "smoke read",
 			permissions: { projects: ["read"] },
-			rateLimitMax: 10_000,
-			rateLimitTimeWindow: 86_400_000,
+			rateLimitMax: 1_000,
+			rateLimitTimeWindow: 60_000,
 		},
 	});
 	const [stored] = await db
@@ -33,6 +33,11 @@ try {
 		.where(eq(apikey.id, readKey.id));
 	assert.ok(stored?.key);
 	assert.notEqual(stored.key, readKey.key);
+	assert.match(readKey.key, /^app_/);
+	assert.equal(readKey.key.length, 68);
+	assert.equal(readKey.expiresAt, null);
+	assert.equal(readKey.rateLimitMax, 1_000);
+	assert.equal(readKey.rateLimitTimeWindow, 60_000);
 
 	const listResponse = await listProjectsApi(
 		new Request("http://localhost/api/v1/projects", {
@@ -58,8 +63,8 @@ try {
 			userId,
 			name: "smoke write",
 			permissions: { projects: ["write"] },
-			rateLimitMax: 10_000,
-			rateLimitTimeWindow: 86_400_000,
+			rateLimitMax: 1_000,
+			rateLimitTimeWindow: 60_000,
 		},
 	});
 	const createResponse = await createProjectApi(

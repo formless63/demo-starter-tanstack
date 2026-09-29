@@ -4,6 +4,8 @@
 
 The starter uses stable `pg-boss` 12.35.0 for PostgreSQL-backed background work. It reuses the existing database operational model, keeps deployment provider-neutral, and avoids a second datastore. Runtime application clients and workers explicitly set `migrate: false`; `jobs:migrate` is the only schema mutation path.
 
+Jobs is a completed optional capability: `defaultInstalled: false` means a clean generated consumer must select it. The root reference application enables Jobs independently so installation, runtime, and production paths remain proven.
+
 ## Capability shape
 
 - `src/integrations/jobs/registry.ts` is the typed source of truth for queue names, Zod payload contracts, retry/expiry policy, and handlers.
@@ -17,6 +19,8 @@ The starter uses stable `pg-boss` 12.35.0 for PostgreSQL-backed background work.
 The PostgreSQL integration suite proves both transaction outcomes: commit persists the project and job; deliberate rollback persists neither. A malformed payload sent below the typed API is rejected by the running worker and reaches failed state. Schema doctor reports installed version 43 with no drift, and the echo smoke completes through a real worker.
 
 The custom add-on follows the current TanStack CLI metadata and compiled formats, declares package additions and scripts, and carries the reusable source plus the `jobs-change` skill. It now owns an independent authoring project under `capabilities/jobs`: `.add-on` source, capability-local `.cta.json`, retained `add-on.json` distributable, contract, and clean-install fixture. Its `dependsOn: ["drizzle"]` relationship uses the official TanStack CLI Drizzle add-on ID, because the Jobs transaction API requires a configured `#/db` integration rather than only the `drizzle-orm` package. The catalog-driven test invokes the official CLI against a clean disposable Start scaffold, verifies that Drizzle was actually resolved and configured for PostgreSQL, checks the installed Jobs payload and package metadata, and completes a production build.
+
+The documented removal path was also verified against a disposable copy of the reference application. Removing Jobs code, scripts, the pg-boss package, worker/migration container wiring, and reference-app enablement still typechecks and builds. Removal deliberately retains the catalog/add-on authoring source and the `pgboss` database schema by default; pruning reusable distribution source or deleting queued data are separate decisions.
 
 ## Tradeoffs and extension points
 

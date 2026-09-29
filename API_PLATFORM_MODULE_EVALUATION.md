@@ -26,7 +26,7 @@ Version 1 supports PAT-style keys owned by real Better Auth users. `ApiPrincipal
 
 Better Auth supports user- and organization-owned references but does not supply a clean userless standalone service-principal model for this use case. This implementation does not create fake users or a second credential table. True service principals are deferred.
 
-The plugin is explicitly configured for `X-API-Key`, database storage, hashing enabled, `references: "user"`, and `enableSessionForAPIKeys: false`. A high default of 10,000 requests per 24 hours preserves useful key-level rate limiting without adopting the plugin's surprising 10-per-day default. Invalid, disabled, expired, and deleted keys fail authentication. Route code verifies once, then evaluates permissions from that verified result so insufficient permission can correctly return 403 without double-incrementing rate counters.
+The plugin is explicitly configured for `X-API-Key`, database storage, hashing enabled, `references: "user"`, and `enableSessionForAPIKeys: false`. The normalized v1 defaults are no expiry, 64 generated characters after the `app_` prefix, and 1,000 requests per 60 seconds. Invalid, disabled, expired, and deleted keys fail authentication. Route code verifies once, then evaluates permissions from that verified result so insufficient permission can correctly return 403 without double-incrementing rate counters.
 
 ## Schema and migration
 
@@ -35,6 +35,8 @@ The official Better Auth generator produced the `apikey` Drizzle model. The comm
 Generator review also found that Better Auth 1.7 expects `user.emailVerified` to be boolean while the starter retained an older nullable timestamp. The migration uses `USING (email_verified IS NOT NULL)`, then sets `DEFAULT false` and `NOT NULL`, preserving the meaning of existing verified rows. The schema export must be named `apikey`; the Better Auth Drizzle adapter discovers plugin models by exported schema key, not only SQL table name.
 
 No startup code mutates schema. Clean installation and production delivery continue through explicit Drizzle migrations.
+
+The follow-up migration `0002_even_nighthawk.sql` changes the database defaults for new API-key rows from the earlier daily window to the normalized 1,000-per-60-second contract. It intentionally does not rewrite existing keys that may have explicit limits.
 
 ## Contracts and native routes
 
@@ -67,13 +69,15 @@ GitHub OAuth, generic OIDC verification/linking, magic links, cookies, protected
 
 The official CLI reports exact IDs `better-auth` and `drizzle`. A clean scaffold proved the Better Auth add-on does not configure Drizzle transitively, so both are real `dependsOn` entries. The Drizzle fixture selects PostgreSQL. There is no Jobs dependency.
 
-The compiled custom add-on remains an add-on type but uses the official `example` application phase. The CLI writes same-phase dependencies after their requester, so the later supported phase is required for the API Platform auth/schema integration assets to overlay the initial Better Auth/Drizzle files. It installs source, migrations, contracts, native routes, lifecycle UI, skill/docs, and smoke tooling. Generic fixture commands apply migrations and execute the smoke against CI PostgreSQL before the normal build. This proves resolved dependencies, active API-key integration, hashing at rest, verification, permission denial, protected project operations, OpenAPI validation, Scalar compilation, and clean type/build behavior.
+The compiled custom add-on remains an add-on type but uses the official `example` application phase. The CLI writes same-phase dependencies after their requester, so the later supported phase is required for the API Platform auth/schema integration assets to overlay the initial Better Auth/Drizzle files. It installs source, migrations, contracts, native routes, lifecycle UI, skill/docs, and smoke tooling. Generic fixture commands apply migrations and execute the smoke against CI PostgreSQL before the normal build. The fixture also asserts the normalized credential defaults in installed source. This proves resolved dependencies, active API-key integration, hashing at rest, verification, permission denial, protected project operations, OpenAPI validation, Scalar compilation, and clean type/build behavior.
 
 The official format copies assets and has no semantic TypeScript merge hook. For clean scaffolds, the retained auth/schema overlay is deterministic. Before external publication, it needs a supported composition or codemod strategy that can preserve arbitrary consumer auth/schema customizations. External publication is intentionally deferred.
 
 ## Removal
 
-Removal stops/revokes callers, deletes route/UI/integration files, removes the API Key plugin from shared auth, and removes capability-only packages. The `apikey` table remains by default; dropping credential metadata is a separate destructive migration. The boolean `email_verified` correction remains. The CLI has no automatic uninstall transaction, so CAPABILITY.md lists explicit review steps.
+Removal stops/revokes callers, deletes route/UI/integration files, removes the API Key plugin from shared auth, and removes capability-only packages. The `apikey` table, committed migration history, and boolean `email_verified` correction remain by default; dropping credential metadata is a separate destructive migration. The CLI has no automatic uninstall transaction, so CAPABILITY.md and `docs/STARTING-A-PROJECT.md` list explicit shared-file review steps.
+
+That application-removal path was verified in a disposable reference-app copy, both alone and together with Jobs removal. The resulting lean variants pass capability governance, typecheck, and production build while the reusable API Platform add-on source remains available in the repository catalog.
 
 ## Optional integration points
 

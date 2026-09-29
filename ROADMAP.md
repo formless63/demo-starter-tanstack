@@ -18,7 +18,9 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs` is the first completed reusable capability and is default-installed. `API Platform / Machine Auth / OpenAPI` is capability #2 and is installed in the reference application while remaining optional (`defaultInstalled: false`) for generated consumers. No package is installed merely because it appears in this roadmap.
+`Jobs` and `API Platform / Machine Auth / OpenAPI` are the first two completed reusable capabilities. Both are enabled in the root reference application so their end-to-end and deployment paths stay tested. Both have `defaultInstalled: false`: a clean base/generated consumer receives neither unless it explicitly selects or installs the capability.
+
+`defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
 ## Custom add-on workspace
 
@@ -39,10 +41,10 @@ Only implemented capabilities receive an add-on directory. Planned entries such 
 
 ### Done
 
-| Capability | Requires | Integrates with | External | Status |
-| --- | --- | --- | --- | --- |
-| Jobs | None beyond baseline PostgreSQL and configured Drizzle | Observability, Ops / Admin | PostgreSQL | Done |
-| API Platform / Machine Auth / OpenAPI | None beyond baseline Better Auth, PostgreSQL/Drizzle, and server runtime | Audit Log, Observability, Authorization, Organizations | None beyond baseline PostgreSQL | Done |
+| Capability | Requires | Integrates with | External | Reference app | Default installed | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| Jobs | None beyond baseline PostgreSQL and configured Drizzle | Observability, Ops / Admin | PostgreSQL | Enabled | No | Done |
+| API Platform / Machine Auth / OpenAPI | None beyond baseline Better Auth, PostgreSQL/Drizzle, and server runtime | Audit Log, Observability, Authorization, Organizations | None beyond baseline PostgreSQL | Enabled | No | Done |
 
 ### Foundational / backend
 

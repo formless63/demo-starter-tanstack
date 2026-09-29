@@ -14,7 +14,7 @@ const userBProjectId = crypto.randomUUID();
 async function createKey(
 	name: string,
 	permissions: { projects: Array<"read" | "write"> },
-	rateLimitMax = 10_000,
+	rateLimitMax = 1_000,
 ) {
 	return auth.api.createApiKey({
 		body: {
@@ -23,7 +23,7 @@ async function createKey(
 			permissions,
 			rateLimitEnabled: true,
 			rateLimitMax,
-			rateLimitTimeWindow: 86_400_000,
+			rateLimitTimeWindow: 60_000,
 		},
 	});
 }
@@ -72,7 +72,11 @@ describe("API Platform machine authentication and Projects routes", () => {
 			.from(apikey)
 			.where(eq(apikey.id, created.id));
 
-		expect(created.key).toMatch(/^lp_/);
+		expect(created.key).toMatch(/^app_/);
+		expect(created.key).toHaveLength(68);
+		expect(created.rateLimitMax).toBe(1_000);
+		expect(created.rateLimitTimeWindow).toBe(60_000);
+		expect(created.expiresAt).toBeNull();
 		expect(stored?.key).toBeTruthy();
 		expect(stored?.key).not.toBe(created.key);
 		expect(stored?.key).not.toContain(created.key);
@@ -84,7 +88,7 @@ describe("API Platform machine authentication and Projects routes", () => {
 			status: 401,
 		});
 		await expect(
-			listProjectsApi(apiRequest("GET", "lp_random-invalid-key")),
+			listProjectsApi(apiRequest("GET", "app_random-invalid-key")),
 		).resolves.toMatchObject({ status: 401 });
 		const queryCredential = await createKey("query rejected", {
 			projects: ["read"],

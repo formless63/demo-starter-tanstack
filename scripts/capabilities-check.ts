@@ -30,6 +30,7 @@ interface Capability {
 
 interface Catalog {
 	baseline: { components: Array<{ id: string }> };
+	referenceApplication: { enabledCapabilities: string[] };
 	frameworkEvaluations: Record<string, Array<{ id: string }>>;
 	capabilities: Capability[];
 }
@@ -164,11 +165,19 @@ if (!isObject(catalogJson)) {
 	const catalog = catalogJson as unknown as Catalog;
 	const ids = catalog.capabilities.map(({ id }) => id);
 	const idSet = new Set(ids);
+	const byId = new Map(catalog.capabilities.map((capability) => [capability.id, capability]));
 	for (const id of duplicates(ids)) errors.push(`duplicate capability id: ${id}`);
 
 	const baselineIds = catalog.baseline.components.map(({ id }) => id);
 	const baselineSet = new Set(baselineIds);
+	const referenceEnabled = new Set(catalog.referenceApplication.enabledCapabilities);
 	for (const id of duplicates(baselineIds)) errors.push(`duplicate baseline id: ${id}`);
+	for (const id of catalog.referenceApplication.enabledCapabilities) {
+		if (!idSet.has(id)) errors.push(`referenceApplication.enabledCapabilities: unknown capability ${id}`);
+		if (byId.get(id)?.status !== "done") {
+			errors.push(`referenceApplication.enabledCapabilities: ${id} must have status done`);
+		}
+	}
 
 	for (const capability of catalog.capabilities) {
 		for (const relationship of ["requires", "integratesWith"] as const) {
@@ -211,7 +220,6 @@ if (!isObject(catalogJson)) {
 
 	const visiting = new Set<string>();
 	const visited = new Set<string>();
-	const byId = new Map(catalog.capabilities.map((capability) => [capability.id, capability]));
 	function visit(id: string, trail: string[]) {
 		if (visiting.has(id)) {
 			errors.push(`hard dependency cycle: ${[...trail, id].join(" -> ")}`);
@@ -242,8 +250,10 @@ if (!isObject(catalogJson)) {
 		if (capability.agentSkill && !existsSync(resolve(root, capability.agentSkill))) {
 			errors.push(`${capability.id}: missing ${capability.agentSkill}`);
 		}
-		for (const script of capability.scripts ?? []) {
-			if (!(script in scripts)) errors.push(`${capability.id}: package.json is missing script ${script}`);
+		if (referenceEnabled.has(capability.id)) {
+			for (const script of capability.scripts ?? []) {
+				if (!(script in scripts)) errors.push(`${capability.id}: enabled reference app is missing package.json script ${script}`);
+			}
 		}
 	}
 

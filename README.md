@@ -1,22 +1,57 @@
-# TanStack Launchpad
+# TanStack Start Full-Stack Starter
 
-A polished, provider-neutral TanStack Start evaluation starter: React, strict TypeScript, PostgreSQL/Drizzle, OAuth-only Better Auth, and an authenticated Projects vertical slice.
+A deployable, provider-neutral TanStack Start and React starter with Bun, PostgreSQL/Drizzle, passwordless Better Auth, Tailwind CSS 4, shadcn conventions, Base UI where appropriate, Tabler Icons, Docker/Compose, CI, and optional reusable capabilities.
 
-## Stack and prerequisites
+The root repository is also a reference application. It intentionally enables every completed capability so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
 
-Use Bun 1.4.2, Node 24 LTS (production output), Docker with Compose, and optionally a GitHub OAuth app or OIDC provider. Versions are pinned through `mise.toml`, `package.json`, and `bun.lock`.
+## Why this starter
 
-## Setup
+- Production-sensible defaults without a cloud-provider contract.
+- Native TanStack routes and server functions instead of a second HTTP framework.
+- Explicit, reviewed PostgreSQL migrations; startup never mutates schema.
+- Passwordless authentication with verified-email account linking.
+- A non-root Node production image and complete Compose release path.
+- Independently installable TanStack custom add-ons for optional capabilities.
+- PostgreSQL-backed tests, browser coverage, clean add-on fixtures, and container smoke verification.
+- Compact agent guidance and machine-readable capability governance.
+
+It is a strong starting point, not a claim that every application or hosting environment needs the same integrations.
+
+## Base stack
+
+The baseline is TanStack Start, React, strict TypeScript, Bun tooling, Node production output, PostgreSQL, Drizzle, Better Auth, GitHub OAuth, generic OIDC, Pocket ID development provisioning, Tailwind CSS 4, the shadcn-style component system, Tabler Icons, Docker/Compose, explicit migrations, CI/testing, and agent scaffolding.
+
+Baseline components are not optional capability modules. Future integrations in [ROADMAP.md](ROADMAP.md) are plans, not installed features.
+
+## Available capabilities
+
+`defaultInstalled` means a clean base/generated consumer receives the capability without explicitly selecting or installing it. Both completed capabilities are optional by that definition, although both are enabled in this repository's reference application.
+
+| Capability | Status | Default | Hard requirements | Purpose | Contract |
+| --- | --- | --- | --- | --- | --- |
+| Jobs | Done | Optional | Baseline PostgreSQL + Drizzle | Typed pg-boss queues, explicit migration, worker, transactional enqueue | [Jobs contract](capabilities/jobs/CAPABILITY.md) |
+| API Platform | Done | Optional | Baseline Better Auth + PostgreSQL/Drizzle + server runtime | User-owned machine keys, typed permissions, native v1 API, OpenAPI 3.1.1, Scalar | [API Platform contract](capabilities/api-platform/CAPABILITY.md) |
+
+See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
+
+## Quick start
+
+Use Bun 1.4.2, Node 24 LTS for production output, and Docker with Compose. GitHub OAuth or an OIDC provider is optional for initial local startup.
 
 ```bash
 cp .env.example .env.local
 bun install --frozen-lockfile
 docker compose up -d postgres
 bun run db:migrate
+bun run jobs:migrate
 bun run dev
 ```
 
 The development database defaults in `.env.example` match Compose. Production starts fail closed unless `DATABASE_URL`, a non-default 32+ character `BETTER_AUTH_SECRET`, and a non-localhost `APP_BASE_URL` are explicitly configured. Environment validation separates unprefixed server secrets from the only browser-visible setting, `VITE_APP_NAME`.
+
+## Starting a project
+
+Choose the full reference setup to keep Jobs and API Platform continuously exercised, or follow the verified lean-baseline recipes to remove one or both application integrations. Add-on authoring source can remain available or be pruned separately. See [Starting a project](docs/STARTING-A-PROJECT.md) for the exact shared-file edits and deployed-database cautions.
 
 ## Authentication
 
@@ -40,7 +75,9 @@ The command uses Pocket ID's current `/api/oidc/clients` and `/secrets` APIs, up
 
 ## Machine API and OpenAPI
 
-API Platform is installed in this reference application but remains optional for generated consumers. Human users manage PAT-style keys at `/app/api-keys`; new secrets are displayed once, while later lists contain only names, safe prefixes, permissions, state, expiration, and last-use metadata. Keys use `X-API-Key`, are hashed by Better Auth, never become browser sessions, and may receive `projects.read` and/or `projects.write`.
+API Platform is enabled in this reference application but remains optional for generated consumers. Human users manage PAT-style keys at `/app/api-keys`; new secrets are displayed once, while later lists contain only names, safe prefixes, permissions, state, expiration, and last-use metadata. Keys use the `X-API-Key` header, are hashed by Better Auth, never become browser sessions, and may receive `projects.read` and/or `projects.write`.
+
+Version 1 defaults to no expiry, a 64-character generated key with the `app_` prefix, and 1,000 requests per 60 seconds. These operational limits can be overridden per key where appropriate without changing the public authentication contract.
 
 The native TanStack routes `GET /api/v1/projects` and `POST /api/v1/projects` prove owner-scoped machine access to the existing Projects slice. The generated OpenAPI 3.1.1 document is available at `/api/openapi.json`, with interactive Scalar documentation at `/docs/api`. Run `bun run api-platform:smoke` against a migrated development database for the credential, permission, route, and contract smoke path.
 
@@ -73,21 +110,26 @@ bun run jobs:worker
 ## Verification
 
 ```bash
+bun install --frozen-lockfile
+bun run capabilities:status
 bun run capabilities:check
-bun run add-ons:test jobs api-platform
+bun run add-ons:test jobs
+bun run add-ons:test api-platform
 bun run api-platform:smoke
 bun run lint
 bun run typecheck
 bun test
+bun run build
 bun run test:e2e
-bun run check
 ```
 
-Playwright covers the public landing page and anonymous protected-route redirect. CI runs the static, unit, build, and browser checks, then proves the production artifact by building the image, migrating a clean Compose PostgreSQL database through the containerized migration job, waiting for the application healthcheck, and curling `/api/health`. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
+Playwright covers the public landing page, anonymous protected-route redirect, OpenAPI endpoint, machine-auth boundary, and Scalar rendering. CI runs the static, unit, build, and browser checks, then proves the production artifact by building the image, migrating a clean Compose PostgreSQL database, starting the worker/application, and probing health, OpenAPI, and docs. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
 
-## Reusable custom add-ons
+## Capability/add-on development
 
 Implemented custom add-ons live independently under `capabilities/<id>`. Each directory owns official `.add-on` source metadata/assets, capability-local TanStack authoring metadata, `CAPABILITY.md`, a clean-install fixture, and the retained compiled `add-on.json` distributable. Run `bun run add-ons:compile` after changing add-on source, then `bun run add-ons:test <id>` to install it through the official CLI into a disposable clean scaffold and build the result. The catalog drives both discovery and CI; planned capabilities do not have add-on workspaces and are not installed. No distributable is published externally yet.
+
+Read [docs/CAPABILITIES.md](docs/CAPABILITIES.md) before installing or removing a capability. TanStack CLI currently has no automatic uninstall transaction for custom add-ons, and shared TypeScript files require review.
 
 ## Production containers
 
