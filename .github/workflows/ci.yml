@@ -1,6 +1,31 @@
 name: CI
 on: [push, pull_request]
 jobs:
+  add-on-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      capabilities: ${{ steps.catalog.outputs.capabilities }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: catalog
+        run: |
+          capability_matrix=$(jq -c '[.capabilities[] | select(.status == "done" and .tanstackAddOn != null) | .id]' capabilities/catalog.json)
+          echo "capabilities=$capability_matrix" >> "$GITHUB_OUTPUT"
+
+  custom-add-ons:
+    needs: add-on-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        capability: ${{ fromJSON(needs.add-on-matrix.outputs.capabilities) }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version-file: package.json }
+      - run: bun install --frozen-lockfile
+      - run: bun run add-ons:test ${{ matrix.capability }}
+
   verify:
     runs-on: ubuntu-latest
     env:

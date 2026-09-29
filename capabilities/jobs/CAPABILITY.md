@@ -4,11 +4,15 @@ Status: done and default-installed. Evaluation: `JOBS_MODULE_EVALUATION.md`.
 
 ## Requirements
 
-**Requires:** No other capability module. The implementation requires the base starter's PostgreSQL database and configured Drizzle integration. The current TanStack CLI identifies the official Drizzle add-on as `drizzle`; `.add-on/info.json` therefore declares `dependsOn: ["drizzle"]`. Installing only the `drizzle-orm` npm package is not sufficient because Jobs imports the configured `#/db` transaction boundary.
+**Requires:** No other capability module. The implementation requires the base starter's PostgreSQL database and configured Drizzle integration. The current TanStack CLI identifies the official Drizzle add-on as `drizzle`; `capabilities/jobs/.add-on/info.json` therefore declares `dependsOn: ["drizzle"]`. Installing only the `drizzle-orm` npm package is not sufficient because Jobs imports the configured `#/db` transaction boundary.
 
 **Integrates with:** Observability and Ops / Admin. These are optional and their absence does not prevent enqueueing, migration, or worker operation.
 
 **External:** PostgreSQL is required for durable queue storage and coordination.
+
+**Conflicts:** None. TanStack CLI 0.71 supports `dependsOn` but not arbitrary conflict metadata, so the catalog and this contract explicitly record the empty conflict set without inventing an unsupported add-on field.
+
+The catalog records the independently installable TanStack add-on ID as `postgres-jobs`. Add-on dependency and conflict arrays use TanStack add-on IDs; capability-level `requires` continues to use stable capability IDs.
 
 ## Adds
 
@@ -19,6 +23,15 @@ Status: done and default-installed. Evaluation: `JOBS_MODULE_EVALUATION.md`.
 - `zod` validates payloads at enqueue and worker boundaries.
 
 The add-on package metadata declares all three packages and the framework-native `drizzle` add-on dependency.
+
+### Add-on packaging
+
+- `capabilities/jobs/.add-on` is the official TanStack custom add-on source and owns metadata, package/script additions, environment declarations, and installed assets.
+- `capabilities/jobs/.cta.json` supplies the capability-local authoring context required by the official compiler.
+- `capabilities/jobs/add-on.json` is the retained distributable produced by `bun run add-ons:compile jobs`.
+- `capabilities/jobs/test/clean-install.json` owns the disposable scaffold expectations used by `bun run add-ons:test jobs`.
+
+The Jobs directory is independent of future `capabilities/<id>` add-ons. Jobs is default-installed in this reference application, but its distributable can be installed alone and does not pull unrelated capabilities.
 
 ### Environment
 
@@ -65,7 +78,7 @@ The transaction enqueue API uses `fromDrizzle(tx, sql)`, so an application datab
 
 ## Installation
 
-For TanStack CLI installation, use the compiled root `add-on.json` or hosted equivalent. The add-on declares `dependsOn: ["drizzle"]`, so the actual Drizzle integration is installed/configured rather than silently assuming an npm package is enough. The target must select PostgreSQL for Drizzle.
+For TanStack CLI installation, use `capabilities/jobs/add-on.json` through the CLI's normal custom add-on URL mechanism. The add-on declares `dependsOn: ["drizzle"]`, so the actual Drizzle integration is installed/configured rather than silently assuming an npm package is enough. The target must select PostgreSQL for Drizzle.
 
 After package installation:
 
@@ -93,7 +106,7 @@ The TanStack CLI does not provide a general automatic uninstall transaction for 
 - Run `jobs:doctor` after migration and treat drift or version failure as a blocked release.
 - Preserve `migrate: false` for every long-lived runtime instance.
 - Re-test Drizzle transaction adapter compatibility and both commit/rollback behavior.
-- Recompile `add-on.json` whenever `.add-on` source metadata or assets change.
+- Recompile `capabilities/jobs/add-on.json` whenever its `.add-on` source metadata or assets change, and commit both sides of the change.
 
 ## Verification
 
@@ -101,14 +114,15 @@ Run:
 
 ```bash
 bun run capabilities:check
+bun run add-ons:test jobs
 bun run jobs:migrate
 bun run jobs:doctor
 bun test src/integrations/jobs
 bun run jobs:smoke
 ```
 
-The integration suite covers atomic commit, atomic rollback, and invalid payload failure. CI also runs migrations, doctor, and smoke from the production image, starts the long-lived worker, verifies application health, and tears the stack down.
+The clean-install test invokes the official TanStack CLI against a disposable blank Start scaffold, proves that `dependsOn` resolves the official PostgreSQL Drizzle integration, verifies installed files/packages/scripts, and builds the generated application. The integration suite covers atomic commit, atomic rollback, and invalid payload failure. CI also runs migrations, doctor, and smoke from the production image, starts the long-lived worker, verifies application health, and tears the stack down.
 
 ## Agent guidance
 
-Read `ROADMAP.md`, this document, `.agents/skills/capability-change/SKILL.md`, and `.agents/skills/jobs-change/SKILL.md` before changing Jobs. Keep registry payloads validated, preserve explicit migration ownership, keep optional integrations optional, and update the roadmap, catalog, this contract, add-on metadata/assets, and evaluation together when their facts change.
+Read `ROADMAP.md`, this document, `.agents/skills/capability-change/SKILL.md`, and `.agents/skills/jobs-change/SKILL.md` before changing Jobs. Keep registry payloads validated, preserve explicit migration ownership, keep optional integrations optional, and update the roadmap, catalog, this contract, capability-local add-on source/fixture/distributable, and evaluation together when their facts change.

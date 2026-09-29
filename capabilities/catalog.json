@@ -1,6 +1,6 @@
 {
 	"$schema": "./catalog.schema.json",
-	"version": 1,
+	"version": 2,
 	"baseline": {
 		"summary": "Always-present starter foundations; these are not optional capability modules and must never appear in capability relationship arrays.",
 		"components": [
@@ -69,7 +69,15 @@
 			"documentationPath": "capabilities/jobs/CAPABILITY.md",
 			"agentSkill": ".agents/skills/jobs-change/SKILL.md",
 			"evaluationDocument": "JOBS_MODULE_EVALUATION.md",
-			"tanstackAddOn": { "manifestPath": ".add-on/info.json", "dependsOn": ["drizzle"] }
+			"tanstackAddOn": {
+				"addOnId": "postgres-jobs",
+				"sourceDirectory": "capabilities/jobs/.add-on",
+				"manifestPath": "capabilities/jobs/.add-on/info.json",
+				"distributablePath": "capabilities/jobs/add-on.json",
+				"cleanInstallFixture": "capabilities/jobs/test/clean-install.json",
+				"dependsOn": ["drizzle"],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "api-platform", "displayName": "API Platform / Machine Auth / OpenAPI", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,

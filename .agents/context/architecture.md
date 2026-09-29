@@ -13,7 +13,9 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 - `drizzle`: reviewed, generated migration history.
 - `scripts`: local operational tooling; no runtime imports.
 - `src/integrations/jobs`: typed queue definitions, enqueue APIs, transaction adapter, and worker runtime.
-- `capabilities`: machine-readable capability governance and implemented capability contracts.
+- `capabilities`: catalog governance plus one self-contained official TanStack custom add-on workspace per implemented capability. Each workspace owns `.add-on` source, `.cta.json`, `CAPABILITY.md`, a retained `add-on.json`, and a clean-install fixture.
+
+Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
 
 Prefer direct framework primitives and explicit checks. Do not add repository/service layers, a separate API, RBAC, or other speculative abstractions. Background work belongs in the explicit `src/integrations/jobs` boundary: typed registry, Zod payload validation, pg-boss persistence, and standalone worker.
 

@@ -6,7 +6,7 @@
 	"required": ["$schema", "version", "baseline", "frameworkEvaluations", "capabilities"],
 	"properties": {
 		"$schema": { "type": "string", "const": "./catalog.schema.json" },
-		"version": { "type": "integer", "const": 1 },
+		"version": { "type": "integer", "const": 2 },
 		"baseline": { "$ref": "#/$defs/baseline" },
 		"frameworkEvaluations": {
 			"type": "object",
@@ -95,10 +95,19 @@
 		"tanstackAddOn": {
 			"type": "object",
 			"additionalProperties": false,
-			"required": ["manifestPath", "dependsOn"],
+			"required": ["addOnId", "sourceDirectory", "manifestPath", "distributablePath", "cleanInstallFixture", "dependsOn", "conflictsWith"],
 			"properties": {
+				"addOnId": { "$ref": "#/$defs/identifier" },
+				"sourceDirectory": { "type": "string", "minLength": 1 },
 				"manifestPath": { "type": "string", "minLength": 1 },
+				"distributablePath": { "type": "string", "minLength": 1 },
+				"cleanInstallFixture": { "type": "string", "minLength": 1 },
 				"dependsOn": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/identifier" },
+					"uniqueItems": true
+				},
+				"conflictsWith": {
 					"type": "array",
 					"items": { "$ref": "#/$defs/identifier" },
 					"uniqueItems": true

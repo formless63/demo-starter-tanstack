@@ -11,6 +11,9 @@
 - `bun run jobs:smoke`: enqueue and consume the demo echo job through a real worker.
 - `bun run auth:provision`: idempotently provision Pocket ID from local credentials.
 - `bun run capabilities:check`: validate capability schema, relationships, documentation, scripts, and add-on metadata.
+- `bun run add-ons:compile [id ...]`: compile declared custom add-ons with the pinned official TanStack CLI; outputs stay at `capabilities/<id>/add-on.json`.
+- `bun run add-ons:test [id ...]`: reject stale compiled output, install each selected add-on into a clean disposable Start scaffold, verify official dependencies/assets/package additions, and build it.
+- `bun run add-ons:matrix`: print the completed custom add-on IDs used by CI's data-driven matrix.
 - `bun run lint`, `bun run typecheck`, `bun test`: static and unit/integration verification.
 - `bun run test:e2e`: Playwright landing/protection smoke test (browser install required).
 - `bun run build`, `bun run start`: create and run the Node-compatible production output.
