@@ -1,4 +1,9 @@
-import { IconFolder, IconLogout, IconSparkles } from "@tabler/icons-react";
+import {
+	IconFolder,
+	IconKey,
+	IconLogout,
+	IconSparkles,
+} from "@tabler/icons-react";
 import {
 	createFileRoute,
 	Link,
@@ -54,12 +59,22 @@ function AppShell() {
 			</header>
 			<div className="mx-auto grid max-w-6xl md:grid-cols-[190px_1fr]">
 				<aside className="border-r p-4 max-md:border-b">
-					<Link
-						to="/app/projects"
-						className="flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium"
-					>
-						<IconFolder size={18} /> Projects
-					</Link>
+					<nav className="space-y-1">
+						<Link
+							to="/app/projects"
+							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+							activeProps={{ className: "bg-accent" }}
+						>
+							<IconFolder size={18} /> Projects
+						</Link>
+						<Link
+							to="/app/api-keys"
+							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+							activeProps={{ className: "bg-accent" }}
+						>
+							<IconKey size={18} /> API keys
+						</Link>
+					</nav>
 				</aside>
 				<main className="min-w-0 p-5 md:p-8">
 					<Outlet />

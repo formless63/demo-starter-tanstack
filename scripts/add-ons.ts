@@ -35,6 +35,7 @@ interface CleanInstallFixture {
 	addOnConfig?: Record<string, unknown>;
 	expectedOfficialAddOns: string[];
 	expectedFiles: string[];
+	verificationCommands?: string[][];
 	build: boolean;
 }
 
@@ -65,10 +66,19 @@ async function readJson<T>(path: string): Promise<T> {
 	return JSON.parse(await readFile(path, "utf8")) as T;
 }
 
-async function run(command: string, args: string[], cwd: string) {
+async function run(
+	command: string,
+	args: string[],
+	cwd: string,
+	environment: NodeJS.ProcessEnv = {},
+) {
 	const child = spawn(command, args, {
 		cwd,
-		env: { ...process.env, TANSTACK_CLI_TELEMETRY_DISABLED: "1" },
+		env: {
+			...process.env,
+			...environment,
+			TANSTACK_CLI_TELEMETRY_DISABLED: "1",
+		},
 		stdio: "inherit",
 	});
 	const exitCode = await new Promise<number>((resolveExit, reject) => {
@@ -187,6 +197,18 @@ async function cleanInstall(capability: Capability & { tanstackAddOn: AddOnMetad
 		assertRecordContains(installedPackage.dependencies, manifest.packageAdditions?.dependencies, `${capability.id} dependencies`);
 		assertRecordContains(installedPackage.devDependencies, manifest.packageAdditions?.devDependencies, `${capability.id} devDependencies`);
 		assertRecordContains(installedPackage.scripts, manifest.packageAdditions?.scripts, `${capability.id} scripts`);
+		const databaseUrl = process.env.ADD_ON_TEST_DATABASE_URL ?? process.env.DATABASE_URL;
+		for (const [command, ...args] of fixture.verificationCommands ?? []) {
+			if (!command) throw new Error(`${capability.id}: verification command cannot be empty`);
+			await run(command, args, target, {
+				...(databaseUrl ? { DATABASE_URL: databaseUrl } : {}),
+				BETTER_AUTH_SECRET:
+					process.env.BETTER_AUTH_SECRET ??
+					"add-on-test-secret-with-at-least-32-characters",
+				APP_BASE_URL: process.env.APP_BASE_URL ?? "http://127.0.0.1:3000",
+				NODE_ENV: "test",
+			});
+		}
 		if (fixture.build) await run(process.execPath, ["run", "build"], target);
 		console.info(`${capability.id}: clean install passed with ${manifest.dependsOn?.join(", ") || "no"} official dependencies`);
 	} finally {

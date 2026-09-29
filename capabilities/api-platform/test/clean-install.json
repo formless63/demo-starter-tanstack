@@ -1,0 +1,31 @@
+{
+	"projectName": "api-platform-addon-clean-install",
+	"framework": "React",
+	"blank": true,
+	"packageManager": "bun",
+	"toolchain": "biome",
+	"addOnConfig": {
+		"drizzle": {
+			"database": "postgresql"
+		}
+	},
+	"expectedOfficialAddOns": ["better-auth", "drizzle"],
+	"expectedFiles": [
+		"src/db/index.ts",
+		"src/db/schema.ts",
+		"src/integrations/api-platform/principal.server.ts",
+		"src/integrations/api-platform/openapi.ts",
+		"src/routes/api/v1/projects.ts",
+		"src/routes/api/openapi[.]json.ts",
+		"src/routes/docs.api.tsx",
+		"src/routes/app.api-keys.tsx",
+		"scripts/api-platform-smoke.ts",
+		"drizzle/0001_pretty_kat_farrell.sql",
+		"capabilities/api-platform/CAPABILITY.md"
+	],
+	"verificationCommands": [
+		["bun", "run", "db:migrate"],
+		["bun", "run", "api-platform:smoke"]
+	],
+	"build": true
+}

@@ -1,6 +1,6 @@
 # Stack snapshot
 
-Exact resolved versions live in `bun.lock`; key versions are TanStack Start 1.168.58/Router 1.170.39/Query 5.103.2/Form 1.33.5, React 19.3.0, Better Auth 1.7.6, Drizzle ORM 0.45.3, Tailwind 4.3.3, Vite 8.3.1, TypeScript 6.0.3, Bun 1.4.2, Node 24.21.0, PostgreSQL 18, Vitest 3.2.7, and Playwright 1.63.0.
+Exact resolved versions live in `bun.lock`; key versions are TanStack Start 1.168.58/Router 1.170.39/Query 5.103.2/Form 1.33.5, React 19.3.0, Better Auth/API Key 1.7.6, Drizzle ORM 0.45.3, zod-openapi 6.0.2, Scalar React 0.9.75, Tailwind 4.3.3, Vite 8.3.1, TypeScript 6.0.3, Bun 1.4.2, Node 24.21.0, PostgreSQL 18, Vitest 3.2.7, and Playwright 1.63.0.
 
 The official TanStack CLI supplied Start, file routing, Vite, Tailwind, Query, Form, Drizzle, Better Auth, t3-env, Biome, and shadcn wiring. CLI 0.71.0 is pinned as a development tool for capability-local custom add-on compilation and clean-scaffold installation tests. Each implemented add-on retains official `.add-on` source and compiled `add-on.json` output under `capabilities/<id>`; no external publication is configured. The installed shadcn scaffold still selected Radix; new interactive primitives should use current Base UI recommendations and Tabler icons. Sonner provides feedback.
 
@@ -9,3 +9,5 @@ TanStack Intent was requested with `--intent`. The scaffold attempted project ho
 Production delivery uses a multi-stage Docker image and plain Compose. The build pins Nitro's provider-neutral `node-server` preset and bundles Drizzle plus pg-boss operational entrypoints into the same Node 24 image as the application. Compose supplies PostgreSQL 18, explicit application and jobs migration jobs, a health-checked non-root application, and a separately restartable worker; CI exercises this exact artifact path without OAuth credentials.
 
 Background jobs use stable pg-boss 12.35.0 in the dedicated configurable `pgboss` schema. Runtime clients and workers set `migrate: false`; only `jobs:migrate` may install or upgrade the schema. A typed registry owns queue names, Zod payloads, retry/expiry policy, and handlers. The official pg-boss Drizzle adapter makes application writes and enqueue operations atomic.
+
+API Platform uses Better Auth's official user-owned API Key plugin with hashed `X-API-Key` credentials and API-key sessions explicitly disabled. Typed project read/write grants are checked after one verification call, avoiding double rate-limit increments. Zod schemas drive runtime validation and OpenAPI 3.1.1 generation; Scalar renders and validates the deliberately registered external surface. There is no second HTTP router, cache service, Jobs coupling, fake service principal, or generated SDK.
