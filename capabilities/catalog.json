@@ -80,9 +80,28 @@
 			}
 		},
 		{
-			"id": "api-platform", "displayName": "API Platform / Machine Auth / OpenAPI", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["audit-log", "observability", "authorization", "organizations"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Provider-neutral machine authentication, public API conventions, and OpenAPI contracts."
+			"id": "api-platform", "displayName": "API Platform / Machine Auth / OpenAPI", "kind": "foundational-backend", "status": "done", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["audit-log", "observability", "authorization", "organizations"], "baselineRequirements": ["authentication", "postgresql", "drizzle", "node-runtime"], "externalRequirements": [],
+			"summary": "User-owned machine credentials, typed permissions, native API route conventions, generated OpenAPI 3.1.1, and Scalar documentation.",
+			"scripts": ["api-platform:smoke"],
+			"environmentVariables": [
+				{ "name": "DATABASE_URL", "required": true, "description": "PostgreSQL connection used by Drizzle and Better Auth." },
+				{ "name": "BETTER_AUTH_SECRET", "required": true, "description": "Better Auth signing secret with at least 32 characters." },
+				{ "name": "APP_BASE_URL", "required": true, "description": "Public application and Better Auth base URL." }
+			],
+			"migrations": ["bun run db:migrate"],
+			"documentationPath": "capabilities/api-platform/CAPABILITY.md",
+			"agentSkill": ".agents/skills/api-contract-change/SKILL.md",
+			"evaluationDocument": "API_PLATFORM_MODULE_EVALUATION.md",
+			"tanstackAddOn": {
+				"addOnId": "api-platform",
+				"sourceDirectory": "capabilities/api-platform/.add-on",
+				"manifestPath": "capabilities/api-platform/.add-on/info.json",
+				"distributablePath": "capabilities/api-platform/add-on.json",
+				"cleanInstallFixture": "capabilities/api-platform/test/clean-install.json",
+				"dependsOn": ["better-auth", "drizzle"],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "observability", "displayName": "Observability", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,

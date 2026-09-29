@@ -1,0 +1,55 @@
+{
+	"id": "api-platform",
+	"name": "api-platform",
+	"displayName": "API Platform",
+	"description": "User-owned machine credentials, typed permissions, native TanStack API routes, OpenAPI 3.1.1, and Scalar documentation.",
+	"version": "1.0.0",
+	"type": "add-on",
+	"phase": "example",
+	"category": "auth",
+	"modes": ["file-router"],
+	"dependsOn": ["better-auth", "drizzle"],
+	"packageAdditions": {
+		"dependencies": {
+			"@better-auth/api-key": "^1.7.6",
+			"@scalar/api-reference-react": "^0.9.75",
+			"@t3-oss/env-core": "^0.13.10",
+			"@tabler/icons-react": "^3.35.0",
+			"zod": "^4.3.6",
+			"zod-openapi": "^6.0.2"
+		},
+		"devDependencies": {
+			"@scalar/openapi-parser": "^0.29.8"
+		},
+		"scripts": {
+			"db:generate": "drizzle-kit generate",
+			"db:migrate": "drizzle-kit migrate",
+			"api-platform:smoke": "bun scripts/api-platform-smoke.ts"
+		}
+	},
+	"author": "TanStack Launchpad",
+	"license": "MIT",
+	"envVars": [
+		{
+			"name": "DATABASE_URL",
+			"description": "PostgreSQL connection used by Drizzle and Better Auth.",
+			"required": true,
+			"secret": true,
+			"file": ".env.local"
+		},
+		{
+			"name": "BETTER_AUTH_SECRET",
+			"description": "Better Auth signing secret with at least 32 characters.",
+			"required": true,
+			"secret": true,
+			"file": ".env.local"
+		},
+		{
+			"name": "APP_BASE_URL",
+			"description": "Public application base URL used by Better Auth.",
+			"required": true,
+			"secret": false,
+			"file": ".env.local"
+		}
+	]
+}

@@ -20,3 +20,26 @@ test("public landing and protected return-after-login", async ({ page }) => {
 		expect(payload.callbackURL).toBe("/app/projects?view=recent");
 	}
 });
+
+test("API contract, machine-auth boundary, and interactive docs", async ({
+	page,
+	request,
+}) => {
+	const documentResponse = await request.get("/api/openapi.json");
+	expect(documentResponse.ok()).toBe(true);
+	const document = await documentResponse.json();
+	expect(document.openapi).toBe("3.1.1");
+	expect(Object.keys(document.paths)).toEqual(["/api/v1/projects"]);
+
+	const unauthorizedResponse = await request.get("/api/v1/projects");
+	expect(unauthorizedResponse.status()).toBe(401);
+	await expect(unauthorizedResponse.json()).resolves.toMatchObject({
+		error: { code: "unauthorized" },
+	});
+
+	await page.goto("/docs/api");
+	await expect(page.getByText("Launchpad API", { exact: true }).first()).toBeVisible({
+		timeout: 15_000,
+	});
+	await expect(page.getByText("List projects", { exact: true }).first()).toBeVisible();
+});

@@ -15,6 +15,23 @@ jobs:
   custom-add-ons:
     needs: add-on-matrix
     runs-on: ubuntu-latest
+    env:
+      ADD_ON_TEST_DATABASE_URL: postgresql://starter:starter@127.0.0.1:5432/starter
+      BETTER_AUTH_SECRET: add-on-ci-secret-with-at-least-32-characters
+      APP_BASE_URL: http://127.0.0.1:3000
+    services:
+      postgres:
+        image: postgres:18.1-alpine
+        env:
+          POSTGRES_DB: starter
+          POSTGRES_USER: starter
+          POSTGRES_PASSWORD: starter
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U starter -d starter"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
     strategy:
       fail-fast: false
       matrix:
@@ -55,5 +72,7 @@ jobs:
       - run: docker compose up -d --wait app
       - run: test "$(docker compose ps --status running --services worker)" = worker
       - run: curl --fail --show-error http://127.0.0.1:3000/api/health
+      - run: curl --fail --show-error http://127.0.0.1:3000/api/openapi.json | jq -e '.openapi == "3.1.1"'
+      - run: curl --fail --show-error --output /dev/null http://127.0.0.1:3000/docs/api
       - if: always()
         run: docker compose down --volumes --remove-orphans

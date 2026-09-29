@@ -38,6 +38,12 @@ bun run auth:provision
 
 The command uses Pocket ID's current `/api/oidc/clients` and `/secrets` APIs, updates callback/logout URLs, creates a secret only when the ignored `.env.local` lacks one, and is safe to rerun. Missing or unavailable configuration produces a clear error. Optional `MAGIC_LINK_ENABLED=true` prints links only in development; production intentionally refuses until a mail transport is implemented.
 
+## Machine API and OpenAPI
+
+API Platform is installed in this reference application but remains optional for generated consumers. Human users manage PAT-style keys at `/app/api-keys`; new secrets are displayed once, while later lists contain only names, safe prefixes, permissions, state, expiration, and last-use metadata. Keys use `X-API-Key`, are hashed by Better Auth, never become browser sessions, and may receive `projects.read` and/or `projects.write`.
+
+The native TanStack routes `GET /api/v1/projects` and `POST /api/v1/projects` prove owner-scoped machine access to the existing Projects slice. The generated OpenAPI 3.1.1 document is available at `/api/openapi.json`, with interactive Scalar documentation at `/docs/api`. Run `bun run api-platform:smoke` against a migrated development database for the credential, permission, route, and contract smoke path.
+
 ## Development and migrations
 
 `bun run dev` starts the app. Edit `src/db/schema.ts`, run `bun run db:generate`, review the SQL under `drizzle/`, and commit it. For local development, apply migrations with `bun run db:migrate`; schema push is intentionally not a script.
@@ -68,7 +74,8 @@ bun run jobs:worker
 
 ```bash
 bun run capabilities:check
-bun run add-ons:test jobs
+bun run add-ons:test jobs api-platform
+bun run api-platform:smoke
 bun run lint
 bun run typecheck
 bun test

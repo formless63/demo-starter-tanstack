@@ -3,6 +3,8 @@
 ## Boundaries and flow
 `src/routes` owns TanStack Router pages and HTTP handlers. UI calls typed TanStack Start server functions in `src/features`; those functions restore the Better Auth session, validate input, enforce ownership in SQL, and then access Drizzle. `src/db` is server-only persistence. Browser code must never import `src/db` or `src/lib/auth`.
 
+External machine operations stay under `/api/v1` and are normal TanStack Start server routes. `src/integrations/api-platform` owns credential verification, the plugin-neutral principal, error envelopes, Zod operation metadata, and deterministic OpenAPI generation; it is not a router. Every operation explicitly consumes its contract and enforces API-key permissions beside the owner-scoped domain call. `/api/openapi.json` contains only registered external operations, and `/docs/api` renders that document with Scalar.
+
 Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts, and sessions in PostgreSQL. `/app` restores the current user in `beforeLoad` and redirects anonymous visitors. Every Projects query includes the authenticated `ownerId`; route protection alone is never authorization.
 
 ## Directories
@@ -13,11 +15,12 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 - `drizzle`: reviewed, generated migration history.
 - `scripts`: local operational tooling; no runtime imports.
 - `src/integrations/jobs`: typed queue definitions, enqueue APIs, transaction adapter, and worker runtime.
+- `src/integrations/api-platform`: machine principals and permissions, lifecycle boundaries, external API contracts/handlers, errors, and OpenAPI generation.
 - `capabilities`: catalog governance plus one self-contained official TanStack custom add-on workspace per implemented capability. Each workspace owns `.add-on` source, `.cta.json`, `CAPABILITY.md`, a retained `add-on.json`, and a clean-install fixture.
 
 Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
 
-Prefer direct framework primitives and explicit checks. Do not add repository/service layers, a separate API, RBAC, or other speculative abstractions. Background work belongs in the explicit `src/integrations/jobs` boundary: typed registry, Zod payload validation, pg-boss persistence, and standalone worker.
+Prefer direct framework primitives and explicit checks. Do not add repository/service layers, another HTTP router, RBAC, or other speculative abstractions. API-key permissions are credential grants, not the future general Authorization capability. Background work belongs in the explicit `src/integrations/jobs` boundary: typed registry, Zod payload validation, pg-boss persistence, and standalone worker.
 
 ## Production containers
 `compose.yaml` is the provider-neutral production orchestration contract. `app` and `worker` run independently and never mutate schema during startup. The explicit one-shot `migrate` and `jobs-migrate` services gate application and pg-boss schema changes before either long-lived process starts. All four services use the same immutable image and Compose database hostname. The runtime image is unprivileged, contains no development bind mounts, and exposes the database-backed `/api/health` readiness signal.

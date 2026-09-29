@@ -12,8 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiOpenapiDotjsonRouteImport } from './routes/api/openapi[.]json'
+import { Route as AppApiKeysRouteImport } from './routes/app.api-keys'
 import { Route as AppProjectsRouteImport } from './routes/app.projects'
+import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiV1ProjectsRouteImport } from './routes/api/v1/projects'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,14 +34,34 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOpenapiDotjsonRoute = ApiOpenapiDotjsonRouteImport.update({
+  id: '/api/openapi.json',
+  path: '/api/openapi.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppApiKeysRoute = AppApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProjectsRoute = AppProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
   getParentRoute: () => AppRoute,
 } as any)
+const DocsApiRoute = DocsApiRouteImport.update({
+  id: '/docs/api',
+  path: '/docs/api',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1ProjectsRoute = ApiV1ProjectsRouteImport.update({
+  id: '/api/v1/projects',
+  path: '/api/v1/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -45,38 +69,80 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/app/api-keys': typeof AppApiKeysRoute
   '/app/projects': typeof AppProjectsRoute
+  '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/v1/projects': typeof ApiV1ProjectsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/app/api-keys': typeof AppApiKeysRoute
   '/app/projects': typeof AppProjectsRoute
+  '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/v1/projects': typeof ApiV1ProjectsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/api/health': typeof ApiHealthRoute
+  '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/app/api-keys': typeof AppApiKeysRoute
   '/app/projects': typeof AppProjectsRoute
+  '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/v1/projects': typeof ApiV1ProjectsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/api/health' | '/app/projects' | '/api/auth/$'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/api/health'
+    | '/api/openapi.json'
+    | '/app/api-keys'
+    | '/app/projects'
+    | '/docs/api'
+    | '/api/auth/$'
+    | '/api/v1/projects'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/api/health' | '/app/projects' | '/api/auth/$'
+  to:
+    | '/'
+    | '/app'
+    | '/api/health'
+    | '/api/openapi.json'
+    | '/app/api-keys'
+    | '/app/projects'
+    | '/docs/api'
+    | '/api/auth/$'
+    | '/api/v1/projects'
   id:
-    '__root__' | '/' | '/app' | '/api/health' | '/app/projects' | '/api/auth/$'
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/api/health'
+    | '/api/openapi.json'
+    | '/app/api-keys'
+    | '/app/projects'
+    | '/docs/api'
+    | '/api/auth/$'
+    | '/api/v1/projects'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiOpenapiDotjsonRoute: typeof ApiOpenapiDotjsonRoute
+  DocsApiRoute: typeof DocsApiRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiV1ProjectsRoute: typeof ApiV1ProjectsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -102,12 +168,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/openapi.json': {
+      id: '/api/openapi.json'
+      path: '/api/openapi.json'
+      fullPath: '/api/openapi.json'
+      preLoaderRoute: typeof ApiOpenapiDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/api-keys': {
+      id: '/app/api-keys'
+      path: '/api-keys'
+      fullPath: '/app/api-keys'
+      preLoaderRoute: typeof AppApiKeysRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/projects': {
       id: '/app/projects'
       path: '/projects'
       fullPath: '/app/projects'
       preLoaderRoute: typeof AppProjectsRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/docs/api': {
+      id: '/docs/api'
+      path: '/docs/api'
+      fullPath: '/docs/api'
+      preLoaderRoute: typeof DocsApiRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -116,14 +203,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/projects': {
+      id: '/api/v1/projects'
+      path: '/api/v1/projects'
+      fullPath: '/api/v1/projects'
+      preLoaderRoute: typeof ApiV1ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppApiKeysRoute: typeof AppApiKeysRoute
   AppProjectsRoute: typeof AppProjectsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppApiKeysRoute: AppApiKeysRoute,
   AppProjectsRoute: AppProjectsRoute,
 }
 
@@ -133,7 +229,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,
+  ApiOpenapiDotjsonRoute: ApiOpenapiDotjsonRoute,
+  DocsApiRoute: DocsApiRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiV1ProjectsRoute: ApiV1ProjectsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

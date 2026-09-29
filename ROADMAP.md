@@ -18,7 +18,7 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs` is the first completed reusable capability and is default-installed in this starter. All other capability entries are planned; no package is installed merely because it appears here.
+`Jobs` is the first completed reusable capability and is default-installed. `API Platform / Machine Auth / OpenAPI` is capability #2 and is installed in the reference application while remaining optional (`defaultInstalled: false`) for generated consumers. No package is installed merely because it appears in this roadmap.
 
 ## Custom add-on workspace
 
@@ -35,19 +35,19 @@ capabilities/<id>/
 
 The official pinned TanStack CLI compiles each `.add-on` directory; repository scripts only discover entries from `capabilities/catalog.json`, invoke that CLI, and verify clean installation. They are not an alternative generator. Each catalog entry records its stable TanStack add-on ID; add-on `dependsOn` and conflict sets use those CLI IDs, while capability `requires` uses capability IDs. The checker ensures completed hard capability dependencies are also expressed in official add-on metadata. `bun run add-ons:compile` rebuilds every declared distributable, while `bun run add-ons:test <id>` verifies that the committed output is current, installs it through normal TanStack mechanics into a clean scaffold, resolves official dependencies, and builds the result.
 
-Only implemented capabilities receive an add-on directory. Planned entries such as API Platform, Observability, Object Storage, and Email remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
+Only implemented capabilities receive an add-on directory. Planned entries such as Observability, Object Storage, and Email remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
 
 ### Done
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
 | Jobs | None beyond baseline PostgreSQL and configured Drizzle | Observability, Ops / Admin | PostgreSQL | Done |
+| API Platform / Machine Auth / OpenAPI | None beyond baseline Better Auth, PostgreSQL/Drizzle, and server runtime | Audit Log, Observability, Authorization, Organizations | None beyond baseline PostgreSQL | Done |
 
 ### Foundational / backend
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| API Platform / Machine Auth / OpenAPI | None beyond starter baseline | Audit Log, Observability, Authorization, Organizations | None | Planned |
 | Observability | None | Every server/runtime capability where useful | Optional OTLP destination | Planned |
 | Object Storage | None | Jobs, Observability | S3-compatible storage | Planned |
 | Email | None | Jobs, Observability, Better Auth magic links | SMTP; Mailpit for development | Planned |

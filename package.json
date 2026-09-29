@@ -24,6 +24,7 @@
     "add-ons:compile": "bun scripts/add-ons.ts compile",
     "add-ons:test": "bun scripts/add-ons.ts test",
     "add-ons:matrix": "bun scripts/add-ons.ts matrix",
+    "api-platform:smoke": "bun scripts/api-platform-smoke.ts",
     "format": "biome format --write .",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
@@ -36,6 +37,8 @@
     "jobs:smoke": "bun scripts/jobs-smoke.ts"
   },
   "dependencies": {
+    "@better-auth/api-key": "^1.7.6",
+    "@scalar/api-reference-react": "^0.9.75",
     "@t3-oss/env-core": "^0.13.10",
     "@tabler/icons-react": "^3.35.0",
     "@tailwindcss/vite": "^4.1.18",
@@ -47,7 +50,7 @@
     "@tanstack/react-router-devtools": "^1.167.2",
     "@tanstack/react-router-ssr-query": "^1.167.3",
     "@tanstack/react-start": "^1.168.58",
-    "better-auth": "^1.5.3",
+    "better-auth": "^1.7.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-kit": "^0.31.9",
@@ -61,11 +64,13 @@
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.1.18",
     "tw-animate-css": "^1.3.6",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "zod-openapi": "^6.0.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.5",
     "@playwright/test": "^1.55.0",
+    "@scalar/openapi-parser": "^0.29.8",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/cli": "0.71.0",
     "@tanstack/devtools-vite": "^0.8.5",
