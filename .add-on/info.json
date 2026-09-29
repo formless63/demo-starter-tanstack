@@ -8,6 +8,7 @@
 	"phase": "add-on",
 	"category": "database",
 	"modes": ["file-router"],
+	"dependsOn": ["drizzle"],
 	"packageAdditions": {
 		"dependencies": {
 			"drizzle-orm": "^0.45.1",
@@ -25,12 +26,35 @@
 	"license": "MIT",
 	"envVars": [
 		{
+			"name": "PGBOSS_DATABASE_URL",
+			"description": "Optional jobs-specific PostgreSQL URL; defaults to DATABASE_URL.",
+			"required": false,
+			"secret": true,
+			"file": ".env.local"
+		},
+		{
 			"name": "PGBOSS_SCHEMA",
-			"description": "Dedicated pg-boss PostgreSQL schema (defaults to pgboss)."
+			"description": "Dedicated pg-boss PostgreSQL schema.",
+			"required": false,
+			"default": "pgboss",
+			"secret": false,
+			"file": ".env.local"
+		},
+		{
+			"name": "PGBOSS_USE_LISTEN_NOTIFY",
+			"description": "Opt in to LISTEN/NOTIFY wakeups with polling fallback.",
+			"required": false,
+			"default": "false",
+			"secret": false,
+			"file": ".env.local"
 		},
 		{
 			"name": "JOBS_CONCURRENCY",
-			"description": "Per-queue worker concurrency (defaults to 4)."
+			"description": "Per-queue worker concurrency.",
+			"required": false,
+			"default": "4",
+			"secret": false,
+			"file": ".env.local"
 		}
 	]
 }

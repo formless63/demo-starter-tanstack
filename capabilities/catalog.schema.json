@@ -1,0 +1,135 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "TanStack Launchpad capability catalog",
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["$schema", "version", "baseline", "frameworkEvaluations", "capabilities"],
+	"properties": {
+		"$schema": { "type": "string", "const": "./catalog.schema.json" },
+		"version": { "type": "integer", "const": 1 },
+		"baseline": { "$ref": "#/$defs/baseline" },
+		"frameworkEvaluations": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["tanstack", "nuxt"],
+			"properties": {
+				"tanstack": { "type": "array", "items": { "$ref": "#/$defs/evaluation" } },
+				"nuxt": { "type": "array", "items": { "$ref": "#/$defs/evaluation" } }
+			}
+		},
+		"capabilities": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/capability" }
+		}
+	},
+	"$defs": {
+		"identifier": {
+			"type": "string",
+			"pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+		},
+		"baseline": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["summary", "components"],
+			"properties": {
+				"summary": { "type": "string", "minLength": 1 },
+				"components": {
+					"type": "array",
+					"minItems": 1,
+					"items": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": ["id", "displayName"],
+						"properties": {
+							"id": { "$ref": "#/$defs/identifier" },
+							"displayName": { "type": "string", "minLength": 1 }
+						}
+					}
+				}
+			}
+		},
+		"evaluation": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "displayName", "status", "summary"],
+			"properties": {
+				"id": { "$ref": "#/$defs/identifier" },
+				"displayName": { "type": "string", "minLength": 1 },
+				"status": { "enum": ["evaluate", "deferred"] },
+				"summary": { "type": "string", "minLength": 1 }
+			}
+		},
+		"externalRequirement": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["name", "required", "description"],
+			"properties": {
+				"name": { "type": "string", "minLength": 1 },
+				"required": { "type": "boolean" },
+				"description": { "type": "string", "minLength": 1 }
+			}
+		},
+		"environmentVariable": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["name", "required", "description"],
+			"properties": {
+				"name": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+				"required": { "type": "boolean" },
+				"default": { "type": "string" },
+				"description": { "type": "string", "minLength": 1 }
+			}
+		},
+		"runtimeService": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "type", "description"],
+			"properties": {
+				"id": { "$ref": "#/$defs/identifier" },
+				"type": { "enum": ["process", "compose-service", "one-shot-job"] },
+				"command": { "type": "string", "minLength": 1 },
+				"description": { "type": "string", "minLength": 1 }
+			}
+		},
+		"tanstackAddOn": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["manifestPath", "dependsOn"],
+			"properties": {
+				"manifestPath": { "type": "string", "minLength": 1 },
+				"dependsOn": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/identifier" },
+					"uniqueItems": true
+				}
+			}
+		},
+		"capability": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "displayName", "kind", "status", "defaultInstalled", "requires", "integratesWith", "baselineRequirements", "externalRequirements", "summary"],
+			"properties": {
+				"id": { "$ref": "#/$defs/identifier" },
+				"displayName": { "type": "string", "minLength": 1 },
+				"kind": { "enum": ["foundational-backend", "application-infrastructure", "identity-policy", "business-integration", "operations-ui-infrastructure", "client-platform"] },
+				"status": { "enum": ["done", "in-progress", "planned", "evaluate", "deferred"] },
+				"defaultInstalled": { "type": "boolean" },
+				"requires": { "type": "array", "items": { "$ref": "#/$defs/identifier" }, "uniqueItems": true },
+				"integratesWith": { "type": "array", "items": { "$ref": "#/$defs/identifier" }, "uniqueItems": true },
+				"baselineRequirements": { "type": "array", "items": { "$ref": "#/$defs/identifier" }, "uniqueItems": true },
+				"baselineIntegrations": { "type": "array", "items": { "$ref": "#/$defs/identifier" }, "uniqueItems": true },
+				"externalRequirements": { "type": "array", "items": { "$ref": "#/$defs/externalRequirement" } },
+				"summary": { "type": "string", "minLength": 1 },
+				"scripts": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+				"environmentVariables": { "type": "array", "items": { "$ref": "#/$defs/environmentVariable" } },
+				"migrations": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+				"runtimeServices": { "type": "array", "items": { "$ref": "#/$defs/runtimeService" } },
+				"documentationPath": { "type": "string", "minLength": 1 },
+				"agentSkill": { "type": "string", "minLength": 1 },
+				"evaluationDocument": { "type": "string", "minLength": 1 },
+				"tanstackAddOn": { "$ref": "#/$defs/tanstackAddOn" }
+			}
+		}
+	}
+}

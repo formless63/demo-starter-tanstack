@@ -14,4 +14,7 @@ This repository is a personal TanStack Start full-stack starter.
 Inspect existing patterns, make coherent changes, run affected checks, fix regressions, and rerun checks. Ordinary non-destructive tests need no approval. Never test against production.
 
 ## Progressive context
-Read only what matches the work: `.agents/context/architecture.md` for boundaries, `.agents/context/stack.md` for integrations, `.agents/context/commands.md` for verification, and a matching `.agents/skills/*/SKILL.md` for the five defined workflows.
+Read only what matches the work: `.agents/context/architecture.md` for boundaries, `.agents/context/stack.md` for integrations, `.agents/context/commands.md` for verification, and a matching `.agents/skills/*/SKILL.md` for the defined workflows.
+
+## Reusable capabilities
+Reusable capabilities and their relationships are tracked in `ROADMAP.md` and `capabilities/catalog.json`. Before installing, removing, creating, or changing capability dependencies, use the capability-change skill. Hard dependencies must be explicit and must not form cycles.

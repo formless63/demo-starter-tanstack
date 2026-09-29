@@ -10,10 +10,11 @@
 - `bun run jobs:worker`: run the standalone worker with graceful signal handling.
 - `bun run jobs:smoke`: enqueue and consume the demo echo job through a real worker.
 - `bun run auth:provision`: idempotently provision Pocket ID from local credentials.
+- `bun run capabilities:check`: validate capability schema, relationships, documentation, scripts, and add-on metadata.
 - `bun run lint`, `bun run typecheck`, `bun test`: static and unit/integration verification.
 - `bun run test:e2e`: Playwright landing/protection smoke test (browser install required).
 - `bun run build`, `bun run start`: create and run the Node-compatible production output.
-- `bun run check`: lint, types, tests, and production build.
+- `bun run check`: capability governance, lint, types, tests, and production build.
 - `docker compose build` (or the focused `docker compose build app`): build the shared production image used by migrations, `app`, and `worker`.
 - `docker compose up -d --wait postgres`: start PostgreSQL and require its healthcheck to pass.
 - `docker compose run --rm migrate`: explicitly apply committed migrations with the production image; a nonzero exit blocks the release.

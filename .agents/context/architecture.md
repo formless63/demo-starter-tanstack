@@ -13,6 +13,7 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 - `drizzle`: reviewed, generated migration history.
 - `scripts`: local operational tooling; no runtime imports.
 - `src/integrations/jobs`: typed queue definitions, enqueue APIs, transaction adapter, and worker runtime.
+- `capabilities`: machine-readable capability governance and implemented capability contracts.
 
 Prefer direct framework primitives and explicit checks. Do not add repository/service layers, a separate API, RBAC, or other speculative abstractions. Background work belongs in the explicit `src/integrations/jobs` boundary: typed registry, Zod payload validation, pg-boss persistence, and standalone worker.
 
