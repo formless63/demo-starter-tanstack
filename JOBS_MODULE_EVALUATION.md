@@ -16,7 +16,7 @@ The starter uses stable `pg-boss` 12.35.0 for PostgreSQL-backed background work.
 
 The PostgreSQL integration suite proves both transaction outcomes: commit persists the project and job; deliberate rollback persists neither. A malformed payload sent below the typed API is rejected by the running worker and reaches failed state. Schema doctor reports installed version 43 with no drift, and the echo smoke completes through a real worker.
 
-The custom add-on follows the current TanStack CLI metadata and compiled formats, declares package additions and scripts, and carries the reusable source plus the `jobs-change` skill. Official CLI installation into a clean disposable project with the official Drizzle add-on succeeded, including dependency installation and a production build. Current upstream blank-scaffold Drizzle typing and Biome configuration mismatches are documented rather than attributed to this module.
+The custom add-on follows the current TanStack CLI metadata and compiled formats, declares package additions and scripts, and carries the reusable source plus the `jobs-change` skill. Its `dependsOn: ["drizzle"]` relationship uses the official TanStack CLI Drizzle add-on ID, because the Jobs transaction API requires a configured `#/db` integration rather than only the `drizzle-orm` package. Official CLI installation into a clean disposable project resolved that dependency and completed a production build.
 
 ## Tradeoffs and extension points
 

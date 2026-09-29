@@ -1,0 +1,131 @@
+# Reusable capability roadmap
+
+This roadmap governs reusable capabilities for the personal starter. It records intent and dependency boundaries; it is not an instruction to install every listed library. Machine-readable metadata lives in `capabilities/catalog.json` and is validated by `bun run capabilities:check`.
+
+## Relationship vocabulary
+
+- **Requires** is a hard dependency on another capability. The capability must not claim to work without it.
+- **Integrates with** is an optional enhancement. The capability remains useful when the integration is absent.
+- **External** is required or optional infrastructure outside this capability catalog.
+
+Baseline components are prerequisites of this repository, not capability modules. They are recorded separately and must never be placed in `requires` or `integratesWith`. The hard-dependency graph is intentionally sparse and acyclic.
+
+## Base starter contract — not modules
+
+Every capability may rely on the documented starter foundation when explicitly listed as a baseline requirement: TanStack Start, strict TypeScript, Bun tooling, Node production runtime, PostgreSQL, Drizzle with explicit migrations, Better Auth without passwords, GitHub OAuth, generic OIDC, Pocket ID development provisioning, Tailwind CSS 4, the shadcn-style component system, Tabler Icons, Docker/Compose, CI/testing, and agent scaffolding.
+
+These foundations are not independently installable capabilities and must not be modeled as optional module dependencies.
+
+## Current status
+
+`Jobs` is the first completed reusable capability and is default-installed in this starter. All other capability entries are planned; no package is installed merely because it appears here.
+
+### Done
+
+| Capability | Requires | Integrates with | External | Status |
+| --- | --- | --- | --- | --- |
+| Jobs | None beyond baseline PostgreSQL and configured Drizzle | Observability, Ops / Admin | PostgreSQL | Done |
+
+### Foundational / backend
+
+| Capability | Requires | Integrates with | External | Status |
+| --- | --- | --- | --- | --- |
+| API Platform / Machine Auth / OpenAPI | None beyond starter baseline | Audit Log, Observability, Authorization, Organizations | None | Planned |
+| Observability | None | Every server/runtime capability where useful | Optional OTLP destination | Planned |
+| Object Storage | None | Jobs, Observability | S3-compatible storage | Planned |
+| Email | None | Jobs, Observability, Better Auth magic links | SMTP; Mailpit for development | Planned |
+| Webhooks | Jobs | Audit Log, Observability, API Platform | Remote webhook endpoints | Planned |
+| Audit Log | None | Authentication, API Platform, Organizations, Jobs, business integrations | PostgreSQL | Planned |
+| AI | None | Jobs, Object Storage, Observability, Audit Log | Configured model provider | Planned |
+
+Object Storage should prefer RustFS for self-hosting. Garage is supported with optional GarageUI. MinIO is not the default. Email uses SMTP as its provider-neutral base transport and does not add provider-specific SDKs by default.
+
+### Application infrastructure
+
+| Capability | Requires | Integrates with | External | Status |
+| --- | --- | --- | --- | --- |
+| Cache / Coordination | None | Realtime, API Platform, Jobs | Valkey/Redis-compatible service | Planned |
+| Search | None; PostgreSQL-first | Jobs, Object Storage, Organizations | PostgreSQL initially | Planned |
+| Realtime | Authenticated starter identity | Cache / Coordination, Notifications, Observability | None initially | Planned |
+| Notifications | Jobs | Email, Realtime, Audit Log | Optional ntfy; optional SMTP through Email | Planned |
+| Import / Export | Jobs, Object Storage | Notifications, Audit Log | None | Planned |
+
+### Identity / policy
+
+| Capability | Requires | Integrates with | External | Status |
+| --- | --- | --- | --- | --- |
+| Organizations / Tenancy | Starter authentication | Audit Log, Notifications | PostgreSQL | Planned |
+| Authorization | Starter authentication | Organizations, API Platform, Audit Log | PostgreSQL | Planned |
+| Feature Flags | None | Organizations, Authorization, Audit Log | PostgreSQL | Planned |
+
+Starter authentication is a baseline requirement, not a capability edge.
+
+### Business integrations
+
+| Capability | Requires | Integrates with | External | Status |
+| --- | --- | --- | --- | --- |
+| Invoice Ninja | Jobs, Webhooks | Organizations, Audit Log, Notifications | Invoice Ninja | Planned |
+| Stripe | Jobs, Webhooks | Organizations, Authorization, Audit Log, Notifications | Stripe | Planned |
+| Medusa | Jobs, Webhooks | Object Storage, Organizations, Search | Medusa | Planned |
+
+### Operations / UI infrastructure
+
+| Capability | Requires | Integrates with | External | Status |
+| --- | --- | --- | --- | --- |
+| Ops / Admin | Starter authentication | Observability, Jobs, Audit Log, Object Storage, Cache / Coordination, Webhooks | None | Planned |
+| Command System | None | Search, Authorization | None | Planned |
+| Data Table | None | Search, Organizations, Authorization | None | Planned |
+| Markdown / Code Content | None | Object Storage, AI | None | Planned |
+| Charts / Visualization | None | Data Table, Realtime | None | Planned |
+| File UI | Object Storage | Jobs, Search | None | Planned |
+| Rich Text / Tiptap | None | Object Storage, Markdown / Code, Realtime, Organizations | None | Planned |
+| Flow / Canvas | None | Realtime, Object Storage, Audit Log | None | Planned |
+
+### Client / platform
+
+| Capability | Requires | Integrates with | External | Status |
+| --- | --- | --- | --- | --- |
+| PWA / Offline | None | Notifications, Realtime | None | Planned |
+| Internationalization | None | UI-facing capabilities | None | Planned |
+
+## Dependency direction
+
+The only planned hard edges are:
+
+```text
+Webhooks ───────────────► Jobs
+Notifications ─────────► Jobs
+Import / Export ───────► Jobs + Object Storage
+Invoice Ninja ─────────► Jobs + Webhooks
+Stripe ────────────────► Jobs + Webhooks
+Medusa ────────────────► Jobs + Webhooks
+File UI ───────────────► Object Storage
+```
+
+Optional integrations may point in either useful direction and do not imply installation order. Changes to hard edges require an explicit catalog, roadmap, and capability documentation update in the same change.
+
+## Framework and library evaluations — not modules
+
+These are research tracks, not automatically installed capabilities.
+
+### TanStack repository
+
+- TanStack DB for local-first collections and synchronized client data.
+- TanStack AI as a possible implementation option for the AI capability.
+- TanStack Hotkeys for the Command System.
+- TanStack Pacer for rate, debounce, and throttle primitives.
+- TanStack Virtual for large tables and lists.
+- TanStack Charts for Charts / Visualization when appropriate.
+- TanStack Markdown / Highlight for Markdown and code content.
+- TanStack Intent for agent discovery once project-hook reliability is sufficient.
+
+### Nuxt repository
+
+- Appropriate maintained Nuxt Modules ecosystem integrations.
+- VueUse for Vue-native client composables.
+- Nuxt Content when content requirements justify it.
+- Vue-native equivalents for capabilities that use TanStack- or React-specific UI libraries here.
+
+## Implementation governance
+
+Before installing, removing, or changing a capability, use `.agents/skills/capability-change/SKILL.md`. An implemented capability must own a `capabilities/<id>/CAPABILITY.md`, accurately declare scripts, environment, migrations, runtime processes, infrastructure, installation/removal, upgrade concerns, verification, and agent guidance, and link any evaluation document. Clean installation and removal should be tested where the packaging supports them.

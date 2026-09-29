@@ -1,0 +1,236 @@
+{
+	"$schema": "./catalog.schema.json",
+	"version": 1,
+	"baseline": {
+		"summary": "Always-present starter foundations; these are not optional capability modules and must never appear in capability relationship arrays.",
+		"components": [
+			{ "id": "tanstack-start", "displayName": "TanStack Start framework" },
+			{ "id": "strict-typescript", "displayName": "Strict TypeScript" },
+			{ "id": "bun-tooling", "displayName": "Bun tooling" },
+			{ "id": "node-runtime", "displayName": "Node production runtime" },
+			{ "id": "postgresql", "displayName": "PostgreSQL" },
+			{ "id": "drizzle", "displayName": "Drizzle ORM and migrations" },
+			{ "id": "authentication", "displayName": "Better Auth without passwords" },
+			{ "id": "github-oauth", "displayName": "GitHub OAuth" },
+			{ "id": "generic-oidc", "displayName": "Generic OIDC" },
+			{ "id": "pocket-id-provisioning", "displayName": "Pocket ID development provisioning" },
+			{ "id": "tailwind", "displayName": "Tailwind CSS 4" },
+			{ "id": "component-system", "displayName": "shadcn-style component system" },
+			{ "id": "tabler-icons", "displayName": "Tabler Icons" },
+			{ "id": "containers", "displayName": "Docker and Compose" },
+			{ "id": "explicit-migrations", "displayName": "Explicit migration workflow" },
+			{ "id": "ci-testing", "displayName": "CI and testing" },
+			{ "id": "agent-scaffolding", "displayName": "Agent scaffolding" }
+		]
+	},
+	"frameworkEvaluations": {
+		"tanstack": [
+			{ "id": "tanstack-db", "displayName": "TanStack DB", "status": "evaluate", "summary": "Evaluate for local-first collections and synchronized client data; do not install solely for roadmap coverage." },
+			{ "id": "tanstack-ai", "displayName": "TanStack AI", "status": "evaluate", "summary": "Evaluate as an implementation option for the AI capability without making it a baseline dependency." },
+			{ "id": "tanstack-hotkeys", "displayName": "TanStack Hotkeys", "status": "evaluate", "summary": "Evaluate for the Command System when its API and accessibility fit are proven." },
+			{ "id": "tanstack-pacer", "displayName": "TanStack Pacer", "status": "evaluate", "summary": "Evaluate for reusable throttling, debouncing, and rate control needs." },
+			{ "id": "tanstack-virtual", "displayName": "TanStack Virtual", "status": "evaluate", "summary": "Evaluate for large Data Table and list surfaces." },
+			{ "id": "tanstack-charts", "displayName": "TanStack Charts", "status": "evaluate", "summary": "Evaluate for the Charts capability when stable and appropriate." },
+			{ "id": "tanstack-markdown-highlight", "displayName": "TanStack Markdown / Highlight", "status": "evaluate", "summary": "Evaluate for Markdown and code content rendering." },
+			{ "id": "tanstack-intent", "displayName": "TanStack Intent", "status": "evaluate", "summary": "Continue evaluating project hook reliability; on-demand discovery is currently available." }
+		],
+		"nuxt": [
+			{ "id": "nuxt-modules-ecosystem", "displayName": "Nuxt Modules ecosystem", "status": "evaluate", "summary": "Prefer maintained Nuxt Modules when governing the equivalent Nuxt starter." },
+			{ "id": "vueuse", "displayName": "VueUse", "status": "evaluate", "summary": "Evaluate composables for client capabilities rather than porting React-specific helpers." },
+			{ "id": "nuxt-content", "displayName": "Nuxt Content", "status": "evaluate", "summary": "Evaluate where Markdown and structured content requirements justify it." },
+			{ "id": "vue-native-equivalents", "displayName": "Vue-native capability libraries", "status": "evaluate", "summary": "Select Vue-native equivalents where TanStack-specific UI libraries are unsuitable." }
+		]
+	},
+	"capabilities": [
+		{
+			"id": "jobs",
+			"displayName": "Jobs",
+			"kind": "foundational-backend",
+			"status": "done",
+			"defaultInstalled": true,
+			"requires": [],
+			"integratesWith": ["observability", "ops-admin"],
+			"baselineRequirements": ["postgresql", "drizzle"],
+			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Durable queue storage and advisory-lock coordination." }],
+			"summary": "Typed PostgreSQL-backed background jobs using pg-boss, explicit schema migration, and a standalone worker.",
+			"scripts": ["jobs:worker", "jobs:migrate", "jobs:doctor", "jobs:smoke"],
+			"environmentVariables": [
+				{ "name": "PGBOSS_DATABASE_URL", "required": false, "description": "Optional jobs-specific PostgreSQL URL; falls back to DATABASE_URL." },
+				{ "name": "PGBOSS_SCHEMA", "required": false, "default": "pgboss", "description": "Dedicated pg-boss schema." },
+				{ "name": "PGBOSS_USE_LISTEN_NOTIFY", "required": false, "default": "false", "description": "Opt-in LISTEN/NOTIFY wakeups with polling fallback." },
+				{ "name": "JOBS_CONCURRENCY", "required": false, "default": "4", "description": "Per-queue local worker concurrency." }
+			],
+			"migrations": ["bun run jobs:migrate"],
+			"runtimeServices": [
+				{ "id": "worker", "type": "process", "command": "bun run jobs:worker", "description": "Long-lived standalone job consumer." },
+				{ "id": "jobs-migrate", "type": "one-shot-job", "command": "bun run jobs:migrate", "description": "Explicit pg-boss schema installation and upgrade gate." },
+				{ "id": "compose-worker", "type": "compose-service", "command": "docker compose up -d worker", "description": "Production worker using the application image revision." }
+			],
+			"documentationPath": "capabilities/jobs/CAPABILITY.md",
+			"agentSkill": ".agents/skills/jobs-change/SKILL.md",
+			"evaluationDocument": "JOBS_MODULE_EVALUATION.md",
+			"tanstackAddOn": { "manifestPath": ".add-on/info.json", "dependsOn": ["drizzle"] }
+		},
+		{
+			"id": "api-platform", "displayName": "API Platform / Machine Auth / OpenAPI", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["audit-log", "observability", "authorization", "organizations"], "baselineRequirements": [], "externalRequirements": [],
+			"summary": "Provider-neutral machine authentication, public API conventions, and OpenAPI contracts."
+		},
+		{
+			"id": "observability", "displayName": "Observability", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["jobs", "api-platform", "object-storage", "email", "webhooks", "audit-log", "ai", "cache-coordination", "search", "realtime", "notifications", "import-export", "organizations", "authorization", "feature-flags", "invoice-ninja", "stripe", "medusa", "ops-admin"], "baselineRequirements": [],
+			"externalRequirements": [{ "name": "OTLP destination", "required": false, "description": "Optional external telemetry collector or backend." }],
+			"summary": "Structured logs, metrics, traces, error reporting, and health conventions across server runtimes."
+		},
+		{
+			"id": "object-storage", "displayName": "Object Storage", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["jobs", "observability"], "baselineRequirements": [],
+			"externalRequirements": [{ "name": "S3-compatible storage", "required": true, "description": "RustFS is the preferred self-hosted option; Garage with optional GarageUI is also supported. MinIO is not the default." }],
+			"summary": "S3-compatible object persistence with provider-neutral application APIs."
+		},
+		{
+			"id": "email", "displayName": "Email", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["jobs", "observability"], "baselineRequirements": [], "baselineIntegrations": ["authentication"],
+			"externalRequirements": [
+				{ "name": "SMTP", "required": true, "description": "Provider-neutral base transport; no provider-specific SDK is required." },
+				{ "name": "Mailpit", "required": false, "description": "Recommended local-development SMTP capture service." }
+			],
+			"summary": "SMTP-first transactional email and Better Auth magic-link delivery."
+		},
+		{
+			"id": "webhooks", "displayName": "Webhooks", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
+			"requires": ["jobs"], "integratesWith": ["audit-log", "observability", "api-platform"], "baselineRequirements": [],
+			"externalRequirements": [{ "name": "Remote webhook endpoints", "required": true, "description": "Inbound senders and outbound consumers configured by an application." }],
+			"summary": "Reliable signed inbound and outbound webhook processing with durable retries."
+		},
+		{
+			"id": "audit-log", "displayName": "Audit Log", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["api-platform", "organizations", "jobs", "invoice-ninja", "stripe", "medusa"], "baselineRequirements": ["postgresql"], "baselineIntegrations": ["authentication"],
+			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Durable append-oriented audit records." }],
+			"summary": "Application audit events with actor, subject, action, and context."
+		},
+		{
+			"id": "ai", "displayName": "AI", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["jobs", "object-storage", "observability", "audit-log"], "baselineRequirements": [],
+			"externalRequirements": [{ "name": "Model provider", "required": true, "description": "A model endpoint and credentials selected by the consuming application." }],
+			"summary": "Provider-configurable model invocation, streaming, tools, and durable workload patterns."
+		},
+		{
+			"id": "cache-coordination", "displayName": "Cache / Coordination", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["realtime", "api-platform", "jobs"], "baselineRequirements": [],
+			"externalRequirements": [{ "name": "Valkey/Redis-compatible service", "required": true, "description": "Shared cache, ephemeral coordination, and distributed signaling." }],
+			"summary": "Optional shared caching and coordination without displacing PostgreSQL durability."
+		},
+		{
+			"id": "search", "displayName": "Search", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["jobs", "object-storage", "organizations"], "baselineRequirements": ["postgresql"],
+			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "PostgreSQL-first indexing and query implementation." }],
+			"summary": "PostgreSQL-first application search with room for explicit future adapters."
+		},
+		{
+			"id": "realtime", "displayName": "Realtime", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["cache-coordination", "notifications", "observability"], "baselineRequirements": ["authentication"], "externalRequirements": [],
+			"summary": "Authenticated server-to-client updates with no external service initially."
+		},
+		{
+			"id": "notifications", "displayName": "Notifications", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": ["jobs"], "integratesWith": ["email", "realtime", "audit-log"], "baselineRequirements": [],
+			"externalRequirements": [
+				{ "name": "ntfy", "required": false, "description": "Optional push notification integration." },
+				{ "name": "SMTP through Email", "required": false, "description": "Optional email notification channel supplied by the Email capability." }
+			],
+			"summary": "Durable multi-channel notification orchestration with optional delivery integrations."
+		},
+		{
+			"id": "import-export", "displayName": "Import / Export", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": ["jobs", "object-storage"], "integratesWith": ["notifications", "audit-log"], "baselineRequirements": [], "externalRequirements": [],
+			"summary": "Asynchronous bulk data ingestion and export backed by durable jobs and objects."
+		},
+		{
+			"id": "organizations", "displayName": "Organizations / Tenancy", "kind": "identity-policy", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["audit-log", "notifications"], "baselineRequirements": ["authentication", "postgresql"],
+			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Tenant membership and boundary persistence." }],
+			"summary": "Organization membership, tenant context, and isolation conventions on starter authentication."
+		},
+		{
+			"id": "authorization", "displayName": "Authorization", "kind": "identity-policy", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["organizations", "api-platform", "audit-log"], "baselineRequirements": ["authentication", "postgresql"],
+			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Policy assignments and application authorization data." }],
+			"summary": "Application policy and permission primitives layered on authenticated identity."
+		},
+		{
+			"id": "feature-flags", "displayName": "Feature Flags", "kind": "identity-policy", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["organizations", "authorization", "audit-log"], "baselineRequirements": ["postgresql"],
+			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Flag definitions, targeting, and evaluation state." }],
+			"summary": "Database-backed release and targeting controls without a required SaaS provider."
+		},
+		{
+			"id": "invoice-ninja", "displayName": "Invoice Ninja", "kind": "business-integration", "status": "planned", "defaultInstalled": false,
+			"requires": ["jobs", "webhooks"], "integratesWith": ["organizations", "audit-log", "notifications"], "baselineRequirements": [],
+			"externalRequirements": [{ "name": "Invoice Ninja", "required": true, "description": "Invoice Ninja instance and API credentials." }],
+			"summary": "Durable Invoice Ninja synchronization and webhook integration."
+		},
+		{
+			"id": "stripe", "displayName": "Stripe", "kind": "business-integration", "status": "planned", "defaultInstalled": false,
+			"requires": ["jobs", "webhooks"], "integratesWith": ["organizations", "authorization", "audit-log", "notifications"], "baselineRequirements": [],
+			"externalRequirements": [{ "name": "Stripe", "required": true, "description": "Stripe account, API credentials, and webhook endpoint." }],
+			"summary": "Stripe billing integration with durable webhook and reconciliation workflows."
+		},
+		{
+			"id": "medusa", "displayName": "Medusa", "kind": "business-integration", "status": "planned", "defaultInstalled": false,
+			"requires": ["jobs", "webhooks"], "integratesWith": ["object-storage", "organizations", "search"], "baselineRequirements": [],
+			"externalRequirements": [{ "name": "Medusa", "required": true, "description": "Medusa commerce backend and credentials." }],
+			"summary": "Medusa commerce synchronization using reliable background and webhook processing."
+		},
+		{
+			"id": "ops-admin", "displayName": "Ops / Admin", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["observability", "jobs", "audit-log", "object-storage", "cache-coordination", "webhooks"], "baselineRequirements": ["authentication"], "externalRequirements": [],
+			"summary": "Authenticated operational surfaces assembled from installed capability adapters."
+		},
+		{
+			"id": "command-system", "displayName": "Command System", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["search", "authorization"], "baselineRequirements": [], "externalRequirements": [],
+			"summary": "Accessible application commands, shortcuts, and command palette conventions."
+		},
+		{
+			"id": "data-table", "displayName": "Data Table", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["search", "organizations", "authorization"], "baselineRequirements": [], "externalRequirements": [],
+			"summary": "Reusable high-density data browsing, filtering, sorting, and selection UI."
+		},
+		{
+			"id": "markdown-code", "displayName": "Markdown / Code Content", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["object-storage", "ai"], "baselineRequirements": [], "externalRequirements": [],
+			"summary": "Safe Markdown and highlighted code rendering and authoring primitives."
+		},
+		{
+			"id": "charts-visualization", "displayName": "Charts / Visualization", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["data-table", "realtime"], "baselineRequirements": [], "externalRequirements": [],
+			"summary": "Accessible application charts and reusable visualization conventions."
+		},
+		{
+			"id": "file-ui", "displayName": "File UI", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": ["object-storage"], "integratesWith": ["jobs", "search"], "baselineRequirements": [], "externalRequirements": [],
+			"summary": "Upload, browse, preview, and manage object-backed files."
+		},
+		{
+			"id": "rich-text", "displayName": "Rich Text / Tiptap", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["object-storage", "markdown-code", "realtime", "organizations"], "baselineRequirements": [], "externalRequirements": [],
+			"summary": "Structured rich-text editing, with Tiptap evaluated as the primary TanStack-repo option."
+		},
+		{
+			"id": "flow-canvas", "displayName": "Flow / Canvas", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["realtime", "object-storage", "audit-log"], "baselineRequirements": [], "externalRequirements": [],
+			"summary": "Composable node, edge, and spatial workflow interfaces."
+		},
+		{
+			"id": "pwa-offline", "displayName": "PWA / Offline", "kind": "client-platform", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["notifications", "realtime"], "baselineRequirements": [], "externalRequirements": [],
+			"summary": "Installability, service-worker lifecycle, caching, and offline UX conventions."
+		},
+		{
+			"id": "internationalization", "displayName": "Internationalization", "kind": "client-platform", "status": "planned", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["ops-admin", "command-system", "data-table", "markdown-code", "charts-visualization", "file-ui", "rich-text", "flow-canvas", "pwa-offline"], "baselineRequirements": [], "externalRequirements": [],
+			"summary": "Locale routing, message formatting, and translation conventions for UI-facing capabilities."
+		}
+	]
+}
