@@ -16,13 +16,18 @@ jobs:
       - run: docker compose build app
       - run: docker compose up -d --wait postgres
       - run: docker compose run --rm migrate
+      - run: docker compose run --rm jobs-migrate
+      - run: docker compose run --rm worker node .output/jobs-doctor.mjs
+      - run: docker compose run --rm worker node .output/jobs-smoke.mjs
       - run: bun run lint
       - run: bun run typecheck
       - run: bun test
       - run: bun run build
       - run: bunx playwright install --with-deps chromium
       - run: bun run test:e2e
+      - run: docker compose up -d worker
       - run: docker compose up -d --wait app
+      - run: test "$(docker compose ps --status running --services worker)" = worker
       - run: curl --fail --show-error http://127.0.0.1:3000/api/health
       - if: always()
         run: docker compose down --volumes --remove-orphans

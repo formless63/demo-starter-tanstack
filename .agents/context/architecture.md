@@ -12,8 +12,9 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 - `src/db`: schema and connection.
 - `drizzle`: reviewed, generated migration history.
 - `scripts`: local operational tooling; no runtime imports.
+- `src/integrations/jobs`: typed queue definitions, enqueue APIs, transaction adapter, and worker runtime.
 
-Prefer direct framework primitives and explicit checks. Do not add repository/service layers, a separate API, queues, RBAC, or other speculative abstractions.
+Prefer direct framework primitives and explicit checks. Do not add repository/service layers, a separate API, RBAC, or other speculative abstractions. Background work belongs in the explicit `src/integrations/jobs` boundary: typed registry, Zod payload validation, pg-boss persistence, and standalone worker.
 
 ## Production containers
-`compose.yaml` is the provider-neutral production orchestration contract. `app` runs the Node-compatible framework output and never mutates schema during startup. The explicit one-shot `migrate` service applies committed Drizzle SQL before an operator starts or updates `app`; both services use the same immutable image. Compose constructs their database URL with the `postgres` service hostname. The runtime image is unprivileged, contains no development bind mounts, and exposes the database-backed `/api/health` readiness signal.
+`compose.yaml` is the provider-neutral production orchestration contract. `app` and `worker` run independently and never mutate schema during startup. The explicit one-shot `migrate` and `jobs-migrate` services gate application and pg-boss schema changes before either long-lived process starts. All four services use the same immutable image and Compose database hostname. The runtime image is unprivileged, contains no development bind mounts, and exposes the database-backed `/api/health` readiness signal.

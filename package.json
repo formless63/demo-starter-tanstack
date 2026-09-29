@@ -25,7 +25,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "check": "bun run lint && bun run typecheck && bun test && bun run build"
+    "check": "bun run lint && bun run typecheck && bun test && bun run build",
+    "jobs:worker": "bun scripts/jobs-worker.ts",
+    "jobs:migrate": "bun scripts/jobs-migrate.ts",
+    "jobs:doctor": "bun scripts/jobs-doctor.ts",
+    "jobs:smoke": "bun scripts/jobs-smoke.ts"
   },
   "dependencies": {
     "@t3-oss/env-core": "^0.13.10",
@@ -46,6 +50,7 @@
     "drizzle-orm": "^0.45.1",
     "nitro": "3.0.260610-beta",
     "pg": "^8.16.3",
+    "pg-boss": "12.35.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "sonner": "^2.0.7",
@@ -56,10 +61,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.5",
+    "@playwright/test": "^1.55.0",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/devtools-vite": "^0.8.5",
     "@tanstack/router-cli": "^1.167.38",
-    "@playwright/test": "^1.55.0",
     "@types/node": "^24.0.0",
     "@types/pg": "^8.15.6",
     "@types/react": "^19.2.0",
