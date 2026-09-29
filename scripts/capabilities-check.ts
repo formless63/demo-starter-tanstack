@@ -17,7 +17,15 @@ interface Capability {
 	documentationPath?: string;
 	agentSkill?: string;
 	evaluationDocument?: string;
-	tanstackAddOn?: { manifestPath: string; dependsOn: string[] };
+	tanstackAddOn?: {
+		addOnId: string;
+		sourceDirectory: string;
+		manifestPath: string;
+		distributablePath: string;
+		cleanInstallFixture: string;
+		dependsOn: string[];
+		conflictsWith: string[];
+	};
 }
 
 interface Catalog {
@@ -237,16 +245,107 @@ if (!isObject(catalogJson)) {
 		for (const script of capability.scripts ?? []) {
 			if (!(script in scripts)) errors.push(`${capability.id}: package.json is missing script ${script}`);
 		}
-		if (capability.tanstackAddOn) {
-			const manifestPath = resolve(root, capability.tanstackAddOn.manifestPath);
-			if (!existsSync(manifestPath)) {
-				errors.push(`${capability.id}: missing add-on manifest ${capability.tanstackAddOn.manifestPath}`);
-			} else {
-				const manifest = readJson(manifestPath);
-				const actual = isObject(manifest) && Array.isArray(manifest.dependsOn) ? manifest.dependsOn : [];
-				if (!sameJson(actual, capability.tanstackAddOn.dependsOn)) {
-					errors.push(`${capability.id}: add-on dependsOn does not match the capability catalog`);
+	}
+
+	if (existsSync(resolve(root, ".add-on")) || existsSync(resolve(root, "add-on.json"))) {
+		errors.push("custom add-ons must live under capabilities/<id>, not at the repository root");
+	}
+	const customAddOns = catalog.capabilities.filter(
+		(capability): capability is Capability & { tanstackAddOn: NonNullable<Capability["tanstackAddOn"]> } =>
+			capability.tanstackAddOn !== undefined,
+	);
+	for (const addOnId of duplicates(customAddOns.map(({ tanstackAddOn }) => tanstackAddOn.addOnId))) {
+		errors.push(`duplicate TanStack add-on id: ${addOnId}`);
+	}
+	for (const capability of customAddOns) {
+		const addOn = capability.tanstackAddOn;
+		const base = `capabilities/${capability.id}`;
+		const expectedPaths = {
+			sourceDirectory: `${base}/.add-on`,
+			manifestPath: `${base}/.add-on/info.json`,
+			distributablePath: `${base}/add-on.json`,
+			cleanInstallFixture: `${base}/test/clean-install.json`,
+		};
+		for (const [field, expected] of Object.entries(expectedPaths)) {
+			if (addOn[field as keyof typeof expectedPaths] !== expected) {
+				errors.push(`${capability.id}.tanstackAddOn.${field} must be ${expected}`);
+			}
+			if (!existsSync(resolve(root, expected))) errors.push(`${capability.id}: missing ${expected}`);
+		}
+		if (!existsSync(resolve(root, base, ".cta.json"))) {
+			errors.push(`${capability.id}: missing capability-local .cta.json authoring metadata`);
+		}
+		for (const dependency of addOn.dependsOn) {
+			if (addOn.conflictsWith.includes(dependency)) {
+				errors.push(`${capability.id}: ${dependency} cannot be both an add-on dependency and conflict`);
+			}
+		}
+		if (addOn.conflictsWith.includes(addOn.addOnId)) {
+			errors.push(`${capability.id}: an add-on cannot conflict with itself`);
+		}
+		if (capability.status === "done") {
+			for (const requirement of capability.requires) {
+				const requiredCapability = byId.get(requirement);
+				if (!requiredCapability?.tanstackAddOn) {
+					errors.push(`${capability.id}: required capability ${requirement} has no installable add-on`);
+				} else if (!addOn.dependsOn.includes(requiredCapability.tanstackAddOn.addOnId)) {
+					errors.push(
+						`${capability.id}: add-on dependsOn must include ${requiredCapability.tanstackAddOn.addOnId} for required capability ${requirement}`,
+					);
 				}
+			}
+		}
+
+		const manifestPath = resolve(root, addOn.manifestPath);
+		const distributablePath = resolve(root, addOn.distributablePath);
+		if (existsSync(manifestPath)) {
+			const manifest = readJson(manifestPath);
+			const manifestId = isObject(manifest) ? manifest.id : undefined;
+			if (manifestId !== addOn.addOnId) {
+				errors.push(`${capability.id}: source manifest id does not match tanstackAddOn.addOnId`);
+			}
+			const actualDependsOn = isObject(manifest) && Array.isArray(manifest.dependsOn) ? manifest.dependsOn : [];
+			if (!sameJson(actualDependsOn, addOn.dependsOn)) {
+				errors.push(`${capability.id}: add-on dependsOn does not match the capability catalog`);
+			}
+			const additions = isObject(manifest) && isObject(manifest.packageAdditions) ? manifest.packageAdditions : {};
+			const addOnScripts = isObject(additions.scripts) ? additions.scripts : {};
+			for (const script of capability.scripts ?? []) {
+				if (!(script in addOnScripts)) errors.push(`${capability.id}: add-on metadata is missing script ${script}`);
+			}
+			if (existsSync(distributablePath)) {
+				const distributable = readJson(distributablePath);
+				if (!isObject(distributable) || distributable.id !== manifestId) {
+					errors.push(`${capability.id}: compiled add-on id does not match its source manifest`);
+				} else {
+					const compiledDependsOn = Array.isArray(distributable.dependsOn) ? distributable.dependsOn : [];
+					if (!sameJson(compiledDependsOn, addOn.dependsOn)) {
+						errors.push(`${capability.id}: compiled add-on dependsOn does not match the capability catalog`);
+					}
+				}
+			}
+		}
+
+		const contractPath = resolve(root, base, "CAPABILITY.md");
+		const packagedContractPath = resolve(root, addOn.sourceDirectory, "assets", base, "CAPABILITY.md");
+		if (!existsSync(packagedContractPath)) {
+			errors.push(`${capability.id}: add-on payload is missing ${base}/CAPABILITY.md`);
+		} else if (
+			existsSync(contractPath) &&
+			readFileSync(contractPath, "utf8") !== readFileSync(packagedContractPath, "utf8")
+		) {
+			errors.push(`${capability.id}: packaged CAPABILITY.md is out of sync`);
+		}
+
+		const fixturePath = resolve(root, addOn.cleanInstallFixture);
+		if (existsSync(fixturePath)) {
+			const fixture = readJson(fixturePath);
+			const expectedOfficialAddOns =
+				isObject(fixture) && Array.isArray(fixture.expectedOfficialAddOns)
+					? fixture.expectedOfficialAddOns
+					: [];
+			if (!sameJson(expectedOfficialAddOns, addOn.dependsOn)) {
+				errors.push(`${capability.id}: clean-install fixture must exercise every official dependsOn entry`);
 			}
 		}
 	}

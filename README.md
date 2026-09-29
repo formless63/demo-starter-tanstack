@@ -68,6 +68,7 @@ bun run jobs:worker
 
 ```bash
 bun run capabilities:check
+bun run add-ons:test jobs
 bun run lint
 bun run typecheck
 bun test
@@ -76,6 +77,10 @@ bun run check
 ```
 
 Playwright covers the public landing page and anonymous protected-route redirect. CI runs the static, unit, build, and browser checks, then proves the production artifact by building the image, migrating a clean Compose PostgreSQL database through the containerized migration job, waiting for the application healthcheck, and curling `/api/health`. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
+
+## Reusable custom add-ons
+
+Implemented custom add-ons live independently under `capabilities/<id>`. Each directory owns official `.add-on` source metadata/assets, capability-local TanStack authoring metadata, `CAPABILITY.md`, a clean-install fixture, and the retained compiled `add-on.json` distributable. Run `bun run add-ons:compile` after changing add-on source, then `bun run add-ons:test <id>` to install it through the official CLI into a disposable clean scaffold and build the result. The catalog drives both discovery and CI; planned capabilities do not have add-on workspaces and are not installed. No distributable is published externally yet.
 
 ## Production containers
 

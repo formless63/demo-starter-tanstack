@@ -1,0 +1,28 @@
+{
+  "projectName": "jobs-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "addOnConfig": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "expectedOfficialAddOns": ["drizzle"],
+  "expectedFiles": [
+    "src/db/index.ts",
+    "src/integrations/jobs/boss.server.ts",
+    "src/integrations/jobs/client.server.ts",
+    "src/integrations/jobs/registry.ts",
+    "src/integrations/jobs/tasks/starter-echo.ts",
+    "src/integrations/jobs/types.ts",
+    "src/integrations/jobs/worker.server.ts",
+    "scripts/jobs-doctor.ts",
+    "scripts/jobs-migrate.ts",
+    "scripts/jobs-smoke.ts",
+    "scripts/jobs-worker.ts",
+    "capabilities/jobs/CAPABILITY.md"
+  ],
+  "build": true
+}

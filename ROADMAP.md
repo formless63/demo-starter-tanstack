@@ -20,6 +20,23 @@ These foundations are not independently installable capabilities and must not be
 
 `Jobs` is the first completed reusable capability and is default-installed in this starter. All other capability entries are planned; no package is installed merely because it appears here.
 
+## Custom add-on workspace
+
+This repository is a catalog-style monorepo for independently installable TanStack custom add-ons. An implemented add-on owns one directory:
+
+```text
+capabilities/<id>/
+├── CAPABILITY.md
+├── .cta.json                 # capability-local TanStack authoring context
+├── .add-on/                  # official custom add-on source metadata and assets
+├── add-on.json               # retained, compiled TanStack distributable
+└── test/clean-install.json   # disposable scaffold expectations
+```
+
+The official pinned TanStack CLI compiles each `.add-on` directory; repository scripts only discover entries from `capabilities/catalog.json`, invoke that CLI, and verify clean installation. They are not an alternative generator. Each catalog entry records its stable TanStack add-on ID; add-on `dependsOn` and conflict sets use those CLI IDs, while capability `requires` uses capability IDs. The checker ensures completed hard capability dependencies are also expressed in official add-on metadata. `bun run add-ons:compile` rebuilds every declared distributable, while `bun run add-ons:test <id>` verifies that the committed output is current, installs it through normal TanStack mechanics into a clean scaffold, resolves official dependencies, and builds the result.
+
+Only implemented capabilities receive an add-on directory. Planned entries such as API Platform, Observability, Object Storage, and Email remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
+
 ### Done
 
 | Capability | Requires | Integrates with | External | Status |
@@ -128,4 +145,4 @@ These are research tracks, not automatically installed capabilities.
 
 ## Implementation governance
 
-Before installing, removing, or changing a capability, use `.agents/skills/capability-change/SKILL.md`. An implemented capability must own a `capabilities/<id>/CAPABILITY.md`, accurately declare scripts, environment, migrations, runtime processes, infrastructure, installation/removal, upgrade concerns, verification, and agent guidance, and link any evaluation document. Clean installation and removal should be tested where the packaging supports them.
+Before installing, removing, or changing a capability, use `.agents/skills/capability-change/SKILL.md`. An implemented capability must own a `capabilities/<id>/CAPABILITY.md`, accurately declare scripts, environment, migrations, runtime processes, infrastructure, installation/removal, upgrade concerns, verification, and agent guidance, and link any evaluation document. Custom add-ons also own their official source metadata, retained distributable, declared dependencies, documented conflicts, and clean-install fixture. CI derives its completed-add-on matrix from the catalog, so a new implementation extends metadata rather than copying a workflow job. Clean installation and removal should be tested where the packaging supports them.
