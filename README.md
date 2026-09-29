@@ -50,6 +50,20 @@ docker compose up -d postgres
 
 Targeting `postgres` does not build or start the application.
 
+## Background jobs
+
+The reusable jobs capability uses pg-boss with the same PostgreSQL database by default and a dedicated `${PGBOSS_SCHEMA:-pgboss}` schema. Queue names, payload schemas, policy, and handlers live in `src/integrations/jobs/registry.ts`; `starter.echo` is the minimal working example. Enqueue with `sendJob`. When an application write and enqueue must commit together, call `sendJobInTransaction` inside the same Drizzle transaction.
+
+Runtime clients and workers always use `migrate: false`. Prepare and verify the schema explicitly, then start the worker:
+
+```bash
+bun run jobs:migrate
+bun run jobs:doctor
+bun run jobs:worker
+```
+
+`bun run jobs:smoke` starts a real worker, enqueues `starter.echo`, waits for its stored completion output, and exits nonzero on failure. `JOBS_CONCURRENCY` controls per-queue local concurrency. `PGBOSS_DATABASE_URL` can isolate jobs onto another PostgreSQL connection; otherwise `DATABASE_URL` is used. LISTEN/NOTIFY is opt-in through `PGBOSS_USE_LISTEN_NOTIFY=true`, with polling retained as the correctness fallback.
+
 ## Verification
 
 ```bash
@@ -64,7 +78,7 @@ Playwright covers the public landing page and anonymous protected-route redirect
 
 ## Production containers
 
-Compose defines PostgreSQL, an explicit one-shot `migrate` job, and the production `app`. Both application services use the same `${APP_IMAGE:-tanstack-launchpad:local}` image built from the production Dockerfile. The image contains the Node-compatible TanStack Start output, a bundled migration runner, and committed migration SQL; it runs as the unprivileged `node` user and has no source bind mounts.
+Compose defines PostgreSQL, explicit one-shot `migrate` and `jobs-migrate` jobs, the production `app`, and a separately restartable `worker`. All application services use the same `${APP_IMAGE:-tanstack-launchpad:local}` image built from the production Dockerfile. The image contains the Node-compatible TanStack Start output and bundled operational entrypoints; it runs as the unprivileged `node` user and has no source bind mounts.
 
 Create a deployment `.env` (Compose reads this file automatically) and set at least:
 
@@ -82,16 +96,20 @@ Provider credentials remain optional for a smoke deployment. `DATABASE_URL` insi
 docker compose build app
 docker compose up -d --wait postgres
 docker compose run --rm migrate
+docker compose run --rm jobs-migrate
+docker compose run --rm worker node .output/jobs-doctor.mjs
 docker compose up -d --wait app
+docker compose up -d worker
 curl --fail http://localhost:${APP_PORT:-3000}/api/health
 ```
 
-The migration command exits nonzero on failure, so stop the release and do not start or update `app` unless it succeeds. Application startup never runs migrations itself.
+Either migration command exits nonzero on failure, so stop the release and do not start or update `app` or `worker` unless both succeed. Long-lived process startup never runs migrations itself.
 
 Operational commands:
 
 ```bash
 # Follow production application logs
+docker compose logs -f worker
 docker compose logs -f app
 
 # Stop containers but retain PostgreSQL data
@@ -102,12 +120,13 @@ docker compose down --volumes
 
 # Build and release a new application revision with the same explicit gate
 docker compose build # or: docker compose build app
+docker compose run --rm jobs-migrate
 docker compose run --rm migrate
-docker compose up -d --wait app
+docker compose up -d --wait app worker
 ```
 
-For registries, set `APP_IMAGE` to the immutable image reference and use that same reference for both `migrate` and `app`. The stack is plain Compose and remains deployment-provider neutral.
+For registries, set `APP_IMAGE` to the immutable image reference and use that same reference for `migrate`, `jobs-migrate`, `app`, and `worker`. The stack is plain Compose and remains deployment-provider neutral.
 
 ## Repository conventions
 
-`AGENTS.md` is concise canonical agent context. Architecture, stack, and commands use progressive disclosure under `.agents/context`; five narrow skills and three reusable prompts support cross-tool workflows. Server-only dependencies belong behind server functions/routes, and authorization is always enforced next to the database mutation.
+`AGENTS.md` is concise canonical agent context. Architecture, stack, and commands use progressive disclosure under `.agents/context`; six narrow skills and three reusable prompts support cross-tool workflows. Server-only dependencies belong behind server functions/routes, and authorization is always enforced next to the database mutation.

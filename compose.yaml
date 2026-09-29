@@ -11,6 +11,13 @@ x-database-environment: &database-environment
   POSTGRES_USER: ${POSTGRES_USER:-starter}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-starter}
 
+x-jobs-environment: &jobs-environment
+  NODE_ENV: production
+  DATABASE_URL: postgresql://${POSTGRES_USER:-starter}:${POSTGRES_PASSWORD:-starter}@postgres:5432/${POSTGRES_DB:-starter}
+  PGBOSS_DATABASE_URL: ${PGBOSS_DATABASE_URL:-postgresql://${POSTGRES_USER:-starter}:${POSTGRES_PASSWORD:-starter}@postgres:5432/${POSTGRES_DB:-starter}}
+  PGBOSS_SCHEMA: ${PGBOSS_SCHEMA:-pgboss}
+  PGBOSS_USE_LISTEN_NOTIFY: ${PGBOSS_USE_LISTEN_NOTIFY:-false}
+
 services:
   postgres:
     image: postgres:18.1-alpine
@@ -37,6 +44,28 @@ services:
       postgres:
         condition: service_healthy
     restart: "no"
+
+  jobs-migrate:
+    <<: *app-image
+    command: ["node", ".output/jobs-migrate.mjs"]
+    environment: *jobs-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  worker:
+    <<: *app-image
+    command: ["node", ".output/jobs-worker.mjs"]
+    environment:
+      <<: *jobs-environment
+      JOBS_CONCURRENCY: ${JOBS_CONCURRENCY:-4}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    init: true
+    stop_grace_period: 35s
+    restart: unless-stopped
 
   app:
     <<: *app-image

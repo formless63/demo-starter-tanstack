@@ -5,7 +5,11 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build \
-  && bun build scripts/migrate.mjs --target=node --outfile=.output/migrate.mjs
+  && bun build scripts/migrate.mjs --target=node --outfile=.output/migrate.mjs \
+  && bun build scripts/jobs-migrate.ts --target=node --outfile=.output/jobs-migrate.mjs \
+  && bun build scripts/jobs-doctor.ts --target=node --outfile=.output/jobs-doctor.mjs \
+  && bun build scripts/jobs-smoke.ts --target=node --outfile=.output/jobs-smoke.mjs \
+  && bun build scripts/jobs-worker.ts --target=node --outfile=.output/jobs-worker.mjs
 
 FROM node:24.21.0-alpine AS runtime
 WORKDIR /app

@@ -1,0 +1,13 @@
+{
+	"dependencies": {
+		"drizzle-orm": "^0.45.1",
+		"pg-boss": "12.35.0",
+		"zod": "^4.3.6"
+	},
+	"scripts": {
+		"jobs:worker": "bun scripts/jobs-worker.ts",
+		"jobs:migrate": "bun scripts/jobs-migrate.ts",
+		"jobs:doctor": "bun scripts/jobs-doctor.ts",
+		"jobs:smoke": "bun scripts/jobs-smoke.ts"
+	}
+}
