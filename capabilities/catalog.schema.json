@@ -3,11 +3,24 @@
 	"title": "TanStack Launchpad capability catalog",
 	"type": "object",
 	"additionalProperties": false,
-	"required": ["$schema", "version", "baseline", "frameworkEvaluations", "capabilities"],
+	"required": ["$schema", "version", "baseline", "referenceApplication", "frameworkEvaluations", "capabilities"],
 	"properties": {
 		"$schema": { "type": "string", "const": "./catalog.schema.json" },
-		"version": { "type": "integer", "const": 2 },
+		"version": { "type": "integer", "const": 3 },
 		"baseline": { "$ref": "#/$defs/baseline" },
+		"referenceApplication": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["enabledCapabilities"],
+			"properties": {
+				"enabledCapabilities": {
+					"type": "array",
+					"description": "Capabilities intentionally integrated into this repository's reference application, independent of generated-consumer defaults.",
+					"items": { "$ref": "#/$defs/identifier" },
+					"uniqueItems": true
+				}
+			}
+		},
 		"frameworkEvaluations": {
 			"type": "object",
 			"additionalProperties": false,
@@ -123,7 +136,10 @@
 				"displayName": { "type": "string", "minLength": 1 },
 				"kind": { "enum": ["foundational-backend", "application-infrastructure", "identity-policy", "business-integration", "operations-ui-infrastructure", "client-platform"] },
 				"status": { "enum": ["done", "in-progress", "planned", "evaluate", "deferred"] },
-				"defaultInstalled": { "type": "boolean" },
+				"defaultInstalled": {
+					"type": "boolean",
+					"description": "Whether a clean base/generated consumer receives this capability without explicitly selecting or installing it; unrelated to reference-application integration."
+				},
 				"requires": { "type": "array", "items": { "$ref": "#/$defs/identifier" }, "uniqueItems": true },
 				"integratesWith": { "type": "array", "items": { "$ref": "#/$defs/identifier" }, "uniqueItems": true },
 				"baselineRequirements": { "type": "array", "items": { "$ref": "#/$defs/identifier" }, "uniqueItems": true },

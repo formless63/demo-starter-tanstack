@@ -74,8 +74,8 @@ export async function createManagedApiKey(
 				? parsed.expiresInDays * 24 * 60 * 60
 				: null,
 			rateLimitEnabled: true,
-			rateLimitMax: 10_000,
-			rateLimitTimeWindow: 24 * 60 * 60 * 1000,
+			rateLimitMax: 1_000,
+			rateLimitTimeWindow: 60 * 1000,
 		},
 	});
 	return { secret: created.key, apiKey: toSafeApiKeyMetadata(created) };

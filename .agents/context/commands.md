@@ -11,6 +11,7 @@
 - `bun run jobs:smoke`: enqueue and consume the demo echo job through a real worker.
 - `bun run auth:provision`: idempotently provision Pocket ID from local credentials.
 - `bun run capabilities:check`: validate capability schema, relationships, documentation, scripts, and add-on metadata.
+- `bun run capabilities:status`: read-only summary of completed add-on availability, reference-app enablement, generated-consumer defaults, relationships, and external requirements.
 - `bun run add-ons:compile [id ...]`: compile declared custom add-ons with the pinned official TanStack CLI; outputs stay at `capabilities/<id>/add-on.json`.
 - `bun run add-ons:test [id ...]`: reject stale compiled output, install each selected add-on into a clean disposable Start scaffold, verify official dependencies/assets/package additions, and build it.
 - `bun run add-ons:matrix`: print the completed custom add-on IDs used by CI's data-driven matrix.
@@ -31,3 +32,5 @@
 - `docker compose down`: stop and remove the stack while retaining database data; add `--volumes` only when data removal is intended.
 
 CI gives each completed add-on matrix job PostgreSQL so capability fixtures may declare clean migration/smoke commands. The main job uses the containerized migration path, runs all repository checks and Playwright, starts the production image, waits for its healthcheck, probes `/api/health`, `/api/openapi.json`, and `/docs/api`, and always tears the stack down.
+
+For a downstream lean application, follow `docs/STARTING-A-PROJECT.md`. Its Jobs-only, API-only, and combined removal recipes preserve database data/migration history by default and finish with capability governance, typecheck, and build verification.

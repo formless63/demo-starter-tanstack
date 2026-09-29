@@ -21,6 +21,7 @@
     "db:studio": "drizzle-kit studio",
     "auth:provision": "bun scripts/provision-oidc.ts",
     "capabilities:check": "bun scripts/capabilities-check.ts",
+    "capabilities:status": "bun scripts/capabilities-status.ts",
     "add-ons:compile": "bun scripts/add-ons.ts compile",
     "add-ons:test": "bun scripts/add-ons.ts test",
     "add-ons:matrix": "bun scripts/add-ons.ts matrix",

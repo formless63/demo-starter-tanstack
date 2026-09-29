@@ -1,6 +1,6 @@
 {
 	"$schema": "./catalog.schema.json",
-	"version": 2,
+	"version": 3,
 	"baseline": {
 		"summary": "Always-present starter foundations; these are not optional capability modules and must never appear in capability relationship arrays.",
 		"components": [
@@ -22,6 +22,9 @@
 			{ "id": "ci-testing", "displayName": "CI and testing" },
 			{ "id": "agent-scaffolding", "displayName": "Agent scaffolding" }
 		]
+	},
+	"referenceApplication": {
+		"enabledCapabilities": ["jobs", "api-platform"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -47,7 +50,7 @@
 			"displayName": "Jobs",
 			"kind": "foundational-backend",
 			"status": "done",
-			"defaultInstalled": true,
+			"defaultInstalled": false,
 			"requires": [],
 			"integratesWith": ["observability", "ops-admin"],
 			"baselineRequirements": ["postgresql", "drizzle"],
