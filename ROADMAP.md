@@ -18,7 +18,7 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, and `Webhooks` are six completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
+`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, and `Audit Log` are seven completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
 
 `defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
@@ -51,11 +51,12 @@ Only implemented capabilities receive an add-on directory. Planned entries such 
 
 | Email | None; no database/auth dependency | Jobs, Observability; baseline Better Auth wiring | SMTP when used; optional Mailpit v1.31.3 | Enabled | No | Done |
 
+| Audit Log | None beyond baseline PostgreSQL and Drizzle | Authentication (baseline), API Platform, Organizations, Jobs, Invoice Ninja, Stripe, Medusa | PostgreSQL | Enabled | No | Done |
+
 ### Foundational / backend
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Audit Log | None | Authentication, API Platform, Organizations, Jobs, business integrations | PostgreSQL | Planned |
 | AI | None | Jobs, Object Storage, Observability, Audit Log | Configured model provider | Planned |
 
 Object Storage uses standard AWS SDK v3, with real private streaming/presign/multipart verification on RustFS and Garage. Optional third-party Noooste Garage UI 0.13.0 is infrastructure, not a capability dependency. No storage is needed for build/start; application owners decide readiness policy. MinIO is not the default. Email pins Nodemailer 10.0.13 for lazy provider-neutral SMTP with explicit TLS, safe messages/errors, no retries, and awaited Better Auth magic links. Mailpit v1.31.3 verifies real SMTP and deterministic Chaos; no provider SDK or generic queue is added.

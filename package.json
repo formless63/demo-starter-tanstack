@@ -55,7 +55,8 @@
     "email:dev:mailpit": "bun scripts/email-dev.ts up",
     "email:dev:down": "bun scripts/email-dev.ts down",
     "webhooks:unit": "bun scripts/webhooks-unit.ts",
-    "webhooks:smoke": "bun scripts/webhooks-smoke.ts"
+    "webhooks:smoke": "bun scripts/webhooks-smoke.ts",
+    "audit-log:smoke": "bun scripts/audit-log-smoke.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",

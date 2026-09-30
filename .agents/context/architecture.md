@@ -46,3 +46,7 @@ Root TypeScript excludes `.add-on/assets` templates; each clean fixture owns con
 `AGENTS.md` and `.agents/skills` are canonical. `.agents/hooks` holds shared read-only context, minimal tool guards and cheap completion checks; `.claude`, `.codex` and `.gemini` contain client adapters. See `docs/AGENT-AUTOMATION.md` for trust and controls.
 
 Webhooks owns server-only raw signing/verification and Jobs-backed delivery under src/integrations/webhooks. Domain schemas/targets live in src/lib/webhooks.server.ts and compose into the existing Jobs registry. Jobs is hard-required; no optional telemetry/API/Audit imports. No startup receiver or migration.
+
+## Audit Log boundary
+
+`src/integrations/audit-log` owns a generic PostgreSQL append/query primitive and schema. Projects create/update/delete pass their existing transaction to the required audit insert; root API wiring maps safe verified key IDs to machine actors. No payload/session/header copying, consumer imports, UI, tenancy, purge automation or database immutability claim. Query authorization belongs to applications. Keep schema registrations and applied migrations during removal.

@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -341,10 +341,57 @@
 			}
 		},
 		{
-			"id": "audit-log", "displayName": "Audit Log", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["api-platform", "organizations", "jobs", "invoice-ninja", "stripe", "medusa"], "baselineRequirements": ["postgresql"], "baselineIntegrations": ["authentication"],
-			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Durable append-oriented audit records." }],
-			"summary": "Application audit events with actor, subject, action, and context."
+			"id": "audit-log",
+			"displayName": "Audit Log",
+			"kind": "foundational-backend",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"api-platform",
+				"organizations",
+				"jobs",
+				"invoice-ninja",
+				"stripe",
+				"medusa"
+			],
+			"baselineRequirements": [
+				"postgresql",
+				"drizzle"
+			],
+			"baselineIntegrations": [
+				"authentication"
+			],
+			"externalRequirements": [
+				{
+					"name": "PostgreSQL",
+					"required": true,
+					"description": "Durable append-oriented audit records."
+				}
+			],
+			"summary": "Application audit events with actor, subject, action, and context.",
+			"documentationPath": "capabilities/audit-log/CAPABILITY.md",
+			"evaluationDocument": "AUDIT_LOG_MODULE_EVALUATION.md",
+			"agentSkill": ".agents/skills/audit-log-change/SKILL.md",
+			"scripts": [
+				"audit-log:smoke"
+			],
+			"environmentVariables": [],
+			"runtimeServices": [],
+			"migrations": [
+				"bun run db:migrate"
+			],
+			"tanstackAddOn": {
+				"addOnId": "audit-log",
+				"sourceDirectory": "capabilities/audit-log/.add-on",
+				"manifestPath": "capabilities/audit-log/.add-on/info.json",
+				"distributablePath": "capabilities/audit-log/add-on.json",
+				"cleanInstallFixture": "capabilities/audit-log/test/clean-install.json",
+				"dependsOn": [
+					"drizzle"
+				],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "ai", "displayName": "AI", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
