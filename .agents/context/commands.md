@@ -51,3 +51,5 @@
 CI gives each completed add-on matrix job PostgreSQL so capability fixtures may declare clean migration/smoke commands. The main job uses the containerized migration path, runs all repository checks and Playwright, starts the production image, waits for its healthcheck, probes `/api/health`, `/api/openapi.json`, and `/docs/api`, and always tears the stack down.
 
 For a downstream lean application, follow `docs/STARTING-A-PROJECT.md`. Its Jobs-only, API-only, and combined removal recipes preserve database data/migration history by default and finish with capability governance, typecheck, and build verification.
+
+`bun run webhooks:unit` proves protocol/security; `bun run webhooks:smoke` owns disposable real HTTP receiver/sender and exercises existing Jobs retries on a migrated disposable database. `bun run add-ons:test webhooks` verifies transitive custom Jobs installation and removal retaining Jobs.

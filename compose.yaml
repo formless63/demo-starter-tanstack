@@ -15,6 +15,8 @@ x-jobs-environment: &jobs-environment
   NODE_ENV: production
   DATABASE_URL: postgresql://${POSTGRES_USER:-starter}:${POSTGRES_PASSWORD:-starter}@postgres:5432/${POSTGRES_DB:-starter}
   PGBOSS_DATABASE_URL: ${PGBOSS_DATABASE_URL:-postgresql://${POSTGRES_USER:-starter}:${POSTGRES_PASSWORD:-starter}@postgres:5432/${POSTGRES_DB:-starter}}
+  WEBHOOK_REFERENCE_URL: ${WEBHOOK_REFERENCE_URL:-}
+  WEBHOOK_REFERENCE_SECRET: ${WEBHOOK_REFERENCE_SECRET:-}
   PGBOSS_SCHEMA: ${PGBOSS_SCHEMA:-pgboss}
   PGBOSS_USE_LISTEN_NOTIFY: ${PGBOSS_USE_LISTEN_NOTIFY:-false}
 

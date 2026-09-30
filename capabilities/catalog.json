@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -285,10 +285,60 @@
 			}
 		},
 		{
-			"id": "webhooks", "displayName": "Webhooks", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
-			"requires": ["jobs"], "integratesWith": ["audit-log", "observability", "api-platform"], "baselineRequirements": [],
-			"externalRequirements": [{ "name": "Remote webhook endpoints", "required": true, "description": "Inbound senders and outbound consumers configured by an application." }],
-			"summary": "Reliable signed inbound and outbound webhook processing with durable retries."
+			"id": "webhooks",
+			"displayName": "Webhooks",
+			"kind": "foundational-backend",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [
+				"jobs"
+			],
+			"integratesWith": [
+				"audit-log",
+				"observability",
+				"api-platform"
+			],
+			"baselineRequirements": ["node-runtime"],
+			"externalRequirements": [
+				{
+					"name": "Remote webhook endpoints",
+					"required": true,
+					"description": "Inbound senders and outbound consumers configured by an application."
+				}
+			],
+			"summary": "Standard Webhooks signed raw-byte verification and stable Jobs-backed delivery with application-owned targets and idempotency.",
+			"scripts": [
+				"webhooks:unit",
+				"webhooks:smoke"
+			],
+			"environmentVariables": [
+				{
+					"name": "WEBHOOK_REFERENCE_URL",
+					"required": false,
+					"description": "Application-owned HTTPS reference target, resolved only on explicit delivery."
+				},
+				{
+					"name": "WEBHOOK_REFERENCE_SECRET",
+					"required": false,
+					"description": "Application-owned primary Standard Webhooks whsec_ secret; never queued."
+				}
+			],
+			"migrations": [],
+			"runtimeServices": [],
+			"documentationPath": "capabilities/webhooks/CAPABILITY.md",
+			"agentSkill": ".agents/skills/webhooks-change/SKILL.md",
+			"evaluationDocument": "WEBHOOKS_MODULE_EVALUATION.md",
+			"tanstackAddOn": {
+				"addOnId": "webhooks",
+				"sourceDirectory": "capabilities/webhooks/.add-on",
+				"manifestPath": "capabilities/webhooks/.add-on/info.json",
+				"distributablePath": "capabilities/webhooks/add-on.json",
+				"cleanInstallFixture": "capabilities/webhooks/test/clean-install.json",
+				"dependsOn": [
+					"postgres-jobs"
+				],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "audit-log", "displayName": "Audit Log", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,

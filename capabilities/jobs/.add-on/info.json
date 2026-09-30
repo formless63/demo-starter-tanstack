@@ -5,7 +5,7 @@
 	"description": "Typed PostgreSQL background jobs with pg-boss, Zod validation, explicit migrations, and a standalone worker.",
 	"version": "1.0.0",
 	"type": "add-on",
-	"phase": "add-on",
+	"phase": "example",
 	"category": "database",
 	"modes": ["file-router"],
 	"dependsOn": ["drizzle"],

@@ -35,6 +35,8 @@ Baseline components are not optional capability modules. Future integrations in 
 | Object Storage | Done | Optional | No database/auth/capability dependency; S3 when used | Private streaming, signed PUT/GET, multipart and post-upload verification | [Storage contract](capabilities/object-storage/CAPABILITY.md) |
 | Email | Done | Optional | No database/auth/capability dependency; SMTP when used | Bounded SMTP delivery, safe errors and awaited magic links | [Email contract](capabilities/email/CAPABILITY.md) |
 
+| Webhooks | Done | Optional | Jobs + baseline Node 24 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
+
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
 ## Quick start
@@ -154,6 +156,8 @@ Start optional loopback-only Mailpit v1.31.3 with `bun run email:dev:mailpit`; c
 bun install --frozen-lockfile
 bun run capabilities:status
 bun run capabilities:check
+bun run webhooks:unit
+bun run webhooks:smoke
 bun run add-ons:test jobs
 bun run add-ons:test api-platform
 bun run add-ons:test observability
@@ -235,3 +239,7 @@ For registries, set `APP_IMAGE` to the immutable image reference and use that sa
 ## Repository conventions
 
 `AGENTS.md` is concise canonical agent context. [Agent automation](docs/AGENT-AUTOMATION.md) describes shared project hooks and normal client trust controls. Architecture, stack, and commands use progressive disclosure under `.agents/context`; narrow workflow skills and reusable prompts support cross-tool work. Reusable capability status and dependency governance live in `ROADMAP.md` and `capabilities/catalog.json`. Server-only dependencies belong behind server functions/routes, and authorization is always enforced next to the database mutation.
+
+Webhooks provides a signed Standard Webhooks primitive with Jobs as its only hard capability dependency. See [Webhooks contract](capabilities/webhooks/CAPABILITY.md) and [evaluation](WEBHOOKS_MODULE_EVALUATION.md). Explicit `bun run webhooks:unit` and `bun run webhooks:smoke` use a disposable receiver; normal startup needs no external endpoint.
+
+The Webhooks catalog fixture proves transitive Jobs installation, signed real HTTP delivery and worker retries, then removes Webhooks while retaining Jobs. Main CI also runs its Node production-image smoke; no receiver is needed for normal application health. CLI 0.71 custom dependency IDs require the generic local transport (`bun scripts/add-ons.ts serve webhooks`) rather than direct raw-JSON installation; external publication is deferred.

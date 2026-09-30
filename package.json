@@ -53,7 +53,9 @@
     "email:unit": "bun test src/integrations/email",
     "email:compat": "bun scripts/email-compat.ts",
     "email:dev:mailpit": "bun scripts/email-dev.ts up",
-    "email:dev:down": "bun scripts/email-dev.ts down"
+    "email:dev:down": "bun scripts/email-dev.ts down",
+    "webhooks:unit": "bun scripts/webhooks-unit.ts",
+    "webhooks:smoke": "bun scripts/webhooks-smoke.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",

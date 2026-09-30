@@ -16,6 +16,7 @@ bun run db:migrate
 bun run jobs:migrate
 bun run jobs:doctor
 bun run jobs:smoke
+bun run webhooks:smoke
 bun run api-platform:smoke
 bun run observability:smoke
 bun run dev
@@ -43,6 +44,8 @@ bun run build
 Use `bun install --frozen-lockfile` for subsequent reproducible installs after committing the updated lockfile.
 
 ### Remove Jobs
+
+Remove Webhooks first if enabled: it has a hard Jobs dependency.
 
 First stop workers and prevent producers from adding new work. Decide whether queued jobs must be drained or archived.
 
@@ -95,7 +98,7 @@ If the downstream fork will never reinstall or develop API Platform, delete `cap
 
 Apply both recipes together, remove both IDs from `referenceApplication.enabledCapabilities`, regenerate routes once, and update/install dependencies once. Keep the baseline PostgreSQL migration history and `/api/health` container verification.
 
-Observability, Object Storage and Email may remain independently installed; apply their following removal recipes for a capability-free application baseline.
+Webhooks must be removed before removing Jobs. Observability, Object Storage and Email may remain independently installed; apply their following removal recipes for a capability-free application baseline.
 
 The resulting application retains TanStack Start/React, Bun, PostgreSQL/Drizzle, passwordless Better Auth, the authenticated Projects slice, Tailwind/shadcn/Tabler UI, Docker/Compose, CI, and agent/capability governance. `bun run capabilities:check`, `bun run typecheck`, and `bun run build` must all pass before treating the lean baseline as viable.
 
@@ -111,7 +114,7 @@ The resulting application retains TanStack Start/React, Bun, PostgreSQL/Drizzle,
 8. Remove `observability` from `referenceApplication.enabledCapabilities`. Keep authoring source/catalog status unless separately pruning it; use the standard `deferred` pruning recipe if needed.
 9. Update the lockfile, regenerate routes, and run governance/types/tests/build and the production health path.
 
-Apply this recipe alongside Jobs/API removal if none of those three are needed; apply Storage's recipe as well to remove all four; apply Email’s recipe to remove the fifth. No remaining application import should point at a removed integration. Observability authoring assets can remain independently installable even when the reference application no longer enables telemetry.
+Apply the relevant removal recipes for every unwanted capability; remove Webhooks before Jobs. No remaining application import should point at a removed integration. Observability authoring assets can remain independently installable even when the reference application no longer enables telemetry.
 
 ### Remove Object Storage
 
@@ -145,3 +148,11 @@ For authoring pruning, additionally delete `capabilities/email/`, `EMAIL_MODULE_
 TanStack custom add-ons do not currently provide an uninstall transaction. Jobs is mostly additive, but API Platform edits shared Better Auth and Drizzle source that may already be customized. A generic deletion/codemod would either miss integration changes or overwrite application work.
 
 The per-capability `CAPABILITY.md` files remain the technical source of truth; this guide is the user-facing sequence. No removal step automatically drops schemas, tables, or data.
+
+### Remove Webhooks, keep Jobs
+
+Stop webhook producers and coordinate worker deployment; decide whether existing deliveries should drain or be archived. Delete `src/integrations/webhooks/`, `src/lib/webhooks.server.ts`, `scripts/webhooks-*.ts`, the reference import/spread in `src/integrations/jobs/registry.ts` and any application-owned inbound processing definitions/routes. Keep the rest of the Jobs registry and its worker.
+
+Remove `webhooks:*` scripts, the Webhooks smoke Docker bundle, WEBHOOK_REFERENCE_* env/Compose entries and any Webhooks-only dependencies when unused. Keep Jobs, pg-boss, Drizzle and baseline Zod. Remove `webhooks` from referenceApplication.enabledCapabilities when present. Retain queue history by default; do not automatically delete jobs or mutate/delete remote endpoints.
+
+Run capability governance, types/build, Jobs smoke, E2E and production health. The clean fixture applies this removal, rebuilds and proves Jobs remains usable. To abandon authoring too, prune `capabilities/webhooks/`, evaluation and skill; keep stable catalog ID as deferred, remove implementation metadata, update roadmap/docs consistently. There is no CLI uninstall transaction.

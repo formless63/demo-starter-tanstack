@@ -44,3 +44,5 @@ Root TypeScript excludes `.add-on/assets` templates; each clean fixture owns con
 ## Agent automation
 
 `AGENTS.md` and `.agents/skills` are canonical. `.agents/hooks` holds shared read-only context, minimal tool guards and cheap completion checks; `.claude`, `.codex` and `.gemini` contain client adapters. See `docs/AGENT-AUTOMATION.md` for trust and controls.
+
+Webhooks owns server-only raw signing/verification and Jobs-backed delivery under src/integrations/webhooks. Domain schemas/targets live in src/lib/webhooks.server.ts and compose into the existing Jobs registry. Jobs is hard-required; no optional telemetry/API/Audit imports. No startup receiver or migration.
