@@ -65,6 +65,7 @@ jobs:
       - run: docker compose run --rm jobs-migrate
       - run: docker compose run --rm worker node .output/jobs-doctor.mjs
       - run: docker compose run --rm worker node .output/jobs-smoke.mjs
+      - run: docker compose run --rm worker node .output/webhooks-smoke.mjs
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run observability:smoke

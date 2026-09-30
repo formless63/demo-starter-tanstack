@@ -23,6 +23,8 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 | `object-storage` | `object-storage` | Done | Enabled | No | None | None | S3 only when used | [Object Storage](../capabilities/object-storage/CAPABILITY.md) |
 | `email` | `email` | Done | Enabled | No | None | None | SMTP only when used; optional Mailpit | [Email](../capabilities/email/CAPABILITY.md) |
 
+| `webhooks` | `webhooks` | Done | Enabled | No | `postgres-jobs` | Jobs | Remote endpoints when used | [Webhooks](../capabilities/webhooks/CAPABILITY.md) |
+
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
 ## Installing a capability
@@ -68,7 +70,7 @@ Official TanStack add-on dependencies are resolved by the CLI:
 
 - Email declares `dependsOn: []`; a backendless fixture types/builds with SMTP absent, tests real Mailpit SMTP/Chaos, then removes runtime/packages and rebuilds. Better Auth and telemetry are root-only integrations, never clean-consumer requirements.
 
-These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Completed capabilities do not require one another.
+These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Webhooks requires Jobs; optional integrations remain independent.
 
 ## Disabling or removing a capability
 
@@ -125,7 +127,12 @@ bun run add-ons:test jobs
 bun run add-ons:test api-platform
 bun run add-ons:test observability
 bun run add-ons:test object-storage
+bun run add-ons:test webhooks
 bun run check
 ```
 
 Then run the capability-specific database/worker/API smoke commands described in each `CAPABILITY.md`.
+
+## Webhooks
+
+Webhooks is complete and enabled in the reference application. Its add-on declares `dependsOn: ["postgres-jobs"]`. CLI 0.71 changes custom IDs to URLs, so direct raw JSON cannot resolve the stable custom dependency ID. Run `bun scripts/add-ons.ts serve webhooks`, then use its printed `--add-ons` argument with PostgreSQL Drizzle config. The local transport maps catalog dependency IDs to served URLs without changing retained artifacts. The generic catalog harness handles that ordering for `bun run add-ons:test webhooks`. Review the shared Jobs registry composition in customized applications. See [contract](../capabilities/webhooks/CAPABILITY.md). No API Platform, Audit Log or Observability requirement.

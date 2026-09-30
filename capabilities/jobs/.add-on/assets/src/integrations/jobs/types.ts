@@ -7,6 +7,8 @@ export interface JobDefinition<TSchema extends z.ZodType> {
 		expireInSeconds: number;
 		retryDelay: number;
 		retryLimit: number;
+		retryBackoff?: boolean;
+		retryDelayMax?: number;
 	};
 	handler: (payload: z.output<TSchema>) => Promise<object>;
 }

@@ -131,3 +131,7 @@ The clean-install test invokes the official TanStack CLI against a disposable bl
 ## Agent guidance
 
 Read `ROADMAP.md`, this document, `.agents/skills/capability-change/SKILL.md`, and `.agents/skills/jobs-change/SKILL.md` before changing Jobs. Keep registry payloads validated, preserve explicit migration ownership, keep optional integrations optional, and update the roadmap, catalog, this contract, capability-local add-on source/fixture/distributable, and evaluation together when their facts change.
+
+The Jobs installation supplies a PostgreSQL `drizzle.config.ts` that requires/narrows DATABASE_URL for explicit Drizzle commands. This corrects CLI 0.71's possibly-undefined URL template exposed by the Webhooks transitive clean TypeScript fixture. Review/merge this shared config in customized applications. Generic policy types also allow native retryBackoff/retryDelayMax so dependent capabilities compose bounded backoff through the existing worker. Neither change imports Webhooks into independent Jobs assets.
+
+Jobs custom assets run in the CLI example phase, after official Drizzle assets, so its strict configuration is not overwritten by the upstream template. The dependent Webhooks example phase follows Jobs.
