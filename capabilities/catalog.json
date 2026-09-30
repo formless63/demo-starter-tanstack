@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -400,10 +400,94 @@
 			"summary": "Provider-configurable model invocation, streaming, tools, and durable workload patterns."
 		},
 		{
-			"id": "cache-coordination", "displayName": "Cache / Coordination", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["realtime", "api-platform", "jobs"], "baselineRequirements": [],
-			"externalRequirements": [{ "name": "Valkey/Redis-compatible service", "required": true, "description": "Shared cache, ephemeral coordination, and distributed signaling." }],
-			"summary": "Optional shared caching and coordination without displacing PostgreSQL durability."
+			"id": "cache-coordination",
+			"displayName": "Cache / Coordination",
+			"kind": "application-infrastructure",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"realtime",
+				"api-platform",
+				"jobs"
+			],
+			"baselineRequirements": [
+				"node-runtime"
+			],
+			"externalRequirements": [
+				{
+					"name": "Valkey/Redis-compatible service",
+					"required": true,
+					"description": "Only required on first use; tested Valkey 9.1.2, common Redis protocol subset."
+				}
+			],
+			"summary": "Ephemeral server-only cache, atomic counters, advisory token-checked leases and pub/sub; tested on Valkey.",
+			"scripts": [
+				"cache:check",
+				"cache:smoke",
+				"cache:unit",
+				"cache:compat",
+				"cache:dev:valkey",
+				"cache:dev:down"
+			],
+			"environmentVariables": [
+				{
+					"name": "CACHE_URL",
+					"required": false,
+					"description": "Server-only redis/rediss URL; required lazily on use; may contain credentials; never log."
+				},
+				{
+					"name": "CACHE_KEY_PREFIX",
+					"required": false,
+					"description": "Validated 1–64 character namespace.",
+					"default": "app:"
+				},
+				{
+					"name": "CACHE_DEFAULT_TTL_SECONDS",
+					"required": false,
+					"description": "Integer 1–604800.",
+					"default": "300"
+				},
+				{
+					"name": "CACHE_MAX_VALUE_BYTES",
+					"required": false,
+					"description": "Integer 1–16777216; encoded values/messages.",
+					"default": "1048576"
+				},
+				{
+					"name": "CACHE_CONNECT_TIMEOUT_MS",
+					"required": false,
+					"description": "Integer 100–10000; complete connect bound.",
+					"default": "3000"
+				},
+				{
+					"name": "CACHE_COMMAND_TIMEOUT_MS",
+					"required": false,
+					"description": "Integer 100–10000; operation acknowledgement bound.",
+					"default": "2000"
+				}
+			],
+			"migrations": [],
+			"runtimeServices": [
+				{
+					"id": "cache-valkey",
+					"type": "compose-service",
+					"command": "bun run cache:dev:valkey",
+					"description": "Optional loopback ephemeral Valkey; separate Compose, no persistence."
+				}
+			],
+			"documentationPath": "capabilities/cache-coordination/CAPABILITY.md",
+			"agentSkill": ".agents/skills/cache-change/SKILL.md",
+			"evaluationDocument": "CACHE_COORDINATION_MODULE_EVALUATION.md",
+			"tanstackAddOn": {
+				"addOnId": "cache-coordination",
+				"sourceDirectory": "capabilities/cache-coordination/.add-on",
+				"manifestPath": "capabilities/cache-coordination/.add-on/info.json",
+				"distributablePath": "capabilities/cache-coordination/add-on.json",
+				"cleanInstallFixture": "capabilities/cache-coordination/test/clean-install.json",
+				"dependsOn": [],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "search", "displayName": "Search", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
