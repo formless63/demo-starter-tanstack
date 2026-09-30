@@ -57,3 +57,11 @@ For a downstream lean application, follow `docs/STARTING-A-PROJECT.md`. Its Jobs
 - `bun run audit-log:smoke`: append, same-transaction commit/rollback, secret rejection and bounded cursor queries against a migrated non-production PostgreSQL database. Leaves safe test audit records by design.
 - `bun test src/integrations/audit-log src/features/projects/audit.integration.test.ts`: safety, clean migration/indexes, coupled commit/rollback/database failure, query ordering/keysets and root user/machine mapping. The clean-migration suite creates/drops its own disposable test database.
 - `bun run add-ons:test audit-log`: official Drizzle clean scaffold, PostgreSQL migration/smoke, runtime removal with retained history/schema and lean rebuild.
+
+- `bun run cache:unit`: backendless configuration/limits/errors/lazy lifecycle.
+- `bun run cache:check`: explicit read-only PING; requires CACHE_URL on use.
+- `bun run cache:smoke`: unique-prefix real contract and exact cleanup; never restarts user service.
+- `bun run cache:compat`: disposable pinned Valkey full contract, restart/recovery and finally teardown.
+- `bun run cache:dev:valkey` / `cache:dev:down`: separate ephemeral loopback development service.
+- `bun run cache:telemetry`: root optional safe app.cache.* signal verification without backend.
+- `bun run add-ons:test cache-coordination`: independent clean installation/build, real Valkey and clean removal/rebuild.

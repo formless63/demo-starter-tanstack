@@ -39,6 +39,8 @@ Baseline components are not optional capability modules. Future integrations in 
 
 | Audit Log | Done | Optional | Baseline PostgreSQL + Drizzle | Append-oriented events, bounded safe context, atomic domain writes, keyset queries | [Audit Log contract](capabilities/audit-log/CAPABILITY.md) |
 
+| Cache / Coordination | Done | Optional | No capability dependency; Valkey on use | Ephemeral cache, atomic counters, advisory leases and pub/sub | [Cache contract](capabilities/cache-coordination/CAPABILITY.md) |
+
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
 ## Quick start
@@ -249,3 +251,13 @@ The Webhooks catalog fixture proves transitive Jobs installation, signed real HT
 ## Audit Log
 
 Audit Log records Projects create/update/delete in the same Drizzle transaction as the mutation. Signed-in users map to stable user IDs; optional API wiring maps verified machine key IDs, never credentials. Context contains static source/field names, not project values or request/session dumps. The reusable primitive has no consumer capability dependencies, UI, tenancy, logging or retention automation. Run `bun run audit-log:smoke` against a migrated test database. See its [contract](capabilities/audit-log/CAPABILITY.md) and [evaluation](AUDIT_LOG_MODULE_EVALUATION.md) for metadata bounds, keysets, operator authority and privacy/removal responsibilities.
+
+## Cache / Coordination
+
+Optional server-only ephemeral cache, atomic counters, advisory leases and pub/sub, independently packaged as [cache-coordination](capabilities/cache-coordination/CAPABILITY.md). No database/auth/Jobs/Realtime/Observability requirement; lazy config means normal build/start needs no Valkey. No cache UI or automatic readiness dependency.
+
+| Capability | Requires | Optional integrations | External | Default installed |
+| --- | --- | --- | --- | --- |
+| Cache / Coordination | None | Realtime, API Platform, Jobs | Valkey 9.1.2 / common Redis protocol subset | No |
+
+Use `bun run cache:dev:valkey` for separate loopback ephemeral Valkey, configure server-only `CACHE_URL=redis://127.0.0.1:6379`, then `bun run cache:check` (PING only), `bun run cache:smoke` (unique prefix/exact cleanup), and `bun run cache:dev:down`. `bun run cache:compat` creates and tears down disposable real Valkey; `cache:unit` and `cache:telemetry` verify backendless behavior/safe optional signals. Values expire by default; advisory leases have no fencing/Redlock guarantees; pub/sub has no persistence/replay. See [evaluation](CACHE_COORDINATION_MODULE_EVALUATION.md) and [removal](docs/STARTING-A-PROJECT.md#remove-cache--coordination).

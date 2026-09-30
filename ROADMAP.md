@@ -18,7 +18,7 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, and `Audit Log` are seven completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
+`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, and `Cache / Coordination` are eight completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
 
 `defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
@@ -53,6 +53,8 @@ Only implemented capabilities receive an add-on directory. Planned entries such 
 
 | Audit Log | None beyond baseline PostgreSQL and Drizzle | Authentication (baseline), API Platform, Organizations, Jobs, Invoice Ninja, Stripe, Medusa | PostgreSQL | Enabled | No | Done |
 
+| Cache / Coordination | None; no database/auth dependency | Realtime, API Platform, Jobs | Valkey/Redis-compatible service on use; tested Valkey 9.1.2 | Enabled | No | Done |
+
 ### Foundational / backend
 
 | Capability | Requires | Integrates with | External | Status |
@@ -65,7 +67,7 @@ Object Storage uses standard AWS SDK v3, with real private streaming/presign/mul
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Cache / Coordination | None | Realtime, API Platform, Jobs | Valkey/Redis-compatible service | Planned |
+| Cache / Coordination | None | Realtime, API Platform, Jobs | Valkey/Redis-compatible service | Done |
 | Search | None; PostgreSQL-first | Jobs, Object Storage, Organizations | PostgreSQL initially | Planned |
 | Realtime | Authenticated starter identity | Cache / Coordination, Notifications, Observability | None initially | Planned |
 | Notifications | Jobs | Email, Realtime, Audit Log | Optional ntfy; optional SMTP through Email | Planned |

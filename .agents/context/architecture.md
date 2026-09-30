@@ -50,3 +50,7 @@ Webhooks owns server-only raw signing/verification and Jobs-backed delivery unde
 ## Audit Log boundary
 
 `src/integrations/audit-log` owns a generic PostgreSQL append/query primitive and schema. Projects create/update/delete pass their existing transaction to the required audit insert; root API wiring maps safe verified key IDs to machine actors. No payload/session/header copying, consumer imports, UI, tenancy, purge automation or database immutability claim. Query authorization belongs to applications. Keep schema registrations and applied migrations during removal.
+
+## Cache boundary
+
+`src/integrations/cache` owns lazy server-only ephemeral data/atomic counters/advisory leases/pubsub, with separate validated data/lease/channel namespaces and bounded inputs. No DB/Auth/Jobs/Realtime/API/Observability import. `src/lib/cache.server.ts` is optional application telemetry and shutdown wiring. Explicit tools own connection checks; startup and database readiness never contact Valkey. Separate `compose.cache.yaml` is loopback-only and non-persistent.

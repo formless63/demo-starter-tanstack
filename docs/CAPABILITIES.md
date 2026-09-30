@@ -27,6 +27,8 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 | `audit-log` | `audit-log` | Done | Enabled | No | `drizzle` | None | PostgreSQL | [Audit Log](../capabilities/audit-log/CAPABILITY.md) |
 
+| `cache-coordination` | `cache-coordination` | Done | Enabled | No | None | None | Valkey/Redis-compatible service on use | [Cache / Coordination](../capabilities/cache-coordination/CAPABILITY.md) |
+
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
 ## Installing a capability
@@ -146,3 +148,7 @@ Audit Log is optional and needs only baseline PostgreSQL/Drizzle; Authentication
 The clean scaffold gets a Drizzle config overlay including the baseline and capability schema plus an initial audit migration. Existing customized applications must manually register the owned schema and generate a new reviewed migration in their existing history; do not overwrite config or applied journals. No semantic merger/uninstaller is provided. Code removal retains audit schema/history. Operator destructive removal requires a new explicit migration. API Platform, Jobs, Organizations and business consumers remain optional; Audit Log is separate from Observability and supplies no query authorization/UI.
 
 Verification: `bun run add-ons:test audit-log`, `bun run audit-log:smoke`, and real PostgreSQL tests under `src/integrations/audit-log` and `src/features/projects/audit.integration.test.ts`.
+
+Cache / Coordination declares `dependsOn: []`; clean installation needs no database, Auth, Jobs, API, Realtime or Observability add-on. Select `capabilities/cache-coordination/add-on.json` with the same official CLI URL flow above. Backendless build and unit checks run before actual disposable pinned Valkey compatibility and clean removal/rebuild. Its protocol subset is tested on Valkey only; no second Redis implementation is claimed. Optional reference telemetry is application-owned.
+
+Run `bun run add-ons:test cache-coordination`, `bun run cache:unit`, and `bun run cache:compat` for its standalone contract; normal root startup/readiness never requires Cache.

@@ -116,6 +116,8 @@ The resulting application retains TanStack Start/React, Bun, PostgreSQL/Drizzle,
 
 Apply the relevant removal recipes for every unwanted capability; remove Webhooks before Jobs. No remaining application import should point at a removed integration. Observability authoring assets can remain independently installable even when the reference application no longer enables telemetry.
 
+Apply this recipe alongside Jobs/API removal if none of those three are needed; apply Storage and Cache recipes as well to remove all five. No remaining application import should point at a removed integration. Observability authoring assets can remain independently installable even when the reference application no longer enables telemetry.
+
 ### Remove Object Storage
 
 Stop producers/users of signed URLs first; account for outstanding URLs and multipart sessions. Application removal does not revoke issued URLs or dispose of remote data.
@@ -167,3 +169,15 @@ Run capability governance, types/build, Jobs smoke, E2E and production health. T
 6. To prune authoring too, delete `capabilities/audit-log/`, evaluation and skill if unused; retain the catalog ID as deferred and remove implementation metadata, using the standard pruning recipe. Other planned statuses stay unchanged.
 
 Dropping deployed audit history requires a **new explicit destructive migration**, retention/privacy/backup decisions and operator review. Never delete/edit applied migrations. For a never-deployed fresh project only, consolidation may be a separate deliberate action. No v1 retention/purge automation exists. To reach the capability-free lean baseline, apply this recipe as well as the Jobs, API Platform, Observability and Storage recipes.
+
+### Remove Cache / Coordination
+
+1. Stop cache producers, subscriptions and advisory work; call `closeCache()` / `closeApplicationCache()` on shutdown. Account for in-flight leases expiring; Cache is ephemeral and owns no durable data.
+2. Delete `src/integrations/cache/`, `src/lib/cache.server.ts`, and `scripts/cache-*.ts`; remove all `cache:*` scripts and `redis` if unused elsewhere. Independent Jobs/API/Realtime/Observability behavior remains unchanged.
+3. Remove `CACHE_*` application env entries and `compose.cache.yaml`. `bun run cache:dev:down` disposes only the development ephemeral stack before removing tooling; do not flush/delete any remote service. Normal Compose has no Cache wiring.
+4. Remove the explicit Cache compatibility/telemetry step from main CI. The catalog-driven authoring fixture can remain while source is retained. Remove `cache-coordination` from `referenceApplication.enabledCapabilities`, keeping `defaultInstalled: false`.
+5. Update lockfile/docs and run governance, types/tests/build/E2E and production startup without Cache configured. No migrations/schema/UI/readiness edit is required.
+
+If keeping Cache but removing Observability, delete only `src/lib/cache.server.ts` and `scripts/cache-telemetry.ts`, remove `cache:telemetry` and its CI command, and use core `getCache()` directly. Reusable Cache assets import no Observability.
+
+Authoring pruning is separate: remove `capabilities/cache-coordination/`, `CACHE_COORDINATION_MODULE_EVALUATION.md`, `.agents/skills/cache-change/`, and retain the stable catalog ID as `deferred` without implementation metadata; update ROADMAP/docs. TanStack provides no automatic uninstall transaction. The clean fixture proves runtime removal and rebuild without Redis packages or a service.
