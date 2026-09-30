@@ -41,11 +41,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "check": "bun run capabilities:check && bun run lint && bun run typecheck && bun test && bun run build",
+    "check": "bun run agents:check && bun run capabilities:check && bun run lint && bun run typecheck && bun test && bun run build",
     "jobs:worker": "bun scripts/jobs-worker.ts",
     "jobs:migrate": "bun scripts/jobs-migrate.ts",
     "jobs:doctor": "bun scripts/jobs-doctor.ts",
-    "jobs:smoke": "bun scripts/jobs-smoke.ts"
+    "jobs:smoke": "bun scripts/jobs-smoke.ts",
+    "agents:check": "bun scripts/agents-check.ts",
+    "agents:test": "vitest run --config scripts/agents-vitest.config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",

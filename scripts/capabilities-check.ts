@@ -174,8 +174,8 @@ if (!isObject(catalogJson)) {
 	for (const id of duplicates(baselineIds)) errors.push(`duplicate baseline id: ${id}`);
 	for (const id of catalog.referenceApplication.enabledCapabilities) {
 		if (!idSet.has(id)) errors.push(`referenceApplication.enabledCapabilities: unknown capability ${id}`);
-		if (byId.get(id)?.status !== "done") {
-			errors.push(`referenceApplication.enabledCapabilities: ${id} must have status done`);
+		if (byId.get(id)?.status !== "done" || !byId.get(id)?.tanstackAddOn) {
+			errors.push(`referenceApplication.enabledCapabilities: ${id} must be a completed installable integration`);
 		}
 	}
 
@@ -236,6 +236,7 @@ if (!isObject(catalogJson)) {
 	const packageJson = readJson(resolve(root, "package.json"));
 	const scripts = isObject(packageJson) && isObject(packageJson.scripts) ? packageJson.scripts : {};
 	for (const capability of catalog.capabilities.filter(({ status }) => status === "done")) {
+		if (!capability.tanstackAddOn) errors.push(`${capability.id}: completed TanStack capability must declare installable add-on metadata`);
 		const expectedDocumentationPath = `capabilities/${capability.id}/CAPABILITY.md`;
 		if (!capability.documentationPath) {
 			errors.push(`${capability.id}: completed capability must declare documentationPath`);
@@ -244,7 +245,9 @@ if (!isObject(catalogJson)) {
 		} else if (!existsSync(resolve(root, capability.documentationPath))) {
 			errors.push(`${capability.id}: missing ${capability.documentationPath}`);
 		}
-		if (capability.evaluationDocument && !existsSync(resolve(root, capability.evaluationDocument))) {
+		if (!capability.evaluationDocument) {
+			errors.push(`${capability.id}: completed capability must declare evaluationDocument`);
+		} else if (!existsSync(resolve(root, capability.evaluationDocument))) {
 			errors.push(`${capability.id}: missing ${capability.evaluationDocument}`);
 		}
 		if (capability.agentSkill && !existsSync(resolve(root, capability.agentSkill))) {
@@ -319,6 +322,8 @@ if (!isObject(catalogJson)) {
 				errors.push(`${capability.id}: add-on dependsOn does not match the capability catalog`);
 			}
 			const additions = isObject(manifest) && isObject(manifest.packageAdditions) ? manifest.packageAdditions : {};
+			if (!isObject(manifest) || manifest.type !== "add-on" || typeof manifest.version !== "string" || !manifest.version ||
+				!isObject(manifest.packageAdditions)) errors.push(`${capability.id}: package/add-on implementation metadata is incomplete`);
 			const addOnScripts = isObject(additions.scripts) ? additions.scripts : {};
 			for (const script of capability.scripts ?? []) {
 				if (!(script in addOnScripts)) errors.push(`${capability.id}: add-on metadata is missing script ${script}`);
@@ -328,6 +333,7 @@ if (!isObject(catalogJson)) {
 				if (!isObject(distributable) || distributable.id !== manifestId) {
 					errors.push(`${capability.id}: compiled add-on id does not match its source manifest`);
 				} else {
+					if (!sameJson(distributable.packageAdditions ?? {}, additions)) errors.push(`${capability.id}: compiled package additions do not match source metadata`);
 					const compiledDependsOn = Array.isArray(distributable.dependsOn) ? distributable.dependsOn : [];
 					if (!sameJson(compiledDependsOn, addOn.dependsOn)) {
 						errors.push(`${capability.id}: compiled add-on dependsOn does not match the capability catalog`);
@@ -350,6 +356,15 @@ if (!isObject(catalogJson)) {
 		const fixturePath = resolve(root, addOn.cleanInstallFixture);
 		if (existsSync(fixturePath)) {
 			const fixture = readJson(fixturePath);
+			if (!isObject(fixture) || typeof fixture.projectName !== "string" || !fixture.projectName ||
+				!["React", "Solid"].includes(String(fixture.framework)) || typeof fixture.blank !== "boolean" ||
+				!["bun", "npm", "pnpm", "yarn"].includes(String(fixture.packageManager)) ||
+				!["biome", "eslint"].includes(String(fixture.toolchain)) || typeof fixture.build !== "boolean" ||
+				!Array.isArray(fixture.expectedFiles) || !fixture.expectedFiles.length ||
+				!fixture.expectedFiles.every(file => typeof file === "string" && file.length > 0) ||
+				!Array.isArray(fixture.expectedOfficialAddOns)) {
+				errors.push(`${capability.id}: clean consumer fixture metadata is incomplete`);
+			}
 			const expectedOfficialAddOns =
 				isObject(fixture) && Array.isArray(fixture.expectedOfficialAddOns)
 					? fixture.expectedOfficialAddOns

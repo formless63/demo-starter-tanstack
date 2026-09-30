@@ -28,7 +28,10 @@
 - `bun run lint`, `bun run typecheck`, `bun test`: static and unit/integration verification.
 - `bun run test:e2e`: Playwright landing/protection smoke test (browser install required).
 - `bun run build`, `bun run start`: create and run the Node-compatible production output.
-- `bun run check`: capability governance, lint, types, tests, and production build.
+- `bun run agents:check`: fast, read-only validation of canonical agent guidance, skills and project hook adapters.
+- `bun run agents:test`: synthetic hook payload and disposable Git fixture tests; no agent CLI or credentials.
+- `bun run check`: agent harness, capability governance, lint, types, tests, and production build.
+- Agent completion hooks run only staged/unstaged whitespace checks and capability governance when governed paths change; full task checks and CI remain required.
 - `docker compose build` (or the focused `docker compose build app`): build the shared production image used by migrations, `app`, and `worker`.
 - `docker compose up -d --wait postgres`: start PostgreSQL and require its healthcheck to pass.
 - `docker compose run --rm migrate`: explicitly apply committed migrations with the production image; a nonzero exit blocks the release.

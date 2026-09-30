@@ -36,3 +36,7 @@ Root TypeScript excludes `.add-on/assets` templates; each clean fixture owns con
 
 ## Production containers
 `compose.yaml` is the provider-neutral production orchestration contract. `app` and `worker` run independently and never mutate schema during startup. The explicit one-shot `migrate` and `jobs-migrate` services gate application and pg-boss schema changes before either long-lived process starts. All four services use the same immutable image and Compose database hostname. The runtime image is unprivileged, contains no development bind mounts, and exposes the database-backed `/api/health` readiness signal.
+
+## Agent automation
+
+`AGENTS.md` and `.agents/skills` are canonical. `.agents/hooks` holds shared read-only context, minimal tool guards and cheap completion checks; `.claude`, `.codex` and `.gemini` contain client adapters. See `docs/AGENT-AUTOMATION.md` for trust and controls.
