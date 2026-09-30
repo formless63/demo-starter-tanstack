@@ -19,6 +19,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `jobs` | `postgres-jobs` | Done | Enabled | No | `drizzle` | None | PostgreSQL | [Jobs](../capabilities/jobs/CAPABILITY.md) |
 | `api-platform` | `api-platform` | Done | Enabled | No | `better-auth`, `drizzle` | None | None beyond baseline PostgreSQL | [API Platform](../capabilities/api-platform/CAPABILITY.md) |
+| `observability` | `observability` | Done | Enabled | No | None | None | Optional OTLP | [Observability](../capabilities/observability/CAPABILITY.md) |
 
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
@@ -54,14 +55,15 @@ For an existing TanStack CLI-created application, run from its root:
 bunx @tanstack/cli@0.71.0 add https://raw.githubusercontent.com/formless63/demo-starter-tanstack/main/capabilities/jobs/add-on.json
 ```
 
-Replace the URL with the API Platform distributable to add API Platform. Review the resulting diff, configure its environment, apply explicit migrations, and run its `CAPABILITY.md` verification. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
+Replace the URL with the API Platform or Observability distributable to select that capability. Review the resulting diff, configure its environment, apply any declared migrations, and run its `CAPABILITY.md` verification. Observability has no migrations or database dependency. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
 
 Official TanStack add-on dependencies are resolved by the CLI:
 
 - Jobs declares `dependsOn: ["drizzle"]` because it needs an actual configured Drizzle integration.
 - API Platform declares `dependsOn: ["better-auth", "drizzle"]` because Better Auth alone does not provide its PostgreSQL/Drizzle persistence boundary.
+- Observability declares `dependsOn: []`; its clean fixture proves signals and real optional OTLP export without Jobs, API Platform, authentication, or a database integration.
 
-These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Neither completed capability requires the other.
+These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Completed capabilities do not require one another.
 
 ## Disabling or removing a capability
 
@@ -97,6 +99,8 @@ API Platform also registers a Better Auth plugin and extends the shared Drizzle 
 
 This caveat is why the repository provides exact manual instructions instead of a brittle general-purpose uninstaller.
 
+Observability owns an initial `src/start.ts` middleware registration. Review/merge any existing Start configuration and preserve explicit CSRF middleware. Its independent assets contain no Jobs/API imports; optional integrations live only in reference application route/worker wiring. The existing database-backed readiness endpoint retains its status/HTTP contract with additive safe metadata.
+
 ## Dependency handling
 
 - **Requires:** a hard dependency on another reusable capability. The capability must not claim to work without it.
@@ -114,6 +118,7 @@ bun run capabilities:status
 bun run capabilities:check
 bun run add-ons:test jobs
 bun run add-ons:test api-platform
+bun run add-ons:test observability
 bun run check
 ```
 

@@ -1,0 +1,17 @@
+{
+	"projectName": "observability-addon-clean-install",
+	"framework": "React",
+	"blank": true,
+	"packageManager": "bun",
+	"toolchain": "biome",
+	"expectedOfficialAddOns": [],
+	"expectedFiles": [
+		"src/start.ts",
+		"src/integrations/observability/runtime.server.ts",
+		"src/integrations/observability/http.server.ts",
+		"scripts/observability-smoke.ts",
+		"capabilities/observability/CAPABILITY.md"
+	],
+	"verificationCommands": [["bun", "x", "tsc", "--noEmit"], ["bun", "run", "observability:smoke"]],
+	"build": true
+}

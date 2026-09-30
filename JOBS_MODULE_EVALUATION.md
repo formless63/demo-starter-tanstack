@@ -24,4 +24,6 @@ The documented removal path was also verified against a disposable copy of the r
 
 ## Tradeoffs and extension points
 
+Observability v1 adds one optional application-owned execution hook to `startJobsWorker`. It receives registered queue name/job ID and a closure that validates and executes the task; the root worker supplies telemetry, while independent Jobs assets import none. Echo payload logging and raw default error messages were removed. Real success/failure dispatch and worker drain followed by telemetry flush are verified, with no hidden tracing fields in payload schemas and no new hard dependency.
+
 Queue registration is idempotent and occurs when a client or worker starts; schema migration never does. Polling is the safe default. LISTEN/NOTIFY remains opt-in because transaction-pooling proxies may not provide session-pinned connections. Adding a job requires one registry definition and handler, plus tests for validation and behavior. A dashboard, scheduler UI, and provider-specific process manager are intentionally out of scope.

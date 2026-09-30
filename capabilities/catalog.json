@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -107,10 +107,40 @@
 			}
 		},
 		{
-			"id": "observability", "displayName": "Observability", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["jobs", "api-platform", "object-storage", "email", "webhooks", "audit-log", "ai", "cache-coordination", "search", "realtime", "notifications", "import-export", "organizations", "authorization", "feature-flags", "invoice-ninja", "stripe", "medusa", "ops-admin"], "baselineRequirements": [],
+			"id": "observability", "displayName": "Observability", "kind": "foundational-backend", "status": "done", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["jobs", "api-platform", "object-storage", "email", "webhooks", "audit-log", "ai", "cache-coordination", "search", "realtime", "notifications", "import-export", "organizations", "authorization", "feature-flags", "invoice-ninja", "stripe", "medusa", "ops-admin"], "baselineRequirements": ["tanstack-start", "node-runtime"],
 			"externalRequirements": [{ "name": "OTLP destination", "required": false, "description": "Optional external telemetry collector or backend." }],
-			"summary": "Structured logs, metrics, traces, error reporting, and health conventions across server runtimes."
+			"summary": "Safe Pino logs, isolated request correlation, explicit server traces/metrics, optional OTLP export, and build/health metadata.",
+			"scripts": ["observability:smoke"],
+			"environmentVariables": [
+				{ "name": "OTEL_SERVICE_NAME", "required": false, "description": "Safe service name." },
+				{ "name": "OTEL_SDK_DISABLED", "required": false, "default": "false", "description": "Disable recording/export while retaining logs and context." },
+				{ "name": "OTEL_EXPORTER_OTLP_ENDPOINT", "required": false, "description": "Explicit optional OTLP/HTTP base endpoint." },
+				{ "name": "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "required": false, "description": "Optional full trace endpoint." },
+				{ "name": "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "required": false, "description": "Optional full metric endpoint." },
+				{ "name": "OTEL_EXPORTER_OTLP_HEADERS", "required": false, "description": "Collector credentials; never log." },
+				{ "name": "OTEL_TRACES_EXPORTER", "required": false, "description": "otlp or none; no endpoint means no export." },
+				{ "name": "OTEL_METRICS_EXPORTER", "required": false, "description": "Independent otlp or none metric export." },
+				{ "name": "OTEL_RESOURCE_ATTRIBUTES", "required": false, "description": "Safe standard resource attributes." },
+				{ "name": "APP_VERSION", "required": false, "description": "Application version." },
+				{ "name": "APP_REVISION", "required": false, "description": "Deployment-supplied revision." },
+				{ "name": "DEPLOYMENT_ENVIRONMENT", "required": false, "description": "Deployment environment name." },
+				{ "name": "LOG_LEVEL", "required": false, "default": "info", "description": "Pino logging level." },
+				{ "name": "LOG_REDACT_FIELDS", "required": false, "description": "Additional trusted sensitive field names." }
+			],
+			"migrations": [],
+			"runtimeServices": [],
+			"documentationPath": "capabilities/observability/CAPABILITY.md",
+			"agentSkill": ".agents/skills/observability-change/SKILL.md",
+			"evaluationDocument": "OBSERVABILITY_MODULE_EVALUATION.md",
+			"tanstackAddOn": {
+				"addOnId": "observability",
+				"sourceDirectory": "capabilities/observability/.add-on",
+				"manifestPath": "capabilities/observability/.add-on/info.json",
+				"distributablePath": "capabilities/observability/add-on.json",
+				"cleanInstallFixture": "capabilities/observability/test/clean-install.json",
+				"dependsOn": [], "conflictsWith": []
+			}
 		},
 		{
 			"id": "object-storage", "displayName": "Object Storage", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,

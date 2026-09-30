@@ -28,7 +28,10 @@ export function createJobsBoss(overrides: Partial<ConstructorOptions> = {}) {
 	});
 	boss.on("error", (error) => {
 		console.error(
-			JSON.stringify({ event: "jobs.error", error: String(error) }),
+			JSON.stringify({
+				event: "jobs.error",
+				error: error instanceof Error ? error.name : "Error",
+			}),
 		);
 	});
 	return boss;

@@ -33,6 +33,10 @@ For permanent use I would add a real transactional email adapter only when a mai
 
 The evaluated release path is now executable rather than Dockerfile-only: `compose.yaml` preserves Postgres-only development while adding a one-shot migration job and production application service. The explicit migration gate makes failure visible before rollout, image reuse prevents migration/runtime revision skew, and the healthcheck validates real database reachability. No provider-specific infrastructure is required.
 
+### Optional server observability
+
+The third independent add-on supplies Pino 10.3.1 JSON logs and compatible OTel 2.11.0 stable trace/metric SDKs with 0.222.0 OTLP/HTTP exporters. Supported Start middleware preserves CSRF and supplies bounded request IDs, safe context, and finite route metrics. It remains useful without a backend, integrates optionally with API/Jobs, and preserves database-backed readiness. Independent installation, real export, worker signal shutdown, production containers, and fresh-install removal are verified; detailed limits and package choices live in `OBSERVABILITY_MODULE_EVALUATION.md`.
+
 ### PostgreSQL background jobs
 
 pg-boss 12.35.0 provides durable jobs without adding another datastore or general-purpose server. The starter adds an explicit migration/doctor boundary, a typed Zod-backed registry, a standalone gracefully stopping worker, configurable concurrency/schema/connection settings, and the official Drizzle transaction adapter. Commit and deliberate rollback integration tests prove atomic application-write/enqueue behavior. The same production image supplies migration, diagnostic, smoke, and worker entrypoints. A current-format TanStack custom add-on was compiled and installed through the official CLI into a disposable Drizzle project; the generated project production build passed. The current official blank scaffold's Drizzle config type and Biome-version/style mismatches prevented its own global type/lint commands, independent of the installed jobs files.

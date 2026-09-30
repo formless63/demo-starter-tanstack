@@ -47,7 +47,8 @@ export function apiErrorResponse(error: unknown) {
 		);
 	}
 
-	console.error("Unexpected external API failure", error);
+	// Unexpected driver/auth messages can contain credentials or request input.
+	console.error(JSON.stringify({ event: "api.unexpected_error" }));
 	return Response.json(
 		apiErrorSchema.parse({
 			error: {

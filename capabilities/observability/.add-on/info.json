@@ -1,0 +1,45 @@
+{
+	"id": "observability",
+	"name": "observability",
+	"displayName": "Observability",
+	"description": "Safe Pino logs, request context, explicit server traces/metrics, and optional OTLP/HTTP export.",
+	"version": "1.0.0",
+	"type": "add-on",
+	"phase": "example",
+	"category": "other",
+	"modes": ["file-router"],
+	"dependsOn": [],
+	"packageAdditions": {
+		"dependencies": {
+			"pino": "10.3.1",
+			"@opentelemetry/api": "1.9.0",
+			"@opentelemetry/core": "2.11.0",
+			"@opentelemetry/context-async-hooks": "2.11.0",
+			"@opentelemetry/resources": "2.11.0",
+			"@opentelemetry/sdk-trace": "2.11.0",
+			"@opentelemetry/sdk-trace-node": "2.11.0",
+			"@opentelemetry/sdk-metrics": "2.11.0",
+			"@opentelemetry/exporter-trace-otlp-http": "0.222.0",
+			"@opentelemetry/exporter-metrics-otlp-http": "0.222.0"
+		},
+		"scripts": { "observability:smoke": "bun scripts/observability-smoke.ts" }
+	},
+	"author": "TanStack Launchpad",
+	"license": "MIT",
+	"envVars": [
+		{ "name": "OTEL_SERVICE_NAME", "description": "Safe service name.", "required": false, "secret": false, "file": ".env.local" },
+		{ "name": "OTEL_SDK_DISABLED", "description": "Disable traces and metrics while retaining logs/context.", "required": false, "secret": false, "default": "false", "file": ".env.local" },
+		{ "name": "OTEL_EXPORTER_OTLP_ENDPOINT", "description": "Optional OTLP/HTTP base endpoint; absent means no export.", "required": false, "secret": false, "file": ".env.local" },
+		{ "name": "OTEL_EXPORTER_OTLP_HEADERS", "description": "Optional collector authentication headers; never log.", "required": false, "secret": true, "file": ".env.local" },
+		{ "name": "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "description": "Optional full trace endpoint.", "required": false, "secret": false, "file": ".env.local" },
+		{ "name": "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "description": "Optional full metric endpoint.", "required": false, "secret": false, "file": ".env.local" },
+		{ "name": "OTEL_TRACES_EXPORTER", "description": "otlp or none; endpoint configuration otherwise activates export.", "required": false, "secret": false, "file": ".env.local" },
+		{ "name": "OTEL_METRICS_EXPORTER", "description": "otlp or none; independently configurable.", "required": false, "secret": false, "file": ".env.local" },
+		{ "name": "OTEL_RESOURCE_ATTRIBUTES", "description": "Comma-separated safe resource key=value pairs.", "required": false, "secret": false, "file": ".env.local" },
+		{ "name": "APP_VERSION", "description": "Application release version.", "required": false, "secret": false, "file": ".env.local" },
+		{ "name": "APP_REVISION", "description": "Commit/revision supplied by deployment; no runtime Git needed.", "required": false, "secret": false, "file": ".env.local" },
+		{ "name": "DEPLOYMENT_ENVIRONMENT", "description": "Deployment environment name.", "required": false, "secret": false, "file": ".env.local" },
+		{ "name": "LOG_LEVEL", "description": "Pino logging level.", "required": false, "secret": false, "default": "info", "file": ".env.local" },
+		{ "name": "LOG_REDACT_FIELDS", "description": "Additional trusted comma-separated sensitive field names.", "required": false, "secret": false, "file": ".env.local" }
+	]
+}

@@ -8,6 +8,8 @@ Status: done and optional (`defaultInstalled: false`). The root reference applic
 
 **Integrates with:** Observability and Ops / Admin. These are optional and their absence does not prevent enqueueing, migration, or worker operation.
 
+The reference worker passes Observability's wrapper through `startJobsWorker({ execute })`. The optional hook receives only registered name/ID and a handler closure (including payload validation); it does not change payload schemas or import telemetry into Jobs. The independent add-on starts without a hook. Echo tasks no longer log payloads; standalone failures use generic safe messages. There is no enqueue-to-worker trace propagation in v1.
+
 **External:** PostgreSQL is required for durable queue storage and coordination.
 
 **Conflicts:** None. TanStack CLI 0.71 supports `dependsOn` but not arbitrary conflict metadata, so the catalog and this contract explicitly record the empty conflict set without inventing an unsupported add-on field.

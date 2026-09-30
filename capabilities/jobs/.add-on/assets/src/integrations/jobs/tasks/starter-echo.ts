@@ -7,6 +7,5 @@ export const starterEchoPayload = z.object({
 export async function handleStarterEcho(
 	payload: z.output<typeof starterEchoPayload>,
 ) {
-	console.info(JSON.stringify({ event: "job.echo", message: payload.message }));
 	return { echoed: payload.message };
 }

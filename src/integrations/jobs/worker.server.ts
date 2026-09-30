@@ -11,7 +11,16 @@ function workerConcurrency() {
 	return value;
 }
 
-export async function startJobsWorker(): Promise<PgBoss> {
+export interface WorkerOptions {
+	execute?: (
+		job: { name: JobName; id: string },
+		handler: () => Promise<unknown>,
+	) => Promise<unknown>;
+}
+
+export async function startJobsWorker(
+	options: WorkerOptions = {},
+): Promise<PgBoss> {
 	const boss = createJobsBoss();
 	await boss.start();
 	await ensureJobQueues(boss);
@@ -25,6 +34,12 @@ export async function startJobsWorker(): Promise<PgBoss> {
 			},
 			async ([job]) => {
 				if (!job) throw new Error(`Worker received an empty ${name} batch`);
+				if (options.execute) {
+					return options.execute({ name, id: job.id }, async () => {
+						const payload = parseJobPayload(name, job.data);
+						return jobRegistry[name].handler(payload as never);
+					});
+				}
 				const payload = parseJobPayload(name, job.data);
 				console.info(
 					JSON.stringify({ event: "job.started", id: job.id, name }),
@@ -38,7 +53,7 @@ export async function startJobsWorker(): Promise<PgBoss> {
 				} catch (error) {
 					console.error(
 						JSON.stringify({
-							error: error instanceof Error ? error.message : String(error),
+							error: "Job handler failed",
 							event: "job.failed",
 							id: job.id,
 							name,

@@ -2,11 +2,11 @@
 
 This guide answers: “I cloned this repository—how do I turn it into my application?”
 
-Before removing anything, create a branch and run `bun run capabilities:status`. The root reference application deliberately enables Jobs and API Platform, but both are optional for clean generated consumers.
+Before removing anything, create a branch and run `bun run capabilities:status`. The root reference application deliberately enables all completed capabilities, while generated consumers opt in independently.
 
 ## Full/reference setup
 
-Keep both capabilities when the application's likely shape benefits from background work and machine-facing APIs, or when you want the repository's complete reference paths intact.
+Keep the completed capabilities when their features fit the application, or when you want the repository's complete reference paths intact.
 
 ```bash
 cp .env.example .env.local
@@ -17,6 +17,7 @@ bun run jobs:migrate
 bun run jobs:doctor
 bun run jobs:smoke
 bun run api-platform:smoke
+bun run observability:smoke
 bun run dev
 ```
 
@@ -90,11 +91,27 @@ The verified non-destructive recipe retains API-key rows and migration history. 
 
 If the downstream fork will never reinstall or develop API Platform, delete `capabilities/api-platform/`, optionally delete `API_PLATFORM_MODULE_EVALUATION.md` and `.agents/skills/api-contract-change/`, change its catalog entry to `deferred`, remove implementation-only metadata, and update the roadmap. Keep the stable `api-platform` ID because planned capabilities reference it.
 
-### Remove both
+### Remove Jobs and API Platform
 
 Apply both recipes together, remove both IDs from `referenceApplication.enabledCapabilities`, regenerate routes once, and update/install dependencies once. Keep the baseline PostgreSQL migration history and `/api/health` container verification.
 
+Observability may remain independently installed; apply the next recipe as well for a capability-free application baseline.
+
 The resulting application retains TanStack Start/React, Bun, PostgreSQL/Drizzle, passwordless Better Auth, the authenticated Projects slice, Tailwind/shadcn/Tabler UI, Docker/Compose, CI, and agent/capability governance. `bun run capabilities:check`, `bun run typecheck`, and `bun run build` must all pass before treating the lean baseline as viable.
+
+### Remove Observability
+
+1. Remove the Observability import/registration from `src/start.ts`, preserving `createCsrfMiddleware({ filter: (ctx) => ctx.handlerType === 'serverFn' })` and other application middleware.
+2. In `src/routes/api/v1/projects.ts`, remove `observeApi` and telemetry-only operation imports; restore direct `listProjectsApi(request)` / `createProjectApi(request)` calls.
+3. In `src/routes/api/health.ts`, remove telemetry imports/capture/metadata and keep the original database check with `{ status: 'ok' }` or `{ status: 'unhealthy' }` and HTTP 503 on failure.
+4. In `scripts/jobs-worker.ts`, remove Observability imports/init/flush; call `startJobsWorker()` with no execution hook and restore safe standalone lifecycle logs. In the Jobs integration test, remove `observeJob` and call `startJobsWorker()` directly. Keep Jobs' optional hook; it imports no telemetry package.
+5. Delete `src/integrations/observability/` and `scripts/observability-smoke.ts`; remove `observability:smoke`, Pino, and the declared direct `@opentelemetry/*` additions from `package.json` when unused elsewhere.
+6. Remove `x-observability-environment` and its app/worker merges from Compose, preserving `*jobs-environment`. Remove telemetry variables from application env examples. No service/database/migration deletion is needed.
+7. Remove the explicit Observability smoke and request-ID container probe from main CI, and the request-ID/metadata E2E test plus the API test's request-ID assertion. Keep existing API/auth/health probes.
+8. Remove `observability` from `referenceApplication.enabledCapabilities`. Keep authoring source/catalog status unless separately pruning it; use the standard `deferred` pruning recipe if needed.
+9. Update the lockfile, regenerate routes, and run governance/types/tests/build and the production health path.
+
+To remove all three, apply this recipe alongside Jobs/API removal; no remaining application import should point at a removed integration. Observability authoring assets can remain independently installable even when the reference application no longer enables telemetry.
 
 ## Why there is no removal command
 

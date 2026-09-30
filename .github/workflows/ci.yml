@@ -65,6 +65,7 @@ jobs:
       - run: docker compose run --rm worker node .output/jobs-smoke.mjs
       - run: bun run lint
       - run: bun run typecheck
+      - run: bun run observability:smoke
       - run: bun test
       - run: bun run build
       - run: bunx playwright install --with-deps chromium
@@ -72,7 +73,10 @@ jobs:
       - run: docker compose up -d worker
       - run: docker compose up -d --wait app
       - run: test "$(docker compose ps --status running --services worker)" = worker
-      - run: curl --fail --show-error http://127.0.0.1:3000/api/health
+      - run: curl --fail --show-error http://127.0.0.1:3000/api/health | jq -e '.status == "ok" and .environment == "production" and .checks.database == "ok"'
+      - name: Verify container request correlation
+        run: |
+          curl --fail --show-error -D - -o /dev/null -H 'X-Request-ID: container-smoke' http://127.0.0.1:3000/api/health | grep -i 'x-request-id: container-smoke'
       - run: curl --fail --show-error http://127.0.0.1:3000/api/openapi.json | jq -e '.openapi == "3.1.1"'
       - run: curl --fail --show-error --output /dev/null http://127.0.0.1:3000/docs/api
       - if: always()

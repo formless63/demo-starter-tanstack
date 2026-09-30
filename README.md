@@ -25,12 +25,13 @@ Baseline components are not optional capability modules. Future integrations in 
 
 ## Available capabilities
 
-`defaultInstalled` means a clean base/generated consumer receives the capability without explicitly selecting or installing it. Both completed capabilities are optional by that definition, although both are enabled in this repository's reference application.
+`defaultInstalled` means a clean base/generated consumer receives the capability without explicitly selecting or installing it. Completed capabilities are optional by that definition, while this reference application enables all of them.
 
 | Capability | Status | Default | Hard requirements | Purpose | Contract |
 | --- | --- | --- | --- | --- | --- |
 | Jobs | Done | Optional | Baseline PostgreSQL + Drizzle | Typed pg-boss queues, explicit migration, worker, transactional enqueue | [Jobs contract](capabilities/jobs/CAPABILITY.md) |
 | API Platform | Done | Optional | Baseline Better Auth + PostgreSQL/Drizzle + server runtime | User-owned machine keys, typed permissions, native v1 API, OpenAPI 3.1.1, Scalar | [API Platform contract](capabilities/api-platform/CAPABILITY.md) |
+| Observability | Done | Optional | Baseline Start + Node runtime; no capability dependency | Safe JSON logs, request IDs, server traces/metrics, optional OTLP | [Observability contract](capabilities/observability/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -51,7 +52,7 @@ The development database defaults in `.env.example` match Compose. Production st
 
 ## Starting a project
 
-Choose the full reference setup to keep Jobs and API Platform continuously exercised, or follow the verified lean-baseline recipes to remove one or both application integrations. Add-on authoring source can remain available or be pruned separately. See [Starting a project](docs/STARTING-A-PROJECT.md) for the exact shared-file edits and deployed-database cautions.
+Choose the full reference setup to keep all completed capabilities continuously exercised, or follow the verified lean-baseline recipes to remove application integrations. Add-on authoring source can remain available or be pruned separately. See [Starting a project](docs/STARTING-A-PROJECT.md) for the exact shared-file edits and deployed-database cautions.
 
 ## Authentication
 
@@ -107,6 +108,26 @@ bun run jobs:worker
 
 `bun run jobs:smoke` starts a real worker, enqueues `starter.echo`, waits for its stored completion output, and exits nonzero on failure. `JOBS_CONCURRENCY` controls per-queue local concurrency. `PGBOSS_DATABASE_URL` can isolate jobs onto another PostgreSQL connection; otherwise `DATABASE_URL` is used. LISTEN/NOTIFY is opt-in through `PGBOSS_USE_LISTEN_NOTIFY=true`, with polling retained as the correctness fallback.
 
+## Server observability
+
+Observability is optional and works without a backend: Pino emits newline JSON logs with safe service/version/revision metadata; requests receive `X-Request-ID`, and nested logs include request/trace/span context. Incoming request IDs are accepted only when bounded and safe. Bodies, query strings, raw headers, job payloads, and auth/session objects are omitted; sensitive field names are recursively redacted, including child bindings. Use static log messages and small reviewed fields. Errors capture safe type/generic text rather than raw driver/auth messages or stacks.
+
+OTLP/HTTP JSON export is opt-in:
+
+```dotenv
+OTEL_SERVICE_NAME=my-app
+APP_VERSION=1.0.0
+APP_REVISION=your-build-revision
+DEPLOYMENT_ENVIRONMENT=production
+OTEL_EXPORTER_OTLP_ENDPOINT=https://collector.example.com
+OTEL_TRACES_EXPORTER=otlp
+OTEL_METRICS_EXPORTER=otlp
+# Optional collector credentials; keep out of Git/logs:
+# OTEL_EXPORTER_OTLP_HEADERS=authorization=Bearer%20your-secret
+```
+
+Leave endpoints empty to avoid all network export. Set either signal exporter to `none` independently, or `OTEL_SDK_DISABLED=true` for both; logs and request IDs remain available. Root Compose passes these values to app/worker without requiring a collector service. Native API routes use stable operation IDs; workers wrap registered handlers and flush after draining jobs. Neither Jobs nor API Platform requires Observability. See the [contract](capabilities/observability/CAPABILITY.md) for API helpers, coverage limits, redaction extensions, and shutdown behavior, and [removal guide](docs/STARTING-A-PROJECT.md#remove-observability) for safe unwiring.
+
 ## Verification
 
 ```bash
@@ -115,7 +136,9 @@ bun run capabilities:status
 bun run capabilities:check
 bun run add-ons:test jobs
 bun run add-ons:test api-platform
+bun run add-ons:test observability
 bun run api-platform:smoke
+bun run observability:smoke
 bun run lint
 bun run typecheck
 bun test
