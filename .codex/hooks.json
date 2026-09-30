@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/hooks/run.sh\" session codex \"$(git rev-parse --show-toplevel)\"",
+            "timeout": 15
+          }
+        ],
+        "matcher": "startup|resume|clear|compact"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/hooks/run.sh\" guard codex \"$(git rev-parse --show-toplevel)\"",
+            "timeout": 15
+          }
+        ],
+        "matcher": "Bash|Write|Edit|MultiEdit|apply_patch"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$(git rev-parse --show-toplevel)/.agents/hooks/run.sh\" quality codex \"$(git rev-parse --show-toplevel)\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

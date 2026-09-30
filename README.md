@@ -223,4 +223,4 @@ For registries, set `APP_IMAGE` to the immutable image reference and use that sa
 
 ## Repository conventions
 
-`AGENTS.md` is concise canonical agent context. Architecture, stack, and commands use progressive disclosure under `.agents/context`; narrow workflow skills and reusable prompts support cross-tool work. Reusable capability status and dependency governance live in `ROADMAP.md` and `capabilities/catalog.json`. Server-only dependencies belong behind server functions/routes, and authorization is always enforced next to the database mutation.
+`AGENTS.md` is concise canonical agent context. [Agent automation](docs/AGENT-AUTOMATION.md) describes shared project hooks and normal client trust controls. Architecture, stack, and commands use progressive disclosure under `.agents/context`; narrow workflow skills and reusable prompts support cross-tool work. Reusable capability status and dependency governance live in `ROADMAP.md` and `capabilities/catalog.json`. Server-only dependencies belong behind server functions/routes, and authorization is always enforced next to the database mutation.

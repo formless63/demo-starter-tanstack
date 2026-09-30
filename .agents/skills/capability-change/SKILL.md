@@ -14,3 +14,16 @@ description: Installing, removing, creating, or changing reusable capabilities o
 8. Treat application removal and removal of reusable add-on source as separate choices. Preserve database data and migration history by default, document shared-file edits explicitly, and never claim the CLI provides an uninstall transaction when it does not.
 9. Test clean installation and documented removal where applicable. Run `bun run capabilities:status` and `bun run capabilities:check` after catalog changes.
 10. Run `bun run add-ons:test <id>` when applicable, capability-specific tests and smoke checks, then normal repository verification and the affected production artifact path.
+
+## Definition of Done
+
+For a new reusable capability, where applicable:
+
+- Mark the catalog entry `in-progress` before implementation; update relationships and ROADMAP together.
+- Provide `capabilities/<id>/CAPABILITY.md`, a declared evaluation document, complete framework package/add-on metadata, and a clean consumer fixture.
+- Verify clean installation and documented clean removal/pruning, preserving data by default.
+- Integrate and verify the reference application when intentionally enabled; keep this separate from generated-consumer defaults.
+- Update the README capability table, `docs/CAPABILITIES.md`, `docs/STARTING-A-PROJECT.md` removal/pruning recipe, and relevant `.agents/context` files.
+- Add a domain-specific skill only when meaningful maintenance rules justify it. Do not create a domain skill solely because a capability exists.
+- Run `capabilities:status`, `capabilities:check`, normal task verification, applicable lifecycle/production checks, and full CI.
+- Change status to `done` only after verification passes.

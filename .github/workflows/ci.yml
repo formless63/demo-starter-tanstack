@@ -55,6 +55,8 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with: { bun-version-file: package.json }
       - run: bun install --frozen-lockfile
+      - run: bun run agents:check
+      - run: bun run agents:test
       - run: bun run capabilities:status
       - run: bun run capabilities:check
       - run: docker compose build app
