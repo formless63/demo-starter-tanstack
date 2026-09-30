@@ -39,6 +39,27 @@ export async function storageSmoke(storage = getStorage()) {
 				preflight.headers.get("access-control-allow-origin"),
 				origin,
 			);
+			const untrusted = await fetch(
+				`${process.env.STORAGE_ENDPOINT}/${storageConfig().bucket}/${keys[1]}`,
+				{
+					method: "OPTIONS",
+					headers: {
+						Origin: "https://untrusted.invalid",
+						"Access-Control-Request-Method": "PUT",
+						"Access-Control-Request-Headers": "content-type",
+					},
+				},
+			);
+			await untrusted.arrayBuffer();
+			// Browser preflights require both success and a matching origin grant.
+			const allowedOrigin = untrusted.headers.get(
+				"access-control-allow-origin",
+			);
+			assert.ok(
+				!untrusted.ok ||
+					(allowedOrigin !== "*" &&
+						allowedOrigin !== "https://untrusted.invalid"),
+			);
 		}
 		await storage.putObject(keys[0]!, Readable.from([text]), {
 			contentLength: Buffer.byteLength(text),
@@ -179,15 +200,13 @@ export async function storageSmoke(storage = getStorage()) {
 		await storage.abortMultipartUpload(keys[3]!, abort.uploadId);
 		uploads.delete(keys[3]!);
 		await assert.rejects(
-			storage
-				.getS3Client()
-				.send(
-					new ListPartsCommand({
-						Bucket: storageConfig().bucket,
-						Key: keys[3],
-						UploadId: abort.uploadId,
-					}),
-				),
+			storage.getS3Client().send(
+				new ListPartsCommand({
+					Bucket: storageConfig().bucket,
+					Key: keys[3],
+					UploadId: abort.uploadId,
+				}),
+			),
 		);
 		await storage.deleteObject(keys[1]!);
 		await assert.rejects(

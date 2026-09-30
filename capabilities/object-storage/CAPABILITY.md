@@ -8,7 +8,7 @@ Status: done; optional (`defaultInstalled: false`). Enabled in the reference app
 
 **Integrates with:** Jobs and Observability, optionally. Future application workflows can compose background cleanup, processing, or replication; none are implemented here.
 
-**External:** S3-compatible storage when actively used. Tested targets: RustFS 1.0.0 (preferred self-hosted) and Garage 2.3.0. AWS portability is SDK/protocol/configuration based, not live-AWS verification. No universal S3 compatibility claim.
+**External:** S3-compatible storage when actively used. Tested targets: RustFS 1.0.0 (preferred self-hosted) and Garage 2.4.1. AWS portability is SDK/protocol/configuration based, not live-AWS verification. No universal S3 compatibility claim.
 
 ## Adds
 
@@ -19,6 +19,12 @@ Status: done; optional (`defaultInstalled: false`). Enabled in the reference app
 ### Environment
 
 Configuration is lazy; importing/building unrelated routes needs no storage configuration or service.
+
+### Shared cross-framework defaults
+
+The TanStack and Nuxt starters share observable configuration/behavior, not identical source code: `@aws-sdk/client-s3` and `@aws-sdk/s3-request-presigner` 3.1143.0; preferred RustFS 1.0.0; alternate tested Garage 2.4.1; optional third-party Noooste Garage UI v0.13.0. Objects are private by default. Presigning uses GET + PUT, defaults to 600 seconds and accepts only 30–3600 seconds. A custom endpoint defaults to `forcePathStyle: true`; no custom endpoint retains normal AWS addressing. Credentials are either a complete explicit pair or the normal AWS SDK credential chain.
+
+Region resolution is strictly `STORAGE_REGION` → `AWS_REGION` → `AWS_DEFAULT_REGION` → configuration error. There is no implicit `us-east-1` fallback: region is explicit deployment configuration, and AWS deployments must not silently target a guessed region. Local helpers explicitly select `garage` for Garage and `us-east-1` for the RustFS development fixture; these helper values are not application defaults.
 
 | Variable | Semantics |
 | --- | --- |
@@ -47,9 +53,9 @@ Inside the existing server process. `checkStorage()` performs non-mutating HEAD 
 
 ### Compose/infrastructure
 
-`compose.storage.yaml` is separate from default Compose. `rustfs`, `garage`, and optional `garage-ui` profiles use pinned images and named storage volumes. RustFS runs as upstream's UID 10001. Garage uses official 2.3 single-node/default-bucket bootstrap flags to configure layout/key/bucket deterministically; provider administration never enters the common API. These single-node examples have no redundancy and are development-only. Known non-default development credentials/admin/RPC tokens must never be reused in production.
+`compose.storage.yaml` is separate from default Compose. `rustfs`, `garage`, and optional `garage-ui` profiles use pinned images and named storage volumes. RustFS runs as upstream's UID 10001. Garage uses official single-node/default-bucket bootstrap flags to configure layout/key/bucket deterministically; provider administration never enters the common API. These single-node examples have no redundancy and are development-only. Known non-default development credentials/admin/RPC tokens must never be reused in production.
 
-Optional UI is third-party [Noooste/garage-ui](https://github.com/Noooste/garage-ui), `noooste/garage-ui:v0.13.0`, not official Garage software. It holds the full Garage admin token and enables token login; local login uses the documented development admin token from `infrastructure/storage/garage.toml`. UI/admin/S3 ports bind loopback. Never expose this known token remotely. The UI is not needed for S3 operation.
+The shared optional Garage UI recommendation across the TanStack and Nuxt starters is third-party [Noooste/garage-ui](https://github.com/Noooste/garage-ui), `noooste/garage-ui:v0.13.0`, not official Garage software. It is operator/development convenience only, not needed for S3 operation. It holds the privileged full Garage admin token server/operator-side and enables token login; local login uses the documented development admin token from `infrastructure/storage/garage.toml`. UI/admin/S3 ports bind loopback by default. Never reuse known development credentials outside local development or expose the admin token to application/browser configuration.
 
 ## Application API
 
@@ -120,6 +126,8 @@ Keep SDK/presigner aligned. Recheck optional checksum defaults, signed Content-T
 ## Verification
 
 Run storage unit/check/smoke and complete two-provider compatibility, governance/status, all four clean add-on fixtures, lint/types/tests/build/E2E and production containers without storage configuration. Clean fixture builds without DB/Auth/backend and executes the same RustFS/Garage suite. Removal is checked in a disposable consumer. Evaluation records actual results and limitations, not universal compatibility.
+
+`bun run storage:compat --garage-ui` additionally starts the optional pinned UI in the disposable Garage stack, waits for its container healthcheck and checks reachability, rejected missing/invalid sessions and admin tokens, successful token login, Admin API bucket/cluster reads and S3 object listing. This does not add a UI dependency to the common Storage contract. Common CORS tests prove trusted-origin grants and browser rejection of untrusted preflights: a browser requires both a successful status and a matching origin grant. Garage 2.4.1 returns 403 with a wildcard error-response header; RustFS returns 403 without the header. Both deny the preflight; no provider-specific API workaround is needed.
 
 ## Agent guidance
 

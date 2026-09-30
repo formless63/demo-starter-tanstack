@@ -5,7 +5,7 @@
  "expectedFiles": ["src/integrations/storage/storage.server.ts", "scripts/storage-unit.ts", "scripts/storage-smoke.ts", "compose.storage.yaml", "infrastructure/storage/garage.toml", "OBJECT_STORAGE_MODULE_EVALUATION.md", "capabilities/object-storage/CAPABILITY.md"],
  "verificationCommands": [
   ["bun", "x", "tsc", "--noEmit"], ["bun", "run", "storage:unit"], ["bun", "run", "build"],
-  ["bun", "run", "storage:compat"], ["bun", "scripts/storage-removal-fixture.ts"], ["bun", "x", "tsc", "--noEmit"]
+  ["bun", "run", "storage:compat", "--garage-ui"], ["bun", "scripts/storage-removal-fixture.ts"], ["bun", "x", "tsc", "--noEmit"]
  ],
  "build": true
 }

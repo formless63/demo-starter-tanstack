@@ -22,6 +22,8 @@ for (const provider of ["rustfs", "garage"] as const) {
 	const project = `storage-compat-${provider}-${randomUUID().slice(0, 8)}`;
 	const port = await freePort();
 	const adminPort = await freePort();
+	const uiPort = await freePort();
+	const withUi = provider === "garage" && process.argv.includes("--garage-ui");
 	const compose = [
 		"compose",
 		"-f",
@@ -30,11 +32,16 @@ for (const provider of ["rustfs", "garage"] as const) {
 		project,
 		"--profile",
 		provider,
+		...(withUi ? ["--profile", "garage-ui"] : []),
 	];
 	const overrides =
 		provider === "rustfs"
 			? { RUSTFS_PORT: String(port), RUSTFS_CONSOLE_PORT: String(adminPort) }
-			: { GARAGE_PORT: String(port), GARAGE_ADMIN_PORT: String(adminPort) };
+			: {
+					GARAGE_PORT: String(port),
+					GARAGE_ADMIN_PORT: String(adminPort),
+					GARAGE_UI_PORT: String(uiPort),
+				};
 	try {
 		docker([...compose, "up", "-d", provider], overrides);
 		const environment = {
@@ -71,6 +78,16 @@ for (const provider of ["rustfs", "garage"] as const) {
 			]);
 		}
 		console.info(`${provider}: complete common compatibility contract passed`);
+		if (withUi) {
+			docker(
+				[...compose, "up", "-d", "--wait", "--wait-timeout", "90", "garage-ui"],
+				overrides,
+			);
+			runScript("scripts/storage-ui-smoke.ts", {
+				...environment,
+				GARAGE_UI_SMOKE_URL: `http://127.0.0.1:${uiPort}`,
+			});
+		}
 	} finally {
 		docker([...compose, "down", "--volumes", "--remove-orphans"], overrides);
 	}

@@ -46,7 +46,7 @@ Only implemented capabilities receive an add-on directory. Planned entries such 
 | Jobs | None beyond baseline PostgreSQL and configured Drizzle | Observability, Ops / Admin | PostgreSQL | Enabled | No | Done |
 | API Platform / Machine Auth / OpenAPI | None beyond baseline Better Auth, PostgreSQL/Drizzle, and server runtime | Audit Log, Observability, Authorization, Organizations | None beyond baseline PostgreSQL | Enabled | No | Done |
 | Observability | None beyond baseline Start + Node runtime | Every server/runtime capability where useful, including Jobs and API Platform | Optional OTLP destination | Enabled | No | Done |
-| Object Storage | None; no database/auth dependency | Jobs, Observability | S3 when used; tested RustFS 1.0.0 preferred / Garage 2.3.0 | Enabled | No | Done |
+| Object Storage | None; no database/auth dependency | Jobs, Observability | S3 when used; tested RustFS 1.0.0 preferred / Garage 2.4.1 | Enabled | No | Done |
 
 ### Foundational / backend
 
