@@ -39,7 +39,7 @@ The third independent add-on supplies Pino 10.3.1 JSON logs and compatible OTel 
 
 ### Optional object storage
 
-The fourth add-on uses AWS S3 client/presigner 3.1143.0 without database/auth/Jobs requirements. Identical real compatibility tests verify pinned stable RustFS 1.0.0 and Garage 2.3.0, including streaming, metadata, pagination, signed Content-Type rejection, multipart completion/abort and origin-specific CORS. AWS endpoint/credential-chain semantics stay intact without real AWS CI. Optional third-party Noooste Garage UI v0.13.0 is development-only. Lazy configuration preserves backendless build/start, safe errors and optional telemetry avoid secret/identifier leakage, and explicit removal does not delete remote data. See `OBJECT_STORAGE_MODULE_EVALUATION.md` for exact limits and verification.
+The fourth add-on uses AWS S3 client/presigner 3.1143.0 without database/auth/Jobs requirements. Identical real compatibility tests verify pinned stable RustFS 1.0.0 and Garage 2.4.1, including streaming, metadata, pagination, signed Content-Type rejection, multipart completion/abort and origin-specific CORS. AWS endpoint/credential-chain semantics stay intact without real AWS CI. Optional third-party Noooste Garage UI v0.13.0 is development-only. Lazy configuration preserves backendless build/start, safe errors and optional telemetry avoid secret/identifier leakage, and explicit removal does not delete remote data. See `OBJECT_STORAGE_MODULE_EVALUATION.md` for exact limits and verification.
 
 ### PostgreSQL background jobs
 

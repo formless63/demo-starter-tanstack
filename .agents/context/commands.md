@@ -21,6 +21,7 @@
 - `bun run storage:check`: non-mutating configuration/credential/HEAD bucket access check.
 - `bun run storage:smoke`: real private operations/presign/multipart with unique own-prefix cleanup; configured bucket required.
 - `bun run storage:compat`: same complete suite on disposable pinned RustFS/Garage stacks, cleaned in finally; Docker required, no AWS credentials. Set `STORAGE_SMOKE_SCRIPT=scripts/storage-reference-smoke.ts` for optional root telemetry wiring and `STORAGE_SMOKE_IMAGE=tanstack-launchpad:local` to exercise the production Node bundle too.
+- `bun run storage:compat --garage-ui`: additionally verify optional Noooste Garage UI v0.13.0 health, token authentication/rejection, Garage 2.4.1 Admin API and S3 reads. CI and Storage's clean fixture run this option; core S3 operation does not require the UI.
 - `bun run storage:dev:rustfs` / `storage:dev:garage`: start one optional local provider and explicitly initialize development bucket/CORS. Configure application env separately per CAPABILITY.md.
 - `bun run storage:dev:down`: stop the optional stack retaining named volumes; no remote data removal.
 - `docker compose -f compose.storage.yaml --profile garage --profile garage-ui up -d garage garage-ui`: optional loopback-only third-party admin UI, token login; not a runtime requirement.

@@ -24,6 +24,23 @@ assert.equal(aws.client.endpoint, undefined);
 assert.equal(aws.client.credentials, undefined);
 assert.equal(aws.client.forcePathStyle, false);
 assert.equal(aws.ttl, 600);
+assert.throws(
+	() => storageConfig({ STORAGE_BUCKET: "test-bucket" }),
+	(error: unknown) =>
+		error instanceof StorageError && error.message.includes("STORAGE_REGION"),
+);
+assert.equal(
+	storageConfig({
+		...baseline,
+		STORAGE_REGION: "garage",
+		AWS_DEFAULT_REGION: "eu-west-1",
+	}).client.region,
+	"garage",
+);
+assert.equal(
+	storageConfig({ ...baseline, AWS_DEFAULT_REGION: "eu-west-1" }).client.region,
+	"us-east-1",
+);
 assert.equal(
 	storageConfig({
 		STORAGE_BUCKET: "test-bucket",
@@ -152,7 +169,10 @@ for (const [status, code] of [
 	assert.ok(!JSON.stringify(error).includes("secret"));
 }
 const client = createStorage(aws);
-assert.equal(storageError({ name: "Error", code: "ECONNREFUSED" }).code, "unavailable");
+assert.equal(
+	storageError({ name: "Error", code: "ECONNREFUSED" }).code,
+	"unavailable",
+);
 assert.equal(typeof client.getS3Client().config.credentials, "function");
 client.close();
 const signed = createStorage(explicit);

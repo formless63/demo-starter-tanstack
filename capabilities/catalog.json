@@ -145,12 +145,12 @@
 		{
 			"id": "object-storage", "displayName": "Object Storage", "kind": "foundational-backend", "status": "done", "defaultInstalled": false,
 			"requires": [], "integratesWith": ["jobs", "observability"], "baselineRequirements": ["node-runtime"],
-			"externalRequirements": [{ "name": "S3-compatible storage", "required": true, "description": "Required only when actively used; tested RustFS 1.0.0 preferred, Garage 2.3.0 supported with optional third-party Noooste Garage UI 0.13.0." }],
+			"externalRequirements": [{ "name": "S3-compatible storage", "required": true, "description": "Required only when actively used; tested RustFS 1.0.0 preferred, Garage 2.4.1 supported with optional third-party Noooste Garage UI 0.13.0." }],
 			"summary": "Private server S3 primitives, streaming, bounded signed PUT/GET, multipart, and post-upload verification; no persistence or auth dependency.",
 			"scripts": ["storage:check", "storage:smoke", "storage:unit", "storage:compat", "storage:bootstrap", "storage:dev:rustfs", "storage:dev:garage", "storage:dev:down"],
 			"environmentVariables": [
 				{ "name": "STORAGE_BUCKET", "required": true, "description": "Required lazily when actively used, not for build/start." },
-				{ "name": "STORAGE_REGION", "required": false, "description": "Required on use unless AWS_REGION/AWS_DEFAULT_REGION supplies it." },
+				{ "name": "STORAGE_REGION", "required": false, "description": "STORAGE_REGION then AWS_REGION then AWS_DEFAULT_REGION, otherwise error; no implicit default." },
 				{ "name": "STORAGE_ENDPOINT", "required": false, "description": "Optional custom S3 origin; absent uses AWS endpoint resolution." },
 				{ "name": "STORAGE_ACCESS_KEY_ID", "required": false, "description": "Optional complete explicit pair; absent uses SDK credential chain." },
 				{ "name": "STORAGE_SECRET_ACCESS_KEY", "required": false, "description": "Explicit secret paired with access ID; never log." },

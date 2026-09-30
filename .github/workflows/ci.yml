@@ -66,8 +66,8 @@ jobs:
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run observability:smoke
-      - name: Verify both storage providers with optional reference telemetry
-        run: STORAGE_SMOKE_IMAGE=tanstack-launchpad:local STORAGE_SMOKE_SCRIPT=scripts/storage-reference-smoke.ts bun run storage:compat
+      - name: Verify both storage providers, optional reference telemetry and Garage UI
+        run: STORAGE_SMOKE_IMAGE=tanstack-launchpad:local STORAGE_SMOKE_SCRIPT=scripts/storage-reference-smoke.ts bun run storage:compat --garage-ui
       - run: bun test
       - run: bun run build
       - run: bunx playwright install --with-deps chromium
