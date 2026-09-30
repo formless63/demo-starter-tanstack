@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -175,13 +175,114 @@
 			}
 		},
 		{
-			"id": "email", "displayName": "Email", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["jobs", "observability"], "baselineRequirements": [], "baselineIntegrations": ["authentication"],
-			"externalRequirements": [
-				{ "name": "SMTP", "required": true, "description": "Provider-neutral base transport; no provider-specific SDK is required." },
-				{ "name": "Mailpit", "required": false, "description": "Recommended local-development SMTP capture service." }
+			"id": "email",
+			"displayName": "Email",
+			"kind": "foundational-backend",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"jobs",
+				"observability"
 			],
-			"summary": "SMTP-first transactional email and Better Auth magic-link delivery."
+			"baselineRequirements": [],
+			"baselineIntegrations": [
+				"authentication"
+			],
+			"externalRequirements": [
+				{
+					"name": "SMTP",
+					"required": true,
+					"description": "Required only when sending/verifying; provider-neutral SMTP with no provider SDK."
+				},
+				{
+					"name": "Mailpit",
+					"required": false,
+					"description": "Recommended local-development SMTP capture service."
+				}
+			],
+			"summary": "SMTP-first transactional email and Better Auth magic-link delivery.",
+			"scripts": [
+				"email:check",
+				"email:smoke",
+				"email:unit",
+				"email:compat",
+				"email:dev:mailpit",
+				"email:dev:down"
+			],
+			"environmentVariables": [
+				{
+					"name": "SMTP_HOST",
+					"required": false,
+					"description": "Required lazily when used; SMTP hostname, not URL."
+				},
+				{
+					"name": "SMTP_PORT",
+					"required": false,
+					"description": "Explicit integer 1\u201365535."
+				},
+				{
+					"name": "SMTP_SECURITY",
+					"required": false,
+					"description": "Explicit tls/starttls/opportunistic; no port inference."
+				},
+				{
+					"name": "SMTP_USER",
+					"required": false,
+					"description": "Optional complete auth pair; server-only."
+				},
+				{
+					"name": "SMTP_PASSWORD",
+					"required": false,
+					"description": "Secret paired with SMTP_USER; never log."
+				},
+				{
+					"name": "EMAIL_FROM_ADDRESS",
+					"required": false,
+					"description": "Fixed sender required when used."
+				},
+				{
+					"name": "EMAIL_FROM_NAME",
+					"required": false,
+					"description": "Optional fixed sender name."
+				},
+				{
+					"name": "EMAIL_REPLY_TO_ADDRESS",
+					"required": false,
+					"description": "Optional default reply-to."
+				},
+				{
+					"name": "EMAIL_REPLY_TO_NAME",
+					"required": false,
+					"description": "Optional name requires reply-to address."
+				},
+				{
+					"name": "EMAIL_MAX_RECIPIENTS",
+					"required": false,
+					"description": "Integer 1\u2013100 across To/Cc/Bcc, default 50.",
+					"default": "50"
+				}
+			],
+			"migrations": [],
+			"runtimeServices": [
+				{
+					"id": "mailpit",
+					"type": "compose-service",
+					"description": "Optional loopback-only temporary SMTP capture; never forwards."
+				}
+			],
+			"documentationPath": "capabilities/email/CAPABILITY.md",
+			"agentSkill": ".agents/skills/email-change/SKILL.md",
+			"evaluationDocument": "EMAIL_MODULE_EVALUATION.md",
+			"tanstackAddOn": {
+				"addOnId": "email",
+				"sourceDirectory": "capabilities/email/.add-on",
+				"manifestPath": "capabilities/email/.add-on/info.json",
+				"distributablePath": "capabilities/email/add-on.json",
+				"cleanInstallFixture": "capabilities/email/test/clean-install.json",
+				"dependsOn": [],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "webhooks", "displayName": "Webhooks", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,

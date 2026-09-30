@@ -33,6 +33,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | API Platform | Done | Optional | Baseline Better Auth + PostgreSQL/Drizzle + server runtime | User-owned machine keys, typed permissions, native v1 API, OpenAPI 3.1.1, Scalar | [API Platform contract](capabilities/api-platform/CAPABILITY.md) |
 | Observability | Done | Optional | Baseline Start + Node runtime; no capability dependency | Safe JSON logs, request IDs, server traces/metrics, optional OTLP | [Observability contract](capabilities/observability/CAPABILITY.md) |
 | Object Storage | Done | Optional | No database/auth/capability dependency; S3 when used | Private streaming, signed PUT/GET, multipart and post-upload verification | [Storage contract](capabilities/object-storage/CAPABILITY.md) |
+| Email | Done | Optional | No database/auth/capability dependency; SMTP when used | Bounded SMTP delivery, safe errors and awaited magic links | [Email contract](capabilities/email/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -73,7 +74,7 @@ For a development Pocket ID admin API, set `DEV_OIDC_ADMIN_URL`, `DEV_OIDC_API_K
 bun run auth:provision
 ```
 
-The command uses Pocket ID's current `/api/oidc/clients` and `/secrets` APIs, updates callback/logout URLs, creates a secret only when the ignored `.env.local` lacks one, and is safe to rerun. Missing or unavailable configuration produces a clear error. Optional `MAGIC_LINK_ENABLED=true` prints links only in development; production intentionally refuses until a mail transport is implemented.
+The command uses Pocket ID's current `/api/oidc/clients` and `/secrets` APIs, updates callback/logout URLs, creates a secret only when the ignored `.env.local` lacks one, and is safe to rerun. Missing or unavailable configuration produces a clear error. Optional `MAGIC_LINK_ENABLED=true` delivers links through configured SMTP in development and production; local development reads Mailpit rather than console output.
 
 ## Machine API and OpenAPI
 
@@ -139,6 +140,14 @@ Both starters share AWS SDK client/presigner 3.1143.0, GET + PUT presigning (600
 
 Presigned Content-Type headers must match exactly. Validate proposed metadata before signing and actual size/type after upload; signed PUT has no universal pre-ingest byte policy. Keep URLs/credentials out of logs, consume or close download streams, and authorize server-chosen keys in application code. Optional application-owned telemetry records only finite operation/outcome/duration dimensions. See [evaluation](OBJECT_STORAGE_MODULE_EVALUATION.md) for provider scope and limitations, and [removal](docs/STARTING-A-PROJECT.md#remove-object-storage) for non-destructive unwiring.
 
+## Email
+
+[Email](capabilities/email/CAPABILITY.md) is a lazy, server-only Nodemailer 10.0.13 SMTP primitive with explicit TLS modes, bounded structured messages and safe errors. It makes one delivery attempt and returns partial acceptance without blind retries. No database, auth, telemetry or Jobs dependency is installed for clean consumers.
+
+Start optional loopback-only Mailpit v1.31.3 with `bun run email:dev:mailpit`; configure ignored local SMTP/From settings from the contract. `email:check` verifies without sending; `EMAIL_SMOKE_TO=person@example.test bun run email:smoke` sends one explicitly addressed message. `email:compat` verifies real SMTP/MIME and deterministic Chaos in disposable stacks. `email:dev:down` stops the temporary sink, which never relays.
+
+`MAGIC_LINK_ENABLED=true` requires structurally complete Email settings and delivers awaited text/HTML links through SMTP in development and production. Links/tokens are never console-logged; retrieve local links from Mailpit. Disabled magic links leave Email unused/unconfigured. Root optional telemetry records only bounded operation metadata. Domain DNS/deliverability remains the operator's responsibility.
+
 ## Verification
 
 ```bash
@@ -163,6 +172,8 @@ bun run test:e2e
 Playwright covers the public landing page, anonymous protected-route redirect, OpenAPI endpoint, machine-auth boundary, and Scalar rendering. CI runs the static, unit, build, and browser checks, then proves the production artifact by building the image, migrating a clean Compose PostgreSQL database, starting the worker/application, and probing health, OpenAPI, and docs. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
 
 The fourth catalog-driven clean add-on job additionally proves Storage's backendless installation, both real provider suites and runtime removal. Main CI repeats both providers with optional telemetry and the actual Node production-image Storage entrypoint. Normal app health still works with no Storage configuration/service.
+
+Email adds a fifth catalog-driven independent clean fixture. Main CI proves real Better Auth and production-image SMTP delivery, while normal production health also runs with Email unconfigured. Full SMTP/Docker tests remain task/CI checks, never agent-turn hooks.
 
 ## Capability/add-on development
 

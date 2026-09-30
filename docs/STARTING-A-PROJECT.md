@@ -95,7 +95,7 @@ If the downstream fork will never reinstall or develop API Platform, delete `cap
 
 Apply both recipes together, remove both IDs from `referenceApplication.enabledCapabilities`, regenerate routes once, and update/install dependencies once. Keep the baseline PostgreSQL migration history and `/api/health` container verification.
 
-Observability and Object Storage may remain independently installed; apply both following removal recipes for a capability-free application baseline.
+Observability, Object Storage and Email may remain independently installed; apply their following removal recipes for a capability-free application baseline.
 
 The resulting application retains TanStack Start/React, Bun, PostgreSQL/Drizzle, passwordless Better Auth, the authenticated Projects slice, Tailwind/shadcn/Tabler UI, Docker/Compose, CI, and agent/capability governance. `bun run capabilities:check`, `bun run typecheck`, and `bun run build` must all pass before treating the lean baseline as viable.
 
@@ -111,7 +111,7 @@ The resulting application retains TanStack Start/React, Bun, PostgreSQL/Drizzle,
 8. Remove `observability` from `referenceApplication.enabledCapabilities`. Keep authoring source/catalog status unless separately pruning it; use the standard `deferred` pruning recipe if needed.
 9. Update the lockfile, regenerate routes, and run governance/types/tests/build and the production health path.
 
-Apply this recipe alongside Jobs/API removal if none of those three are needed; apply Storage's recipe as well to remove all four. No remaining application import should point at a removed integration. Observability authoring assets can remain independently installable even when the reference application no longer enables telemetry.
+Apply this recipe alongside Jobs/API removal if none of those three are needed; apply Storage's recipe as well to remove all four; apply Email’s recipe to remove the fifth. No remaining application import should point at a removed integration. Observability authoring assets can remain independently installable even when the reference application no longer enables telemetry.
 
 ### Remove Object Storage
 
@@ -127,6 +127,18 @@ Stop producers/users of signed URLs first; account for outstanding URLs and mult
 Storage's optional wrapper is owned by `src/lib/storage.server.ts`; if removing Observability while keeping Storage, delete that wrapper, reference/telemetry scripts and telemetry-only unit case, remove `storage:reference:smoke`, and use standalone `storage:smoke` in compatibility CI instead. The reusable Storage integration imports no telemetry package and continues to work.
 
 If abandoning authoring too, prune `capabilities/object-storage/`, `OBJECT_STORAGE_MODULE_EVALUATION.md`, and `.agents/skills/storage-change/`; retain the stable catalog ID as `deferred`, remove implementation metadata and update docs/roadmap. Removing code never authorizes deleting persisted objects or credentials. The clean-scaffold fixture applies runtime removal and rebuilds without AWS packages; reference removal is also verified in a disposable copy.
+
+### Remove Email
+
+1. Set `MAGIC_LINK_ENABLED=false` before removal. In `src/lib/auth.ts`, remove Email imports and the magic-link plugin block (plus its plugin-union/import entry), or deliberately replace delivery with another reviewed sender. Keep GitHub/OIDC/API-key/TanStack cookies. Never restore console-link logging. If removing the flow, restrict its server env schema to literal `false` so the existing client stays disabled.
+2. Delete `src/integrations/email/`, `src/lib/email.server.ts`, `src/lib/email.test.ts` and `scripts/email-*.ts`. Remove `email:*` scripts, `nodemailer` and dev `@types/nodemailer` when unused elsewhere.
+3. Remove SMTP/EMAIL settings from local/deployment environment and examples, plus their pass-through lines in Compose. Stop the optional local Mailpit stack before deleting `compose.email.yaml`; captured development mail is temporary. No provider account, remote credential, domain/DNS or database schema is removed.
+4. Remove the two Email operational bundle commands from Dockerfile and the main CI SMTP/Chaos/auth/production smoke step. Keep all existing production health/Jobs/API/Storage verification and the catalog-driven fixture if retaining authoring source.
+5. Remove `email` from `referenceApplication.enabledCapabilities`; keep `defaultInstalled: false`. Update README/docs and lockfile, run governance/types/tests/build/E2E and the no-SMTP production health path.
+
+If keeping Email while removing Observability, remove the app-owned wrapper and `src/lib/email.test.ts`/`scripts/email-telemetry.ts`, change auth to use reusable `getEmail()` directly and remove only the telemetry assertion from the root smoke. Reusable Email and its clean fixture contain no Observability dependency.
+
+For authoring pruning, additionally delete `capabilities/email/`, `EMAIL_MODULE_EVALUATION.md` and `.agents/skills/email-change/`, set the stable catalog ID to `deferred`, remove implementation metadata and update ROADMAP/docs. Keep the ID because future capabilities reference it. Clean installation/removal and reference-app removal are verified in disposable copies; no CLI uninstall transaction is claimed.
 
 ## Why there is no removal command
 

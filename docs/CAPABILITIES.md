@@ -21,6 +21,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 | `api-platform` | `api-platform` | Done | Enabled | No | `better-auth`, `drizzle` | None | None beyond baseline PostgreSQL | [API Platform](../capabilities/api-platform/CAPABILITY.md) |
 | `observability` | `observability` | Done | Enabled | No | None | None | Optional OTLP | [Observability](../capabilities/observability/CAPABILITY.md) |
 | `object-storage` | `object-storage` | Done | Enabled | No | None | None | S3 only when used | [Object Storage](../capabilities/object-storage/CAPABILITY.md) |
+| `email` | `email` | Done | Enabled | No | None | None | SMTP only when used; optional Mailpit | [Email](../capabilities/email/CAPABILITY.md) |
 
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
@@ -56,7 +57,7 @@ For an existing TanStack CLI-created application, run from its root:
 bunx @tanstack/cli@0.71.0 add https://raw.githubusercontent.com/formless63/demo-starter-tanstack/main/capabilities/jobs/add-on.json
 ```
 
-Replace the URL with the API Platform or Observability distributable to select that capability. Review the resulting diff, configure its environment, apply any declared migrations, and run its `CAPABILITY.md` verification. Observability has no migrations or database dependency. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
+Replace the URL with the API Platform, Observability, Storage or Email distributable to select that capability. Review the resulting diff, configure its environment, apply any declared migrations, and run its `CAPABILITY.md` verification. Observability has no migrations or database dependency. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
 
 Official TanStack add-on dependencies are resolved by the CLI:
 
@@ -64,6 +65,8 @@ Official TanStack add-on dependencies are resolved by the CLI:
 - API Platform declares `dependsOn: ["better-auth", "drizzle"]` because Better Auth alone does not provide its PostgreSQL/Drizzle persistence boundary.
 - Observability declares `dependsOn: []`; its clean fixture proves signals and real optional OTLP export without Jobs, API Platform, authentication, or a database integration.
 - Object Storage declares `dependsOn: []`; its clean fixture rejects database/auth/Jobs/API/telemetry installation, builds backendless, tests real RustFS and Garage, then removes AWS/runtime additions and rebuilds. Local profiles and admin UI are optional infrastructure, not capability dependencies.
+
+- Email declares `dependsOn: []`; a backendless fixture types/builds with SMTP absent, tests real Mailpit SMTP/Chaos, then removes runtime/packages and rebuilds. Better Auth and telemetry are root-only integrations, never clean-consumer requirements.
 
 These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Completed capabilities do not require one another.
 

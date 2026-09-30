@@ -25,6 +25,11 @@
 - `bun run storage:dev:rustfs` / `storage:dev:garage`: start one optional local provider and explicitly initialize development bucket/CORS. Configure application env separately per CAPABILITY.md.
 - `bun run storage:dev:down`: stop the optional stack retaining named volumes; no remote data removal.
 - `docker compose -f compose.storage.yaml --profile garage --profile garage-ui up -d garage garage-ui`: optional loopback-only third-party admin UI, token login; not a runtime requirement.
+- `bun run email:check`: lazy SMTP config + connection/TLS/auth verify; sends no message.
+- `EMAIL_SMOKE_TO=person@example.test bun run email:smoke`: one explicit SMTP test message, no content output.
+- `bun run email:unit`: deterministic Email config/message/security/error/rendering tests.
+- `bun run email:compat`: disposable Mailpit real SMTP/MIME/partial/bounds/451/550 Chaos; `--reference` adds actual Better Auth SMTP/token/session, `--production` adds the built Node image on the migrated Compose database network.
+- `bun run email:dev:mailpit` / `email:dev:down`: explicitly start/stop temporary loopback capture; no relay or persistent volume.
 - `bun run lint`, `bun run typecheck`, `bun test`: static and unit/integration verification.
 - `bun run test:e2e`: Playwright landing/protection smoke test (browser install required).
 - `bun run build`, `bun run start`: create and run the Node-compatible production output.
