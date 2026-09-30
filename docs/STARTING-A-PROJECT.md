@@ -95,7 +95,7 @@ If the downstream fork will never reinstall or develop API Platform, delete `cap
 
 Apply both recipes together, remove both IDs from `referenceApplication.enabledCapabilities`, regenerate routes once, and update/install dependencies once. Keep the baseline PostgreSQL migration history and `/api/health` container verification.
 
-Observability may remain independently installed; apply the next recipe as well for a capability-free application baseline.
+Observability and Object Storage may remain independently installed; apply both following removal recipes for a capability-free application baseline.
 
 The resulting application retains TanStack Start/React, Bun, PostgreSQL/Drizzle, passwordless Better Auth, the authenticated Projects slice, Tailwind/shadcn/Tabler UI, Docker/Compose, CI, and agent/capability governance. `bun run capabilities:check`, `bun run typecheck`, and `bun run build` must all pass before treating the lean baseline as viable.
 
@@ -111,7 +111,22 @@ The resulting application retains TanStack Start/React, Bun, PostgreSQL/Drizzle,
 8. Remove `observability` from `referenceApplication.enabledCapabilities`. Keep authoring source/catalog status unless separately pruning it; use the standard `deferred` pruning recipe if needed.
 9. Update the lockfile, regenerate routes, and run governance/types/tests/build and the production health path.
 
-To remove all three, apply this recipe alongside Jobs/API removal; no remaining application import should point at a removed integration. Observability authoring assets can remain independently installable even when the reference application no longer enables telemetry.
+Apply this recipe alongside Jobs/API removal if none of those three are needed; apply Storage's recipe as well to remove all four. No remaining application import should point at a removed integration. Observability authoring assets can remain independently installable even when the reference application no longer enables telemetry.
+
+### Remove Object Storage
+
+Stop producers/users of signed URLs first; account for outstanding URLs and multipart sessions. Application removal does not revoke issued URLs or dispose of remote data.
+
+1. Delete `src/integrations/storage/`, `src/lib/storage.server.ts`, and `scripts/storage-*.ts` (including root-only reference/telemetry and fixture scripts).
+2. Remove all `storage:*` package scripts and both `@aws-sdk/client-s3` / `@aws-sdk/s3-request-presigner` dependencies if unused elsewhere. Keep all baseline, Jobs/API/Observability packages.
+3. Remove `STORAGE_*` entries from application env examples/local configuration and the Storage pass-through block in Compose. Never revoke or delete remote credentials as a side effect.
+4. Remove `compose.storage.yaml` and `infrastructure/storage/` from the application. Stop these containers if desired, but retain named volumes by default; never delete remote buckets/objects. Backup/retention and later volume/data deletion are separate operator decisions.
+5. Remove the reference two-provider telemetry smoke step from main CI and the two Storage bundle commands from Dockerfile. Keep catalog-driven authoring fixtures if retaining add-on source. No migration, database schema, readiness or auth change is needed.
+6. Remove `object-storage` from `referenceApplication.enabledCapabilities`, retaining `defaultInstalled: false`. Update README/deployment notes and lockfile, then run governance/types/tests/build/E2E and normal production containers with no storage configuration.
+
+Storage's optional wrapper is owned by `src/lib/storage.server.ts`; if removing Observability while keeping Storage, delete that wrapper, reference/telemetry scripts and telemetry-only unit case, remove `storage:reference:smoke`, and use standalone `storage:smoke` in compatibility CI instead. The reusable Storage integration imports no telemetry package and continues to work.
+
+If abandoning authoring too, prune `capabilities/object-storage/`, `OBJECT_STORAGE_MODULE_EVALUATION.md`, and `.agents/skills/storage-change/`; retain the stable catalog ID as `deferred`, remove implementation metadata and update docs/roadmap. Removing code never authorizes deleting persisted objects or credentials. The clean-scaffold fixture applies runtime removal and rebuilds without AWS packages; reference removal is also verified in a disposable copy.
 
 ## Why there is no removal command
 

@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -143,10 +143,36 @@
 			}
 		},
 		{
-			"id": "object-storage", "displayName": "Object Storage", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["jobs", "observability"], "baselineRequirements": [],
-			"externalRequirements": [{ "name": "S3-compatible storage", "required": true, "description": "RustFS is the preferred self-hosted option; Garage with optional GarageUI is also supported. MinIO is not the default." }],
-			"summary": "S3-compatible object persistence with provider-neutral application APIs."
+			"id": "object-storage", "displayName": "Object Storage", "kind": "foundational-backend", "status": "done", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["jobs", "observability"], "baselineRequirements": ["node-runtime"],
+			"externalRequirements": [{ "name": "S3-compatible storage", "required": true, "description": "Required only when actively used; tested RustFS 1.0.0 preferred, Garage 2.3.0 supported with optional third-party Noooste Garage UI 0.13.0." }],
+			"summary": "Private server S3 primitives, streaming, bounded signed PUT/GET, multipart, and post-upload verification; no persistence or auth dependency.",
+			"scripts": ["storage:check", "storage:smoke", "storage:unit", "storage:compat", "storage:bootstrap", "storage:dev:rustfs", "storage:dev:garage", "storage:dev:down"],
+			"environmentVariables": [
+				{ "name": "STORAGE_BUCKET", "required": true, "description": "Required lazily when actively used, not for build/start." },
+				{ "name": "STORAGE_REGION", "required": false, "description": "Required on use unless AWS_REGION/AWS_DEFAULT_REGION supplies it." },
+				{ "name": "STORAGE_ENDPOINT", "required": false, "description": "Optional custom S3 origin; absent uses AWS endpoint resolution." },
+				{ "name": "STORAGE_ACCESS_KEY_ID", "required": false, "description": "Optional complete explicit pair; absent uses SDK credential chain." },
+				{ "name": "STORAGE_SECRET_ACCESS_KEY", "required": false, "description": "Explicit secret paired with access ID; never log." },
+				{ "name": "STORAGE_SESSION_TOKEN", "required": false, "description": "Optional temporary credential token." },
+				{ "name": "STORAGE_FORCE_PATH_STYLE", "required": false, "description": "true/false; custom endpoint defaults true, AWS false." },
+				{ "name": "STORAGE_PRESIGN_TTL_SECONDS", "required": false, "default": "600", "description": "Bounded integer 30–3600." },
+				{ "name": "STORAGE_KEY_PREFIX", "required": false, "description": "Optional normalized, enforced key prefix." }
+			],
+			"migrations": [],
+			"runtimeServices": [
+				{ "id": "rustfs", "type": "compose-service", "description": "Optional preferred local single-node S3 target." },
+				{ "id": "garage", "type": "compose-service", "description": "Optional alternate local single-node S3 target." },
+				{ "id": "garage-ui", "type": "compose-service", "description": "Optional third-party local admin UI; not required for Storage." }
+			],
+			"documentationPath": "capabilities/object-storage/CAPABILITY.md",
+			"agentSkill": ".agents/skills/storage-change/SKILL.md",
+			"evaluationDocument": "OBJECT_STORAGE_MODULE_EVALUATION.md",
+			"tanstackAddOn": {
+				"addOnId": "object-storage", "sourceDirectory": "capabilities/object-storage/.add-on",
+				"manifestPath": "capabilities/object-storage/.add-on/info.json", "distributablePath": "capabilities/object-storage/add-on.json",
+				"cleanInstallFixture": "capabilities/object-storage/test/clean-install.json", "dependsOn": [], "conflictsWith": []
+			}
 		},
 		{
 			"id": "email", "displayName": "Email", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,

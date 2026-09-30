@@ -1,0 +1,26 @@
+{
+ "id": "object-storage", "name": "object-storage", "displayName": "Object Storage",
+ "description": "Private server S3 primitives, streaming, bounded presigned URLs, and multipart; verified with RustFS and Garage.",
+ "version": "1.0.0", "type": "add-on", "phase": "example", "category": "other", "modes": ["file-router"], "dependsOn": [],
+ "author": "TanStack Launchpad", "license": "MIT",
+ "packageAdditions": {
+  "dependencies": { "@aws-sdk/client-s3": "3.1143.0", "@aws-sdk/s3-request-presigner": "3.1143.0" },
+  "scripts": {
+   "storage:check": "bun scripts/storage-check.ts", "storage:smoke": "bun scripts/storage-smoke.ts",
+   "storage:unit": "bun scripts/storage-unit.ts", "storage:compat": "bun scripts/storage-compat.ts",
+   "storage:bootstrap": "bun scripts/storage-bootstrap.ts", "storage:dev:rustfs": "bun scripts/storage-dev.ts rustfs",
+   "storage:dev:garage": "bun scripts/storage-dev.ts garage", "storage:dev:down": "bun scripts/storage-dev.ts down"
+  }
+ },
+ "envVars": [
+  { "name": "STORAGE_BUCKET", "description": "Required lazily on use, not installation/build.", "required": false, "secret": false, "file": ".env.local" },
+  { "name": "STORAGE_REGION", "description": "Falls back to AWS_REGION/AWS_DEFAULT_REGION.", "required": false, "secret": false, "file": ".env.local" },
+  { "name": "STORAGE_ENDPOINT", "description": "Optional custom S3 HTTP(S) origin.", "required": false, "secret": false, "file": ".env.local" },
+  { "name": "STORAGE_ACCESS_KEY_ID", "description": "Optional explicit complete credential pair; absent uses SDK chain.", "required": false, "secret": true, "file": ".env.local" },
+  { "name": "STORAGE_SECRET_ACCESS_KEY", "description": "Secret, paired with access ID.", "required": false, "secret": true, "file": ".env.local" },
+  { "name": "STORAGE_SESSION_TOKEN", "description": "Optional explicit temporary credential token.", "required": false, "secret": true, "file": ".env.local" },
+  { "name": "STORAGE_FORCE_PATH_STYLE", "description": "true/false; custom endpoint defaults true, AWS false.", "required": false, "secret": false, "file": ".env.local" },
+  { "name": "STORAGE_PRESIGN_TTL_SECONDS", "description": "Integer 30–3600.", "required": false, "secret": false, "default": "600", "file": ".env.local" },
+  { "name": "STORAGE_KEY_PREFIX", "description": "Optional safely normalized and enforced key prefix.", "required": false, "secret": false, "file": ".env.local" }
+ ]
+}

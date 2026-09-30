@@ -32,6 +32,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | Jobs | Done | Optional | Baseline PostgreSQL + Drizzle | Typed pg-boss queues, explicit migration, worker, transactional enqueue | [Jobs contract](capabilities/jobs/CAPABILITY.md) |
 | API Platform | Done | Optional | Baseline Better Auth + PostgreSQL/Drizzle + server runtime | User-owned machine keys, typed permissions, native v1 API, OpenAPI 3.1.1, Scalar | [API Platform contract](capabilities/api-platform/CAPABILITY.md) |
 | Observability | Done | Optional | Baseline Start + Node runtime; no capability dependency | Safe JSON logs, request IDs, server traces/metrics, optional OTLP | [Observability contract](capabilities/observability/CAPABILITY.md) |
+| Object Storage | Done | Optional | No database/auth/capability dependency; S3 when used | Private streaming, signed PUT/GET, multipart and post-upload verification | [Storage contract](capabilities/object-storage/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -128,6 +129,14 @@ OTEL_METRICS_EXPORTER=otlp
 
 Leave endpoints empty to avoid all network export. Set either signal exporter to `none` independently, or `OTEL_SDK_DISABLED=true` for both; logs and request IDs remain available. Root Compose passes these values to app/worker without requiring a collector service. Native API routes use stable operation IDs; workers wrap registered handlers and flush after draining jobs. Neither Jobs nor API Platform requires Observability. See the [contract](capabilities/observability/CAPABILITY.md) for API helpers, coverage limits, redaction extensions, and shutdown behavior, and [removal guide](docs/STARTING-A-PROJECT.md#remove-observability) for safe unwiring.
 
+## Object storage
+
+Private server-side S3 primitives provide streaming reads, writes/metadata, prefix pagination, bounded presigned PUT/GET, multipart, safe keys/errors and post-upload HEAD verification. No file UI, database, auth dependency, implicit bucket creation or readiness coupling is added. Storage remains unconfigured until used; AWS deployments retain normal endpoint and IAM credential-chain behavior.
+
+`bun run storage:dev:rustfs` starts preferred RustFS 1.0.0; `bun run storage:dev:garage` starts alternate Garage 2.3.0. These separate development profiles explicitly bootstrap their bucket and localhost-origin CORS. Configure ignored `.env.local` using the [Storage contract](capabilities/object-storage/CAPABILITY.md#installation), then run `storage:check` / `storage:smoke`. `storage:compat` verifies the same real presign, streaming, pagination, metadata and multipart contract on both providers in disposable stacks. `storage:dev:down` retains development volumes. Optional third-party Noooste Garage UI 0.13.0 is loopback-only and requires the development admin token; it is never required for S3 operation.
+
+Presigned Content-Type headers must match exactly. Validate proposed metadata before signing and actual size/type after upload; signed PUT has no universal pre-ingest byte policy. Keep URLs/credentials out of logs, consume or close download streams, and authorize server-chosen keys in application code. Optional application-owned telemetry records only finite operation/outcome/duration dimensions. See [evaluation](OBJECT_STORAGE_MODULE_EVALUATION.md) for provider scope and limitations, and [removal](docs/STARTING-A-PROJECT.md#remove-object-storage) for non-destructive unwiring.
+
 ## Verification
 
 ```bash
@@ -137,6 +146,9 @@ bun run capabilities:check
 bun run add-ons:test jobs
 bun run add-ons:test api-platform
 bun run add-ons:test observability
+bun run add-ons:test object-storage
+bun run storage:unit
+bun run storage:compat
 bun run api-platform:smoke
 bun run observability:smoke
 bun run lint
@@ -147,6 +159,8 @@ bun run test:e2e
 ```
 
 Playwright covers the public landing page, anonymous protected-route redirect, OpenAPI endpoint, machine-auth boundary, and Scalar rendering. CI runs the static, unit, build, and browser checks, then proves the production artifact by building the image, migrating a clean Compose PostgreSQL database, starting the worker/application, and probing health, OpenAPI, and docs. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
+
+The fourth catalog-driven clean add-on job additionally proves Storage's backendless installation, both real provider suites and runtime removal. Main CI repeats both providers with optional telemetry and the actual Node production-image Storage entrypoint. Normal app health still works with no Storage configuration/service.
 
 ## Capability/add-on development
 

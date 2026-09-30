@@ -13,6 +13,12 @@ const sensitiveNames = new Set([
 	"key",
 	"databaseurl",
 	"connectionstring",
+	"credentials",
+	"secretaccesskey",
+	"storagesecretaccesskey",
+	"storageaccesskeyid",
+	"awssecretaccesskey",
+	"awsaccesskeyid",
 	"otelexporterotlpheaders",
 ]);
 const omittedNames = new Set([

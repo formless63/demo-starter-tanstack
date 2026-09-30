@@ -34,6 +34,7 @@ interface CleanInstallFixture {
 	toolchain: "biome" | "eslint";
 	addOnConfig?: Record<string, unknown>;
 	expectedOfficialAddOns: string[];
+	forbiddenOfficialAddOns?: string[];
 	expectedFiles: string[];
 	expectedFileText?: Record<string, string[]>;
 	verificationCommands?: string[][];
@@ -189,6 +190,9 @@ async function cleanInstall(capability: Capability & { tanstackAddOn: AddOnMetad
 			if (!cta.chosenAddOns?.includes(dependency)) {
 				throw new Error(`${capability.id}: clean install did not resolve official add-on ${dependency}`);
 			}
+		}
+		for (const dependency of fixture.forbiddenOfficialAddOns ?? []) {
+			if (cta.chosenAddOns?.includes(dependency)) throw new Error(`${capability.id}: unexpected dependency ${dependency}`);
 		}
 		for (const path of fixture.expectedFiles) {
 			if (!existsSync(resolve(target, path))) throw new Error(`${capability.id}: clean install is missing ${path}`);

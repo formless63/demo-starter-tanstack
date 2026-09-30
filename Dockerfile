@@ -9,7 +9,9 @@ RUN bun run build \
   && bun build scripts/jobs-migrate.ts --target=node --outfile=.output/jobs-migrate.mjs \
   && bun build scripts/jobs-doctor.ts --target=node --outfile=.output/jobs-doctor.mjs \
   && bun build scripts/jobs-smoke.ts --target=node --outfile=.output/jobs-smoke.mjs \
-  && bun build scripts/jobs-worker.ts --target=node --outfile=.output/jobs-worker.mjs
+  && bun build scripts/jobs-worker.ts --target=node --outfile=.output/jobs-worker.mjs \
+  && bun build scripts/storage-check.ts --target=node --outfile=.output/storage-check.mjs \
+  && bun build scripts/storage-smoke.ts --target=node --outfile=.output/storage-smoke.mjs
 
 FROM node:24.21.0-alpine AS runtime
 WORKDIR /app
