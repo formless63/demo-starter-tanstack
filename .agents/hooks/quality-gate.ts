@@ -15,6 +15,20 @@ export function governed(path: string): boolean {
 		/^scripts\/capabilities-[^/]+\.ts$/.test(path)
 	);
 }
+export function agentHarness(path: string): boolean {
+	return (
+		[".agents/", ".claude/", ".codex/", ".gemini/"].some((prefix) =>
+			path.startsWith(prefix),
+		) ||
+		[
+			"AGENTS.md",
+			"CLAUDE.md",
+			"scripts/agents-check.ts",
+			"scripts/agent-hooks.test.ts",
+			"scripts/agents-vitest.config.ts",
+		].includes(path)
+	);
+}
 export function qualityGate(
 	root: string,
 	execute: Runner = run,
@@ -47,6 +61,11 @@ export function qualityGate(
 		!execute(root, "bun", ["run", "capabilities:check"], 10000).ok
 	)
 		failed.push("bun run capabilities:check");
+	if (
+		paths.some(agentHarness) &&
+		!execute(root, "bun", ["run", "agents:check"], 10000).ok
+	)
+		failed.push("bun run agents:check");
 	return failed.length
 		? `Fix the deterministic quality check failure(s), then retry: ${failed.join("; ")}.`
 		: undefined;

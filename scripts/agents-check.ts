@@ -16,12 +16,14 @@ export function checkAgents(root: string): string[] {
 	for (const path of [
 		"AGENTS.md",
 		".agents/context",
+		".agents/prompts",
 		".agents/skills",
 		".agents/hooks",
 	])
 		requirePath(path);
 	for (const directory of [
 		".agents/context",
+		".agents/prompts",
 		".agents/skills",
 		".agents/hooks",
 	]) {
