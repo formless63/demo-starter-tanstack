@@ -1,0 +1,15 @@
+# Optional local sink only. No relay/forwarding, persistent volume, or default stack inclusion.
+services:
+  mailpit:
+    image: axllent/mailpit:v1.31.3
+    ports:
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+    environment:
+      MP_MAX_MESSAGES: "200"
+      MP_ALLOWED_HOSTS: "localhost,127.0.0.1,mailpit"
+      MP_SMTP_MAX_RECIPIENTS: "100"
+      MP_SMTP_ALLOWED_RECIPIENTS: "${MAILPIT_ALLOWED_RECIPIENTS:-}"
+      MP_ENABLE_CHAOS: "${MAILPIT_TEST_CHAOS:-false}"
+      MP_SMTP_AUTH_ACCEPT_ANY: "${MAILPIT_TEST_AUTH:-false}"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "${MAILPIT_TEST_AUTH:-false}"

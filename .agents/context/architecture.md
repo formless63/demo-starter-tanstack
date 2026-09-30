@@ -34,6 +34,10 @@ Root TypeScript excludes `.add-on/assets` templates; each clean fixture owns con
 
 `compose.storage.yaml` separately profiles pinned RustFS/Garage and optional third-party Garage UI. Explicit development bootstrap owns bucket/CORS/layout/key setup; normal readiness stays database-only. Clean fixtures test both providers and application removal without deleting remote data. Production endpoints/policies/TLS/credentials are operator-owned; browser presigning requires an externally reachable signed hostname.
 
+## Email boundary
+
+`src/integrations/email` owns lazy server-only SMTP configuration, bounded structured messages, safe errors and minimal magic-link rendering. No database/auth/Jobs/telemetry imports. Explicit TLS, no file/URL/raw/attachment resolution and no automatic retries; partial acceptance is a result. `src/lib/email.server.ts` is an optional app-owned telemetry wrapper. Better Auth awaits delivery, keeps hashed tokens and checks canonical origin; never logs links. Disabled magic links need no SMTP. Optional `compose.email.yaml` is a temporary loopback Mailpit sink with no relay; SMTP is not readiness.
+
 ## Production containers
 `compose.yaml` is the provider-neutral production orchestration contract. `app` and `worker` run independently and never mutate schema during startup. The explicit one-shot `migrate` and `jobs-migrate` services gate application and pg-boss schema changes before either long-lived process starts. All four services use the same immutable image and Compose database hostname. The runtime image is unprivileged, contains no development bind mounts, and exposes the database-backed `/api/health` readiness signal.
 
