@@ -316,15 +316,17 @@ test("agent harness validates current adapters and rejects absolute user paths/m
 });
 test("done capability needs an evaluation and complete consumer metadata but not a skill", () => {
 	const repo = fixture();
+	const sourceCatalog = JSON.parse(
+		readFileSync(resolve(repositoryRoot, "capabilities/catalog.json"), "utf8"),
+	) as { capabilities: Array<{ evaluationDocument?: string }> };
 	for (const name of [
 		"capabilities",
 		".agents",
 		"package.json",
 		"scripts/capabilities-check.ts",
-		"JOBS_MODULE_EVALUATION.md",
-		"API_PLATFORM_MODULE_EVALUATION.md",
-		"OBSERVABILITY_MODULE_EVALUATION.md",
-		"OBJECT_STORAGE_MODULE_EVALUATION.md",
+		...sourceCatalog.capabilities.flatMap(({ evaluationDocument }) =>
+			evaluationDocument ? [evaluationDocument] : [],
+		),
 	]) {
 		mkdirSync(resolve(repo, name, ".."), { recursive: true });
 		cpSync(resolve(repositoryRoot, name), resolve(repo, name), {
@@ -340,7 +342,9 @@ test("done capability needs an evaluation and complete consumer metadata but not
 			cwd: repo,
 			encoding: "utf8",
 		});
-	expect(check().status).toBe(0);
+	const baseline = check();
+	expect(baseline.stderr).toBe("");
+	expect(baseline.status).toBe(0);
 	delete catalog.capabilities[0].evaluationDocument;
 	writeFileSync(path, JSON.stringify(catalog));
 	expect(check().stderr).toContain("must declare evaluationDocument");
