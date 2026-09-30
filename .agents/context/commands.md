@@ -17,6 +17,13 @@
 - `bun run add-ons:matrix`: print the completed custom add-on IDs used by CI's data-driven matrix.
 - `bun run api-platform:smoke`: verify hashed machine credentials, read/write permission enforcement, protected Projects operations, and OpenAPI validation against a migrated PostgreSQL database.
 - `bun run observability:smoke`: isolated safe logs/context/span/metric proof plus real trace/metric OTLP export to a temporary local receiver; requires no database or external backend.
+- `bun run storage:unit`: backendless configuration/key/signature/metadata/multipart/error checks.
+- `bun run storage:check`: non-mutating configuration/credential/HEAD bucket access check.
+- `bun run storage:smoke`: real private operations/presign/multipart with unique own-prefix cleanup; configured bucket required.
+- `bun run storage:compat`: same complete suite on disposable pinned RustFS/Garage stacks, cleaned in finally; Docker required, no AWS credentials. Set `STORAGE_SMOKE_SCRIPT=scripts/storage-reference-smoke.ts` for optional root telemetry wiring and `STORAGE_SMOKE_IMAGE=tanstack-launchpad:local` to exercise the production Node bundle too.
+- `bun run storage:dev:rustfs` / `storage:dev:garage`: start one optional local provider and explicitly initialize development bucket/CORS. Configure application env separately per CAPABILITY.md.
+- `bun run storage:dev:down`: stop the optional stack retaining named volumes; no remote data removal.
+- `docker compose -f compose.storage.yaml --profile garage --profile garage-ui up -d garage garage-ui`: optional loopback-only third-party admin UI, token login; not a runtime requirement.
 - `bun run lint`, `bun run typecheck`, `bun test`: static and unit/integration verification.
 - `bun run test:e2e`: Playwright landing/protection smoke test (browser install required).
 - `bun run build`, `bun run start`: create and run the Node-compatible production output.

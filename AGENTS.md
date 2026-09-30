@@ -18,3 +18,5 @@ Read only what matches the work: `.agents/context/architecture.md` for boundarie
 
 ## Reusable capabilities
 Reusable capabilities and their relationships are tracked in `ROADMAP.md` and `capabilities/catalog.json`; reference-app enablement is separate from generated-consumer defaults. Before installing, removing, creating, or changing capability dependencies, use the capability-change skill. Hard dependencies must be explicit and must not form cycles.
+
+For S3 configuration, keys, signatures, multipart, or provider changes, use the storage-change skill.

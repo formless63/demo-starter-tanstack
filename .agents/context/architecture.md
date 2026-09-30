@@ -15,6 +15,7 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 - `drizzle`: reviewed, generated migration history.
 - `scripts`: local operational tooling; no runtime imports.
 - `src/integrations/jobs`: typed queue definitions, enqueue APIs, transaction adapter, and worker runtime.
+- `src/integrations/storage`: private server-only S3 primitives, streaming bodies, safe keys/errors, presigning, multipart and HEAD verification; no persistence or auth model.
 - `src/integrations/api-platform`: machine principals and permissions, lifecycle boundaries, external API contracts/handlers, errors, and OpenAPI generation.
 - `src/integrations/observability`: server-only Pino safety/context and explicit OTel SDK/runtime, Start middleware, finite HTTP labels, optional API/Jobs wrappers. `src/start.ts` registers telemetry before explicit CSRF protection; request bodies/URLs/payloads are never implicit log input.
 - `capabilities`: catalog governance plus one self-contained official TanStack custom add-on workspace per implemented capability. Each workspace owns `.add-on` source, `.cta.json`, `CAPABILITY.md`, a retained `add-on.json`, and a clean-install fixture.
@@ -26,6 +27,12 @@ Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.jso
 Prefer direct framework primitives and explicit checks. Do not add repository/service layers, another HTTP router, RBAC, or other speculative abstractions. API-key permissions are credential grants, not the future general Authorization capability. Background work belongs in the explicit `src/integrations/jobs` boundary: typed registry, Zod payload validation, pg-boss persistence, and standalone worker.
 
 Root TypeScript excludes `.add-on/assets` templates; each clean fixture owns consumer verification. Keeping an add-on's authoring source must not force its runtime packages into a lean reference application after removal.
+
+## Storage boundary
+
+`src/integrations/storage` is additive server-only S3 primitive code; no DB/auth/Jobs dependency, file UI, public-serving policy or startup mutation. Credentials/config/client are lazy and private by default. Common helpers validate keys, metadata, TTLs and multipart lists; expose streaming bodies with explicit consumer ownership and safe errors with non-public causes. `src/lib/storage.server.ts` is the optional application-owned telemetry wrapper, excluded from independent assets.
+
+`compose.storage.yaml` separately profiles pinned RustFS/Garage and optional third-party Garage UI. Explicit development bootstrap owns bucket/CORS/layout/key setup; normal readiness stays database-only. Clean fixtures test both providers and application removal without deleting remote data. Production endpoints/policies/TLS/credentials are operator-owned; browser presigning requires an externally reachable signed hostname.
 
 ## Production containers
 `compose.yaml` is the provider-neutral production orchestration contract. `app` and `worker` run independently and never mutate schema during startup. The explicit one-shot `migrate` and `jobs-migrate` services gate application and pg-boss schema changes before either long-lived process starts. All four services use the same immutable image and Compose database hostname. The runtime image is unprivileged, contains no development bind mounts, and exposes the database-backed `/api/health` readiness signal.

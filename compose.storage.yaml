@@ -1,0 +1,51 @@
+name: tanstack-storage
+services:
+  rustfs:
+    image: rustfs/rustfs:1.0.0
+    profiles: [rustfs]
+    environment:
+      RUSTFS_ACCESS_KEY: ${STORAGE_DEV_ACCESS_KEY:-starter-storage-dev}
+      RUSTFS_SECRET_KEY: ${STORAGE_DEV_SECRET_KEY:-local-storage-only-not-for-production}
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: http://localhost:${RUSTFS_CONSOLE_PORT:-9001},http://127.0.0.1:${RUSTFS_CONSOLE_PORT:-9001}
+      RUSTFS_OBS_LOGGER_LEVEL: warn
+    ports: ["127.0.0.1:${RUSTFS_PORT:-9000}:9000", "127.0.0.1:${RUSTFS_CONSOLE_PORT:-9001}:9001"]
+    volumes: [rustfs-data:/data, rustfs-logs:/logs]
+    restart: unless-stopped
+  garage:
+    image: dxflrs/garage:v2.3.0
+    profiles: [garage]
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
+    environment:
+      GARAGE_DEFAULT_ACCESS_KEY: ${GARAGE_DEV_ACCESS_KEY:-GK0123456789abcdef0123456789abcdef}
+      GARAGE_DEFAULT_SECRET_KEY: ${STORAGE_DEV_SECRET_KEY:-local-storage-only-not-for-production}
+      GARAGE_DEFAULT_BUCKET: ${STORAGE_DEV_BUCKET:-starter-storage}
+      RUST_LOG: garage=warn
+    configs:
+      - source: garage-config
+        target: /etc/garage.toml
+    ports: ["127.0.0.1:${GARAGE_PORT:-3900}:3900", "127.0.0.1:${GARAGE_ADMIN_PORT:-3903}:3903"]
+    volumes: [garage-data:/var/lib/garage/data, garage-meta:/var/lib/garage/meta]
+    restart: unless-stopped
+  garage-ui:
+    image: noooste/garage-ui:v0.13.0
+    profiles: [garage-ui]
+    environment:
+      GARAGE_UI_SERVER_HOST: 0.0.0.0
+      GARAGE_UI_SERVER_PORT: "8080"
+      GARAGE_UI_GARAGE_ENDPOINT: http://garage:3900
+      GARAGE_UI_GARAGE_REGION: garage
+      GARAGE_UI_GARAGE_ADMIN_ENDPOINT: http://garage:3903
+      GARAGE_UI_GARAGE_ADMIN_TOKEN: local-garage-admin-only-not-for-production
+      GARAGE_UI_AUTH_TOKEN_ENABLED: "true"
+    depends_on: [garage]
+    ports: ["127.0.0.1:${GARAGE_UI_PORT:-3909}:8080"]
+    restart: unless-stopped
+configs:
+  garage-config:
+    file: ./infrastructure/storage/garage.toml
+volumes:
+  rustfs-data:
+  rustfs-logs:
+  garage-data:
+  garage-meta:
