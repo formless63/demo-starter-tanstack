@@ -20,7 +20,11 @@ import {
 } from "../.agents/hooks/common.ts";
 import { sessionContext } from "../.agents/hooks/session-context.ts";
 import { guard } from "../.agents/hooks/tool-guard.ts";
-import { governed, qualityGate } from "../.agents/hooks/quality-gate.ts";
+import {
+	agentHarness,
+	governed,
+	qualityGate,
+} from "../.agents/hooks/quality-gate.ts";
 import { checkAgents } from "./agents-check.ts";
 
 const directories: string[] = [];
@@ -187,7 +191,7 @@ describe.each(providers)("%s fixtures", (provider) => {
 			"git diff --cached --check",
 		);
 	});
-	test("untracked governance change runs only the cheap capability check", () => {
+	test("untracked harness change runs both cheap checks", () => {
 		const repo = fixture();
 		const runner = recording();
 		mkdirSync(resolve(repo, ".agents"));
@@ -197,6 +201,7 @@ describe.each(providers)("%s fixtures", (provider) => {
 		);
 		expect(runner.calls.filter((call) => call.startsWith("bun"))).toEqual([
 			"bun run capabilities:check",
+			"bun run agents:check",
 		]);
 	});
 	test("dispatch consumes real fixture JSON and emits one structured guard decision", () => {
@@ -384,4 +389,31 @@ test("staged governance renames and spaced paths remain governed", () => {
 	expect(run(root, "git", ["add", "."]).ok).toBe(true);
 	expect(qualityGate(root, runner.execute)).toBeUndefined();
 	expect(runner.calls).toContain("bun run capabilities:check");
+});
+
+test.each([
+	["capabilities/new.md", ["bun run capabilities:check"]],
+	["scripts/agents-check.ts", ["bun run agents:check"]],
+	[".codex/new.json", ["bun run capabilities:check", "bun run agents:check"]],
+	["notes.md", []],
+])("quality gate selects cheap checks for %s", (path, expected) => {
+	const root = fixture();
+	const runner = recording(false);
+	mkdirSync(resolve(root, path, ".."), { recursive: true });
+	writeFileSync(resolve(root, path), "changed\n");
+	const error = qualityGate(root, runner.execute);
+	expect(runner.calls.filter((call) => call.startsWith("bun"))).toEqual(
+		expected,
+	);
+	for (const command of expected) expect(error).toContain(command);
+});
+test("harness checker requires the canonical prompts directory", () => {
+	const root = fixture();
+	expect(checkAgents(root)).toContain("Missing .agents/prompts");
+	mkdirSync(resolve(root, ".agents/prompts"), { recursive: true });
+	expect(checkAgents(root)).not.toContain("Missing .agents/prompts");
+	rmSync(resolve(root, ".agents/prompts"), { recursive: true });
+	writeFileSync(resolve(root, ".agents/prompts"), "fixture\n");
+	expect(checkAgents(root)).toContain(".agents/prompts must be a directory");
+	expect(agentHarness(".agents/prompts/example.md")).toBe(true);
 });
