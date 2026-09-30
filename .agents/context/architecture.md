@@ -16,6 +16,7 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 - `scripts`: local operational tooling; no runtime imports.
 - `src/integrations/jobs`: typed queue definitions, enqueue APIs, transaction adapter, and worker runtime.
 - `src/integrations/api-platform`: machine principals and permissions, lifecycle boundaries, external API contracts/handlers, errors, and OpenAPI generation.
+- `src/integrations/observability`: server-only Pino safety/context and explicit OTel SDK/runtime, Start middleware, finite HTTP labels, optional API/Jobs wrappers. `src/start.ts` registers telemetry before explicit CSRF protection; request bodies/URLs/payloads are never implicit log input.
 - `capabilities`: catalog governance plus one self-contained official TanStack custom add-on workspace per implemented capability. Each workspace owns `.add-on` source, `.cta.json`, `CAPABILITY.md`, a retained `add-on.json`, and a clean-install fixture.
 
 Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
@@ -23,6 +24,8 @@ Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.jso
 `defaultInstalled` describes only clean generated consumers. The root reference application's intentionally integrated capabilities are listed separately in `referenceApplication.enabledCapabilities`; disabling an application integration does not require deleting the reusable add-on workspace or its stable catalog identity. Removal retains database data and committed migration history unless a separate destructive change explicitly says otherwise.
 
 Prefer direct framework primitives and explicit checks. Do not add repository/service layers, another HTTP router, RBAC, or other speculative abstractions. API-key permissions are credential grants, not the future general Authorization capability. Background work belongs in the explicit `src/integrations/jobs` boundary: typed registry, Zod payload validation, pg-boss persistence, and standalone worker.
+
+Root TypeScript excludes `.add-on/assets` templates; each clean fixture owns consumer verification. Keeping an add-on's authoring source must not force its runtime packages into a lean reference application after removal.
 
 ## Production containers
 `compose.yaml` is the provider-neutral production orchestration contract. `app` and `worker` run independently and never mutate schema during startup. The explicit one-shot `migrate` and `jobs-migrate` services gate application and pg-boss schema changes before either long-lived process starts. All four services use the same immutable image and Compose database hostname. The runtime image is unprivileged, contains no development bind mounts, and exposes the database-backed `/api/health` readiness signal.

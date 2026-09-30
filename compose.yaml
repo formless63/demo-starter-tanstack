@@ -18,6 +18,22 @@ x-jobs-environment: &jobs-environment
   PGBOSS_SCHEMA: ${PGBOSS_SCHEMA:-pgboss}
   PGBOSS_USE_LISTEN_NOTIFY: ${PGBOSS_USE_LISTEN_NOTIFY:-false}
 
+x-observability-environment: &observability-environment
+  OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-tanstack-app}
+  OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-false}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}
+  OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:-}
+  OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+  OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-}
+  OTEL_METRICS_EXPORTER: ${OTEL_METRICS_EXPORTER:-}
+  OTEL_RESOURCE_ATTRIBUTES: ${OTEL_RESOURCE_ATTRIBUTES:-}
+  APP_VERSION: ${APP_VERSION:-}
+  APP_REVISION: ${APP_REVISION:-}
+  DEPLOYMENT_ENVIRONMENT: ${DEPLOYMENT_ENVIRONMENT:-}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  LOG_REDACT_FIELDS: ${LOG_REDACT_FIELDS:-}
+
 services:
   postgres:
     image: postgres:18.1-alpine
@@ -58,7 +74,7 @@ services:
     <<: *app-image
     command: ["node", ".output/jobs-worker.mjs"]
     environment:
-      <<: *jobs-environment
+      <<: [*jobs-environment, *observability-environment]
       JOBS_CONCURRENCY: ${JOBS_CONCURRENCY:-4}
     depends_on:
       postgres:
@@ -70,6 +86,7 @@ services:
   app:
     <<: *app-image
     environment:
+      <<: *observability-environment
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-starter}:${POSTGRES_PASSWORD:-starter}@postgres:5432/${POSTGRES_DB:-starter}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}

@@ -33,6 +33,7 @@ test("API contract, machine-auth boundary, and interactive docs", async ({
 
 	const unauthorizedResponse = await request.get("/api/v1/projects");
 	expect(unauthorizedResponse.status()).toBe(401);
+	expect(unauthorizedResponse.headers()["x-request-id"]).toMatch(/^[a-f0-9-]{36}$/);
 	await expect(unauthorizedResponse.json()).resolves.toMatchObject({
 		error: { code: "unauthorized" },
 	});
@@ -42,4 +43,20 @@ test("API contract, machine-auth boundary, and interactive docs", async ({
 		timeout: 15_000,
 	});
 	await expect(page.getByText("List projects", { exact: true }).first()).toBeVisible();
+});
+
+test("request IDs and safe readiness metadata", async ({ request }) => {
+	for (const id of ["e2e.safe-request", "bad request id", "a".repeat(65)]) {
+		const response = await request.get("/api/health?token=never-log-me", { headers: { "X-Request-ID": id } });
+		expect(response.ok()).toBe(true);
+		const returned = response.headers()["x-request-id"];
+		if (id === "e2e.safe-request") expect(returned).toBe(id);
+		else expect(returned).toMatch(/^[a-f0-9-]{36}$/);
+		const body = await response.json();
+		expect(body).toMatchObject({ status: "ok", checks: { database: "ok" } });
+		expect(body.service).toBeTruthy();
+		expect(body.version).toBeTruthy();
+		expect(body.revision).toBeTruthy();
+		expect(JSON.stringify(body)).not.toMatch(/postgresql|password|"stack"\s*:|never-log-me/);
+	}
 });

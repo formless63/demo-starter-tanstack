@@ -3,6 +3,7 @@ import type { PgBoss } from "pg-boss";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "#/db";
 import { projects, user } from "#/db/schema";
+import { observeJob } from "../observability/http.server";
 import {
 	getJobsClient,
 	sendJobInTransaction,
@@ -22,7 +23,7 @@ describe("transactional jobs", () => {
 			name: "Jobs owner",
 			email: `${ownerId}@example.test`,
 		});
-		worker = await startJobsWorker();
+		worker = await startJobsWorker({ execute: observeJob });
 	});
 
 	afterAll(async () => {

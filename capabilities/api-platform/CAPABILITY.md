@@ -10,6 +10,8 @@ The current official TanStack CLI add-on IDs are `better-auth` and `drizzle`. AP
 
 **Integrates with:** Audit Log, Observability, Authorization, and Organizations / Tenancy. Each is optional. API-key permissions cover only credential-scoped machine access and do not replace the future Authorization capability.
 
+Reference native route call sites optionally wrap operations with Observability using static contract operation IDs. Independent API Platform add-on assets do not import telemetry; authentication, permissions, 401/403/429 envelopes and rate counters remain unchanged.
+
 **External:** None beyond baseline PostgreSQL.
 
 **Conflicts:** None declared. TanStack CLI 0.71 does not expose custom conflict metadata, so conflicts remain catalog governance metadata.

@@ -16,6 +16,7 @@
 - `bun run add-ons:test [id ...]`: reject stale compiled output, install each selected add-on into a clean disposable Start scaffold, verify official dependencies/assets/package additions, and build it.
 - `bun run add-ons:matrix`: print the completed custom add-on IDs used by CI's data-driven matrix.
 - `bun run api-platform:smoke`: verify hashed machine credentials, read/write permission enforcement, protected Projects operations, and OpenAPI validation against a migrated PostgreSQL database.
+- `bun run observability:smoke`: isolated safe logs/context/span/metric proof plus real trace/metric OTLP export to a temporary local receiver; requires no database or external backend.
 - `bun run lint`, `bun run typecheck`, `bun test`: static and unit/integration verification.
 - `bun run test:e2e`: Playwright landing/protection smoke test (browser install required).
 - `bun run build`, `bun run start`: create and run the Node-compatible production output.
