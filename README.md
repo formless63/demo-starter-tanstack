@@ -37,6 +37,8 @@ Baseline components are not optional capability modules. Future integrations in 
 
 | Webhooks | Done | Optional | Jobs + baseline Node 24 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
 
+| Audit Log | Done | Optional | Baseline PostgreSQL + Drizzle | Append-oriented events, bounded safe context, atomic domain writes, keyset queries | [Audit Log contract](capabilities/audit-log/CAPABILITY.md) |
+
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
 ## Quick start
@@ -243,3 +245,7 @@ For registries, set `APP_IMAGE` to the immutable image reference and use that sa
 Webhooks provides a signed Standard Webhooks primitive with Jobs as its only hard capability dependency. See [Webhooks contract](capabilities/webhooks/CAPABILITY.md) and [evaluation](WEBHOOKS_MODULE_EVALUATION.md). Explicit `bun run webhooks:unit` and `bun run webhooks:smoke` use a disposable receiver; normal startup needs no external endpoint.
 
 The Webhooks catalog fixture proves transitive Jobs installation, signed real HTTP delivery and worker retries, then removes Webhooks while retaining Jobs. Main CI also runs its Node production-image smoke; no receiver is needed for normal application health. CLI 0.71 custom dependency IDs require the generic local transport (`bun scripts/add-ons.ts serve webhooks`) rather than direct raw-JSON installation; external publication is deferred.
+
+## Audit Log
+
+Audit Log records Projects create/update/delete in the same Drizzle transaction as the mutation. Signed-in users map to stable user IDs; optional API wiring maps verified machine key IDs, never credentials. Context contains static source/field names, not project values or request/session dumps. The reusable primitive has no consumer capability dependencies, UI, tenancy, logging or retention automation. Run `bun run audit-log:smoke` against a migrated test database. See its [contract](capabilities/audit-log/CAPABILITY.md) and [evaluation](AUDIT_LOG_MODULE_EVALUATION.md) for metadata bounds, keysets, operator authority and privacy/removal responsibilities.

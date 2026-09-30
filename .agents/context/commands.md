@@ -53,3 +53,7 @@ CI gives each completed add-on matrix job PostgreSQL so capability fixtures may 
 For a downstream lean application, follow `docs/STARTING-A-PROJECT.md`. Its Jobs-only, API-only, and combined removal recipes preserve database data/migration history by default and finish with capability governance, typecheck, and build verification.
 
 `bun run webhooks:unit` proves protocol/security; `bun run webhooks:smoke` owns disposable real HTTP receiver/sender and exercises existing Jobs retries on a migrated disposable database. `bun run add-ons:test webhooks` verifies transitive custom Jobs installation and removal retaining Jobs.
+
+- `bun run audit-log:smoke`: append, same-transaction commit/rollback, secret rejection and bounded cursor queries against a migrated non-production PostgreSQL database. Leaves safe test audit records by design.
+- `bun test src/integrations/audit-log src/features/projects/audit.integration.test.ts`: safety, clean migration/indexes, coupled commit/rollback/database failure, query ordering/keysets and root user/machine mapping. The clean-migration suite creates/drops its own disposable test database.
+- `bun run add-ons:test audit-log`: official Drizzle clean scaffold, PostgreSQL migration/smoke, runtime removal with retained history/schema and lean rebuild.

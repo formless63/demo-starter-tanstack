@@ -25,6 +25,8 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 | `webhooks` | `webhooks` | Done | Enabled | No | `postgres-jobs` | Jobs | Remote endpoints when used | [Webhooks](../capabilities/webhooks/CAPABILITY.md) |
 
+| `audit-log` | `audit-log` | Done | Enabled | No | `drizzle` | None | PostgreSQL | [Audit Log](../capabilities/audit-log/CAPABILITY.md) |
+
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
 ## Installing a capability
@@ -136,3 +138,11 @@ Then run the capability-specific database/worker/API smoke commands described in
 ## Webhooks
 
 Webhooks is complete and enabled in the reference application. Its add-on declares `dependsOn: ["postgres-jobs"]`. CLI 0.71 changes custom IDs to URLs, so direct raw JSON cannot resolve the stable custom dependency ID. Run `bun scripts/add-ons.ts serve webhooks`, then use its printed `--add-ons` argument with PostgreSQL Drizzle config. The local transport maps catalog dependency IDs to served URLs without changing retained artifacts. The generic catalog harness handles that ordering for `bun run add-ons:test webhooks`. Review the shared Jobs registry composition in customized applications. See [contract](../capabilities/webhooks/CAPABILITY.md). No API Platform, Audit Log or Observability requirement.
+
+## Audit Log
+
+Audit Log is optional and needs only baseline PostgreSQL/Drizzle; Authentication is application actor wiring. Its official add-on declares `dependsOn: ["drizzle"]` and no consumer dependencies. It owns schema/API source, reviewed SQL and a clean install/removal fixture. Root Projects mutations transactionally append safe user/machine records. See [the contract](../capabilities/audit-log/CAPABILITY.md).
+
+The clean scaffold gets a Drizzle config overlay including the baseline and capability schema plus an initial audit migration. Existing customized applications must manually register the owned schema and generate a new reviewed migration in their existing history; do not overwrite config or applied journals. No semantic merger/uninstaller is provided. Code removal retains audit schema/history. Operator destructive removal requires a new explicit migration. API Platform, Jobs, Organizations and business consumers remain optional; Audit Log is separate from Observability and supplies no query authorization/UI.
+
+Verification: `bun run add-ons:test audit-log`, `bun run audit-log:smoke`, and real PostgreSQL tests under `src/integrations/audit-log` and `src/features/projects/audit.integration.test.ts`.
