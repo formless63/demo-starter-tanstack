@@ -55,5 +55,18 @@
       "--noEmit"
     ]
   ],
-  "build": true
+  "build": true,
+  "referenceVerification": {
+    "installedPath": "src/integrations/ops-admin",
+    "commands": [
+      [
+        "bun",
+        "scripts/ops-reference-fixture.ts"
+      ],
+      [
+        "bun",
+        "scripts/ops-reference-removal-fixture.ts"
+      ]
+    ]
+  }
 }

@@ -3,7 +3,7 @@ import {createCache} from '../src/integrations/cache/cache.server';
 import {createOpsInspector} from '../src/integrations/ops-admin/ops.server';
 const commands:string[]=[];
 const proxy=createServer(socket=>{
- const upstream=connect({host:'127.0.0.1',port:6379});let buffer=Buffer.alloc(0);
+ const upstream=connect({host:'127.0.0.1',port:Number(process.env.OPS_CACHE_FIXTURE_PORT ?? '6379')});let buffer=Buffer.alloc(0);
  socket.on('data',chunk=>{
   buffer=Buffer.concat([buffer,chunk]);
   while(buffer.length){

@@ -28,6 +28,7 @@ interface Catalog {
 }
 
 interface CleanInstallFixture {
+ referenceVerification?: {installedPath:string; commands:string[][]};
  capabilities?: string[];
  reviewedSharedFiles?: Record<string,string>;
 	projectName: string;
@@ -440,6 +441,16 @@ if (command === "matrix") {
  const chosen=selectedAddOns(catalog,fixture.capabilities ?? []);
  for(const c of chosen) await compile(c,true);
  await cleanInstall(chosen[0],requested[0]);
+} else if (command === "verify-reference") {
+ for(const capability of addOns){
+  const fixture=await readJson<CleanInstallFixture>(resolve(root,capability.tanstackAddOn.cleanInstallFixture));
+  const verification=fixture.referenceVerification;
+  if(!verification)continue;
+  if(typeof verification.installedPath !== "string" || !verification.installedPath.startsWith("src/") || verification.installedPath.split("/").includes("..") || !Array.isArray(verification.commands) || verification.commands.some(command=>!Array.isArray(command)||command.length===0||command.some(value=>typeof value!=="string"||value.length===0)))throw new Error(`${capability.id}: invalid reference verification fixture`);
+  if(!existsSync(resolve(root,verification.installedPath)))continue;
+  for(const [executable,...args] of verification.commands)await run(executable,args,root);
+  console.info(`${capability.id}: installed reference verification passed`);
+ }
 } else if (command === "compile") {
 	for (const capability of addOns) await compile(capability, false);
 } else if (command === "test") {
@@ -450,6 +461,6 @@ if (command === "matrix") {
 	}
 } else {
 	throw new Error(
-		"Usage: bun scripts/add-ons.ts <matrix|compile|test|serve> [capability-id ...]",
+		"Usage: bun scripts/add-ons.ts <matrix|compile|test|serve|verify-reference> [capability-id ...]",
 	);
 }

@@ -86,7 +86,8 @@
     "realtime:cache": "bun build scripts/realtime-cache-fixture.ts --target=node --outfile=/tmp/realtime-cache-fixture.mjs && node /tmp/realtime-cache-fixture.mjs",
     "notifications:delivery": "bun build scripts/jobs-worker.ts --target=node --outfile=/tmp/notification-worker-fixture.mjs && NOTIFICATION_WORKER_SCRIPT=/tmp/notification-worker-fixture.mjs bun scripts/notifications-delivery-fixture.ts",
     "ops:unit": "vitest run src/integrations/ops-admin/ops.test.ts",
-    "ops:reference:removal": "bun scripts/ops-reference-removal-fixture.ts"
+    "ops:reference:removal": "bun scripts/ops-reference-removal-fixture.ts",
+    "add-ons:verify:reference": "bun scripts/add-ons.ts verify-reference"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",

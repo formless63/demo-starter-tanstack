@@ -51,3 +51,13 @@ test("the generic lifecycle matrix discovers all completed add-ons", () => {
 			.sort(),
 	);
 });
+
+// Explicit test/lifecycle execution only; no fixture runs on application import/startup.
+test("generic lifecycle discovery verifies installed reference boundaries", () => {
+	const result = spawnSync(
+		process.execPath,
+		["scripts/add-ons.ts", "verify-reference"],
+		{ stdio: "inherit" },
+	);
+	expect(result.status).toBe(0);
+}, 600000);
