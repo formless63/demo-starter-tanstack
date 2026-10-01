@@ -19,9 +19,11 @@ for (const preference of ["light", "dark", "system"] as const) {
 			preference,
 		);
 		await page.goto("/");
-		await expect(
-			page.getByRole("combobox", { name: "Color mode" }),
-		).toHaveValue(preference);
+		const selector = page.getByRole("combobox", { name: "Color mode" });
+		// A cold Vite dependency build can outlast the default assertion timeout.
+		// Readiness is explicit: SSR disables selection until hydration attaches handlers.
+		await expect(selector).toBeEnabled({ timeout: 15_000 });
+		await expect(selector).toHaveValue(preference);
 		await expect(page.locator("html")).toHaveClass(
 			preference === "light" ? "" : /dark/,
 		);
@@ -29,7 +31,6 @@ for (const preference of ["light", "dark", "system"] as const) {
 		if (preference === "dark")
 			await expect(page.locator("html")).toHaveClass(/dark/);
 		else await expect(page.locator("html")).not.toHaveClass(/dark/);
-		const selector = page.getByRole("combobox", { name: "Color mode" });
 		await selector.selectOption("dark");
 		await expect(page.locator("html")).toHaveClass(/dark/);
 		expect(await page.evaluate(() => localStorage.getItem("theme"))).toBe(
