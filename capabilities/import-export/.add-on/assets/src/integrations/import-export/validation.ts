@@ -101,3 +101,19 @@ export const transferErrorStatus: Record<TransferErrorCode, number> = {
 	unsupported: 422,
 	unknown: 500,
 };
+
+// Inspect only closed driver codes; never serialize provider/database causes.
+export function isPostgresTimeout(error: unknown): boolean {
+	let current = error;
+	for (
+		let depth = 0;
+		depth < 8 && current && typeof current === "object";
+		depth++
+	) {
+		const value = current as { code?: unknown; cause?: unknown };
+		if (["57014", "55P03", "25P04"].includes(String(value.code ?? "")))
+			return true;
+		current = value.cause;
+	}
+	return false;
+}

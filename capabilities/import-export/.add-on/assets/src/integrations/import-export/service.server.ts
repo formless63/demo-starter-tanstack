@@ -14,6 +14,7 @@ import type { createTransferRegistry, Transaction } from "./registry.server";
 import { type Transfer, transfers } from "./schema";
 import {
 	idempotencyKey,
+	isPostgresTimeout,
 	requireInput,
 	type TransferContext,
 	TransferError,
@@ -69,6 +70,7 @@ function classify(error: unknown) {
 					? "cancelled"
 					: "unavailable",
 		);
+	if (isPostgresTimeout(error)) return new TransferError("timeout");
 	let code: string | undefined;
 	let current: unknown = error;
 	for (

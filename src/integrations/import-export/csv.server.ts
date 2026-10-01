@@ -197,7 +197,7 @@ export function exportCsv(
 	if (rows.length > config.maxRows) throw new TransferError("limit-exceeded");
 	let bytes = 0;
 	const chunks: Buffer[] = [];
-	for (const row of [columns, ...rows]) {
+	for (const [index, row] of [columns, ...rows].entries()) {
 		if (row.length !== columns.length)
 			throw new TransferError("invalid-format");
 		let logical = 0;
@@ -213,7 +213,9 @@ export function exportCsv(
 				value == null
 					? ""
 					: typeof value === "string"
-						? spreadsheetSafe(value)
+						? index === 0
+							? value
+							: spreadsheetSafe(value)
 						: String(value);
 			const size = Buffer.byteLength(text);
 			logical += size;
@@ -222,7 +224,11 @@ export function exportCsv(
 			return text;
 		});
 		const chunk = Buffer.from(
-			stringify([cells], { record_delimiter: "\r\n", escape_formulas: false }),
+			stringify([cells], {
+				record_delimiter: "\r\n",
+				escape_formulas: false,
+				quoted_match: /[\r\n]/,
+			}),
 		);
 		bytes += chunk.length;
 		if (bytes > config.maxBytes) throw new TransferError("limit-exceeded");
