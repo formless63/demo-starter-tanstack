@@ -89,8 +89,12 @@ All passed. Worker was running and app healthy. `/api/health` reported `status=o
 
 Initial Storage fixtures failed Garage UI's S3 read because the injected proxy intercepted the container-local `garage` hostname. A temporary invocation wrapper/Compose overlay outside the repository supplied local `NO_PROXY/no_proxy`; the unmodified Storage lifecycle, root telemetry and production bundle then passed. Docker credentials/config and Storage contracts were unchanged. Workspace-local tooling supplied pinned Bun/Node.
 
-The generic CI matrix and reference integration steps are preserved. Equivalent local verification passed; hosted GitHub Actions was not launched and the branch was not pushed.
+The generic CI matrix and reference integration steps are preserved. Equivalent local verification passed. At that initial verification stage, hosted GitHub Actions had not yet been launched and the branch had not yet been pushed.
 
 ## Publication limitations
 
 External publication remains deferred. Pinned TanStack CLI 0.71.0 identifies remote custom add-ons by URL rather than retained stable IDs, so direct Webhooks raw-JSON installation cannot resolve `postgres-jobs` unaided. The generic catalog transport (`bun scripts/add-ons.ts serve webhooks`) maps served dependency identities without changing committed manifests and is covered by the clean fixture. Publication needs compatible immutable dependency URLs/transport or an upstream identity fix. Customized shared registry/config/migration histories still require reviewed composition; the CLI provides neither semantic merging nor an uninstall transaction. No additional framework/provider compatibility is claimed.
+
+## Upstream CI follow-up
+
+After pushing the integration and opening PR #3, the first push CI run passed all ten jobs. The PR run passed main verification and seven of eight clean add-ons, but exposed a Webhooks test clock-boundary race: a future timestamp captured before an asynchronous timeout check could move from 301 to 300 seconds ahead and correctly be accepted. The fixture now tests exact inclusive ±300 / rejected ±301 boundaries using the signature helper's existing fixed-clock option; real request/HTTP checks use a 600-second offset for scheduling margin. Runtime verification and its 300-second default remain unchanged. Root scripts, add-on assets and compiled output were synchronized, and tests explicitly started near a second boundary passed three times before the lifecycle/real HTTP tests were rerun. Hosted CI is rerun on the corrected PR head before merging and deleting superseded branches.

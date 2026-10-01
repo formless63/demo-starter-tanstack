@@ -117,8 +117,8 @@ try {
 	assert.equal((await inbound(delivery.body, previous)).status, 204);
 	for (const response of [
 		await inbound(delivery.body, generateWebhookSecret()),
-		await inbound(delivery.body, secret, Math.floor(Date.now() / 1000) - 301),
-		await inbound(delivery.body, secret, Math.floor(Date.now() / 1000) + 301),
+		await inbound(delivery.body, secret, Math.floor(Date.now() / 1000) - 600),
+		await inbound(delivery.body, secret, Math.floor(Date.now() / 1000) + 600),
 		await inbound(delivery.body, secret, undefined, true),
 		await inbound("{malformed"),
 		await inbound(JSON.stringify({ ...prepared.event, type: "unknown.event" })),
