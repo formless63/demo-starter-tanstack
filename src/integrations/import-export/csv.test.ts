@@ -1,4 +1,5 @@
 import { Readable } from "node:stream";
+import { parse } from "csv-parse/sync";
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
 import { transferConfig } from "./config.server";
@@ -128,6 +129,26 @@ describe("CSV fixed v1 contract", () => {
 				{ ...config, maxBytes: 1024 },
 			),
 		).toThrow("limit");
+	});
+	test("formula apostrophe counts toward the final UTF8 field bound", () => {
+		for (const value of [
+			"=" + "x".repeat(65534),
+			"=" + "é".repeat(32767),
+			"＝" + "é".repeat(32766),
+			"  =" + "x".repeat(65532),
+		]) {
+			expect(Buffer.byteLength(value)).toBe(65535);
+			const output = exportCsv([[value]], ["value"], config);
+			const cell = (parse(output) as string[][])[1][0];
+			expect(cell).toBe("'" + value);
+			expect(Buffer.byteLength(cell)).toBe(65536);
+			expect(() => exportCsv([[value + "x"]], ["value"], config)).toThrow(
+				"limit",
+			);
+		}
+		expect(exportCsv([[-65536]], ["value"], config).toString()).toBe(
+			"value\r\n-65536\r\n",
+		);
 	});
 	test("validation issues never contain cells and truncate at100", () => {
 		try {
