@@ -67,6 +67,7 @@
     "add-ons:preflight": "bun scripts/add-ons.ts preflight",
     "add-ons:test:composition": "bun scripts/add-ons.ts test-composition fixtures/add-ons/database-composition.json",
     "db:persistence:test": "bun scripts/postgres-persistence.ts",
+    "production:smoke": "bun scripts/production-smoke.ts",
     "project:check": "bun scripts/project.ts check",
     "project:status": "bun scripts/project.ts status",
     "theme:check": "bun scripts/theme.ts check",

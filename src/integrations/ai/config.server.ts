@@ -19,24 +19,18 @@ export function validateAiConfig(
 			Array.from(config.model).length < 1 ||
 			Array.from(config.model).length > 128 ||
 			Buffer.from(config.model).toString() !== config.model ||
-			Array.from(config.model).some((char) => {
-				const code = char.codePointAt(0) ?? 0;
-				return (
-					code < 32 ||
-					(code >= 127 && code <= 159) ||
-					code === 8232 ||
-					code === 8233
-				);
-			}) ||
+			/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u.test(config.model) ||
 			!config.model.trim() ||
 			!Number.isInteger(config.timeoutSeconds) ||
 			config.timeoutSeconds < 1 ||
 			config.timeoutSeconds > 300 ||
 			(config.apiKey !== undefined &&
 				(typeof config.apiKey !== "string" ||
-					Array.from(config.apiKey).some(
-						(char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127,
-					)))
+					Buffer.from(config.apiKey).toString() !== config.apiKey ||
+					Array.from(config.apiKey).some((char) => {
+						const code = char.charCodeAt(0);
+						return code < 32 || (code >= 127 && code <= 159) || code > 255;
+					})))
 		)
 			throw new Error();
 		if (config.baseUrl !== undefined) {

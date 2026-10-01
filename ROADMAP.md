@@ -54,7 +54,7 @@ Only implemented capabilities receive an add-on directory. Planned entries such 
 
 | AI | None beyond baseline Node runtime | Jobs, Object Storage, Observability, Audit Log | Configured model provider only on use | Enabled | No | Done |
 
-AI uses a private OpenAI-compatible adapter with pinned OpenAI SDK 7.25.0, real incremental streaming, authoritative application-owned Zod validation, bounded timeout/cancellation and no retries. It is backendless at normal build/start/worker/readiness; local HTTP fixtures exercise the real adapter without production credentials. See [evaluation](AI_MODULE_EVALUATION.md).
+AI uses a private OpenAI-compatible adapter with pinned OpenAI SDK 7.25.0, real incremental streaming, authoritative application-owned Zod validation through a single deadline/cancellation scope, stop-only structured success and no retries. It is backendless at normal build/start/worker/readiness; generic clean lifecycles execute local HTTP fixtures under Bun and Node, and shared production smokes execute the final image without production credentials. See [evaluation](AI_MODULE_EVALUATION.md).
 
 Object Storage uses standard AWS SDK v3, with real private streaming/presign/multipart verification on RustFS and Garage. Optional third-party Noooste Garage UI 0.13.0 is infrastructure, not a capability dependency. No storage is needed for build/start; application owners decide readiness policy. MinIO is not the default. Email pins Nodemailer 10.0.13 for lazy provider-neutral SMTP with explicit TLS, safe messages/errors, no retries, and awaited Better Auth magic links. Mailpit v1.31.3 verifies real SMTP and deterministic Chaos; no provider SDK or generic queue is added.
 

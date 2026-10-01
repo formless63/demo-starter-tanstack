@@ -32,6 +32,7 @@ function deadline(
 	consumer?: AbortSignal,
 ) {
 	const controller = new AbortController();
+	const expiresAt = performance.now() + seconds * 1000;
 	let reason: "timeout" | "cancelled" | undefined;
 	const abort = (code: "timeout" | "cancelled") => {
 		if (!reason) {
@@ -50,7 +51,23 @@ function deadline(
 	const timer = setTimeout(() => abort("timeout"), seconds * 1000);
 	return {
 		signal: controller.signal,
+		async wait<T>(work: Promise<T>): Promise<T> {
+			let onAbort!: () => void;
+			const aborted = new Promise<never>((_resolve, reject) => {
+				onAbort = () => reject(new AiError(reason ?? "cancelled"));
+				if (controller.signal.aborted) onAbort();
+				else
+					controller.signal.addEventListener("abort", onAbort, { once: true });
+			});
+			try {
+				// Racing observes late rejection too; user validation cannot be forcibly stopped.
+				return await Promise.race([work, aborted]);
+			} finally {
+				controller.signal.removeEventListener("abort", onAbort);
+			}
+		},
 		check() {
+			if (!reason && performance.now() >= expiresAt) abort("timeout");
 			if (reason) throw new AiError(reason);
 		},
 		error(error: unknown) {
@@ -73,10 +90,11 @@ export function createAi(config?: AiConfig) {
 			throw new AiError("configuration");
 		}
 	};
-	async function complete(
+	async function complete<T>(
 		input: AiInput,
 		structured: boolean,
-	): Promise<AiTextResult> {
+		output: (result: AiTextResult) => Promise<T>,
+	): Promise<T> {
 		const validated = validateAiInput(input),
 			{ config, provider } = ready();
 		const scope = deadline(config.timeoutSeconds, validated.signal);
@@ -91,17 +109,23 @@ export function createAi(config?: AiConfig) {
 			const choice = response.choices?.[0];
 			if (
 				!choice ||
+				typeof choice.finish_reason !== "string" ||
+				!choice.finish_reason ||
+				(structured && choice.finish_reason !== "stop") ||
 				choice.message?.refusal ||
 				choice.message?.tool_calls?.length
 			)
 				throw new AiError("invalid-output");
 			const text = choice.message?.content;
 			validateText(text);
-			return {
+			const result: AiTextResult = {
 				text,
 				finishReason: finishReason(choice.finish_reason),
 				...(usage(response.usage) ? { usage: usage(response.usage) } : {}),
 			};
+			const validatedOutput = await scope.wait(output(result));
+			scope.check();
+			return validatedOutput;
 		} catch (error) {
 			throw scope.error(error);
 		} finally {
@@ -109,7 +133,8 @@ export function createAi(config?: AiConfig) {
 		}
 	}
 	return {
-		generateText: (input: AiInput) => complete(input, false),
+		generateText: (input: AiInput) =>
+			complete(input, false, async (result) => result),
 		async generateStructured<T>(
 			input: AiInput,
 			schema: z.ZodType<T>,
@@ -118,18 +143,19 @@ export function createAi(config?: AiConfig) {
 			finishReason: AiTextResult["finishReason"];
 			usage?: AiTextResult["usage"];
 		}> {
-			const result = await complete(input, true);
-			try {
-				const parsed = await schema.safeParseAsync(JSON.parse(result.text));
-				if (!parsed.success) throw new AiError("invalid-output");
-				return {
-					object: parsed.data,
-					finishReason: result.finishReason,
-					...(result.usage ? { usage: result.usage } : {}),
-				};
-			} catch {
-				throw new AiError("invalid-output");
-			}
+			return complete(input, true, async (result) => {
+				try {
+					const parsed = await schema.safeParseAsync(JSON.parse(result.text));
+					if (!parsed.success) throw new AiError("invalid-output");
+					return {
+						object: parsed.data,
+						finishReason: result.finishReason,
+						...(result.usage ? { usage: result.usage } : {}),
+					};
+				} catch {
+					throw new AiError("invalid-output");
+				}
+			});
 		},
 		streamText(input: AiInput): AsyncIterableIterator<AiStreamEvent> {
 			const consumer = new AbortController();

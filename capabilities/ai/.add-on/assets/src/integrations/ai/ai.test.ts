@@ -82,6 +82,7 @@ describe("AI v1 backendless contract", () => {
 			{ maxOutputTokens: 65537 },
 			{ maxOutputTokens: 1.5 },
 			{ tools: [] },
+			{ signal: {} as AbortSignal },
 		])
 			expect(() => validateAiInput({ ...input, ...controls })).toThrow(AiError);
 		expect(
@@ -98,6 +99,79 @@ describe("AI v1 backendless contract", () => {
 			validateAiInput({ ...input, temperature: 0, maxOutputTokens: 1 })
 				.messages,
 		).not.toBe(input.messages);
+	});
+	it("validates Unicode model IDs and header-safe keys in both config paths", async () => {
+		const base = {
+			provider: "openai-compatible" as const,
+			model: "visible",
+			timeoutSeconds: 60,
+		};
+		for (const model of [
+			"visible / 模型 🚀",
+			"private-\ue000",
+			"🚀".repeat(128),
+		]) {
+			expect(validateAiConfig({ ...base, model }).model).toBe(model);
+			expect(resolveAiConfig({ AI_MODEL: model }).model).toBe(model);
+		}
+		for (const apiKey of ["", "local-éÿ", "x".repeat(256 * 1024)]) {
+			expect(validateAiConfig({ ...base, apiKey }).apiKey).toBe(apiKey);
+			expect(
+				resolveAiConfig({ AI_MODEL: base.model, AI_API_KEY: apiKey }).apiKey,
+			).toBe(apiKey);
+		}
+		for (const model of [
+			" ",
+			"\ud800",
+			"🚀".repeat(129),
+			"private-model\u0001",
+			"private-model\u0085",
+			"private-model\u200d",
+			"private-model\ufeff",
+			"private-model\u2028",
+			"private-model\u2029",
+		])
+			for (const read of [
+				() => validateAiConfig({ ...base, model }),
+				() => resolveAiConfig({ AI_MODEL: model }),
+			]) {
+				expect(read).toThrow(AiError);
+				try {
+					read();
+				} catch (error) {
+					expect(JSON.stringify(error) + inspect(error)).not.toMatch(
+						/private-key|private-model/,
+					);
+				}
+				await expect(
+					createAi({ ...base, model }).generateText(input),
+				).rejects.toMatchObject({ code: "configuration" });
+			}
+		for (const apiKey of [
+			"private-key\ud800",
+			"private-key\u0100",
+			"private-key🚀",
+			"private-key\n",
+			"private-key\u007f",
+			"private-key\u0080",
+			"private-key\u009f",
+		])
+			for (const read of [
+				() => validateAiConfig({ ...base, apiKey }),
+				() => resolveAiConfig({ AI_MODEL: base.model, AI_API_KEY: apiKey }),
+			]) {
+				expect(read).toThrow(AiError);
+				try {
+					read();
+				} catch (error) {
+					expect(JSON.stringify(error) + inspect(error)).not.toMatch(
+						/private-key|private-model/,
+					);
+				}
+				await expect(
+					createAi({ ...base, apiKey }).generateText(input),
+				).rejects.toMatchObject({ code: "configuration" });
+			}
 	});
 	it("normalizes finite usage and safe errors without any provider cause", () => {
 		expect(
@@ -122,6 +196,10 @@ describe("AI v1 backendless contract", () => {
 				/secret|prompt|private-output/,
 			);
 		}
+		expect(new AiError("timeout").retryable).toBe(false);
+		expect(aiError(new SyntaxError("private-output")).code).toBe(
+			"invalid-output",
+		);
 	});
 });
 

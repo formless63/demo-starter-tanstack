@@ -44,6 +44,7 @@
 - `docker compose run --rm jobs-migrate`: explicitly apply pg-boss migrations with the same image revision.
 - `docker compose run --rm worker node .output/jobs-doctor.mjs`: diagnose the containerized jobs schema.
 - `docker compose run --rm worker node .output/jobs-smoke.mjs`: exercise containerized enqueue and consumption.
+- `bun run production:smoke`: execute shared Jobs diagnostics/smoke, Webhooks and AI reference bundles in the final production Node image with strict rejection handling, after both migrations.
 - `docker compose up -d worker`: start the separately restartable production worker after both migrations succeed.
 - `docker compose up -d --wait app`: start or update the production application after migrations succeed.
 - `docker compose logs -f app`: follow application logs.
