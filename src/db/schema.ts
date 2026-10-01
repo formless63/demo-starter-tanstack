@@ -179,3 +179,5 @@ export const projects = pgTable(
 
 export { auditEvents } from "../integrations/audit-log/schema";
 export { notifications } from "../integrations/notifications/schema";
+
+export { transfers } from "../integrations/import-export/schema";

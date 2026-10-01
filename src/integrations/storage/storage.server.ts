@@ -118,6 +118,32 @@ function metadataOf(value: {
 		metadata: value.Metadata ?? {},
 	};
 }
+function preabort(signal?: AbortSignal) {
+	if (signal?.aborted) throw new StorageError("cancelled");
+}
+function requestedAbort(error: unknown, signal?: AbortSignal) {
+	// An unrelated provider failure remains its normal classification even if cancellation races it.
+	return signal?.aborted && (error as { name?: string })?.name === "AbortError"
+		? new StorageError("cancelled", { cause: error })
+		: storageError(error);
+}
+function bindBodyAbort(body: unknown, signal: AbortSignal) {
+	const stream = body as {
+		destroy?: (error?: Error) => void;
+		cancel?: (reason?: unknown) => Promise<void>;
+		once?: (event: string, callback: () => void) => void;
+	};
+	const cleanup = () => signal.removeEventListener("abort", abort);
+	const abort = () => {
+		if (stream.destroy) stream.destroy(new StorageError("cancelled"));
+		else void stream.cancel?.(new StorageError("cancelled")).catch(() => {});
+		cleanup();
+	};
+	signal.addEventListener("abort", abort, { once: true });
+	stream.once?.("end", cleanup);
+	stream.once?.("close", cleanup);
+	if (signal.aborted) abort();
+}
 export function createStorage(config = storageConfig(), hook?: OperationHook) {
 	if (typeof window !== "undefined") throw new StorageError("configuration");
 	const client = new S3Client(config.client);
@@ -155,34 +181,61 @@ export function createStorage(config = storageConfig(), hook?: OperationHook) {
 		putObject: (
 			key: string,
 			body: PutObjectCommandInput["Body"],
-			options: ObjectMetadata & { contentLength?: number } = {},
+			options: ObjectMetadata & {
+				contentLength?: number;
+				signal?: AbortSignal;
+			} = {},
 		) =>
 			operation("put", async () => {
+				preabort(options.signal);
 				invalid(body !== undefined);
 				invalid(
 					options.contentLength === undefined ||
 						(Number.isSafeInteger(options.contentLength) &&
 							options.contentLength >= 0),
 				);
-				const result = await client.send(
-					new PutObjectCommand({
-						...object(key),
-						Body: body,
-						...validateMetadata(options),
-						ContentLength: options.contentLength,
-					}),
-				);
+				const result = await client
+					.send(
+						new PutObjectCommand({
+							...object(key),
+							Body: body,
+							...validateMetadata(options),
+							ContentLength: options.contentLength,
+						}),
+						{ abortSignal: options.signal },
+					)
+					.catch((error: unknown) => {
+						throw requestedAbort(error, options.signal);
+					});
 				return { etag: result.ETag };
 			}),
-		getObject: (key: string) =>
+		getObject: (key: string, options: { signal?: AbortSignal } = {}) =>
 			operation("get", async () => {
-				const result = await client.send(new GetObjectCommand(object(key)));
+				preabort(options.signal);
+				const result = await client
+					.send(new GetObjectCommand(object(key)), {
+						abortSignal: options.signal,
+					})
+					.catch((error: unknown) => {
+						throw requestedAbort(error, options.signal);
+					});
+				if (result.Body && options.signal)
+					bindBodyAbort(result.Body, options.signal);
 				return { ...metadataOf(result), body: result.Body };
 			}),
-		headObject: (key: string) =>
-			operation("head", async () =>
-				metadataOf(await client.send(new HeadObjectCommand(object(key)))),
-			),
+		headObject: (key: string, options: { signal?: AbortSignal } = {}) =>
+			operation("head", async () => {
+				preabort(options.signal);
+				return metadataOf(
+					await client
+						.send(new HeadObjectCommand(object(key)), {
+							abortSignal: options.signal,
+						})
+						.catch((error: unknown) => {
+							throw requestedAbort(error, options.signal);
+						}),
+				);
+			}),
 		deleteObject: (key: string) =>
 			operation("delete", async () => {
 				await client.send(new DeleteObjectCommand(object(key)));
