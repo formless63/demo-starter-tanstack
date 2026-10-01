@@ -26,7 +26,7 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 
 Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
 
-The nine completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination and AI.
+The ten completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination AI and Search.
 
 `defaultInstalled` describes only clean generated consumers. The root reference application's intentionally integrated capabilities are listed separately in `referenceApplication.enabledCapabilities`; disabling an application integration does not require deleting the reusable add-on workspace or its stable catalog identity. Removal retains database data and committed migration history unless a separate destructive change explicitly says otherwise.
 
@@ -72,3 +72,7 @@ Canonical Project mutation input limits are 120 characters for trimmed names and
 ## AI boundary
 
 `src/integrations/ai` owns lazy server-only bounded generation/stream/structured primitives; sole SDK adapter is provider.server.ts. No Jobs/Storage/Observability/Audit dependency or provider startup/readiness network. `src/lib/ai.server.ts` owns optional safe metadata-only telemetry; reference CLI smoke is explicit and local. Caller/timeout/consumer cancellation abort transport; no automatic retries.
+
+## Search boundary
+
+`src/integrations/search` owns PostgreSQL FTS SQL/schema helpers, bounded query/cursor parsing, exact rank/time keysets and safe errors. Domain tables own searchable rows and authorization; no universal search_documents table. Projects weights name A/description B with explicit simple, STORED generated tsvector and GIN in new migration0004. The session-bound POST server function always applies owner equality. Explicit domain projections exclude vector internals from all Projects returns. No raw query logging/spans/labels, telemetry dependency, external service, extraction or vector search. Retain schema-only helpers, generated declarations and applied history on removal; index/column removal needs a new reviewed migration.

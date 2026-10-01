@@ -85,3 +85,7 @@ Hosted root verification and every catalog-derived lifecycle matrix job explicit
 - `bun run ai:reference:smoke`: explicit safe optional reference wrapper/local fixture.
 - `bun run add-ons:test ai`: independent clean install/build and runtime removal/rebuild.
 - `docker compose run --rm worker node .output/ai-reference-smoke.mjs`: explicit local fixture in production Node image; no production credentials/model request.
+
+- `bun run search:smoke`: real PostgreSQL18 FTS safety/weight/websearch/keyset contract against a temporary fixture table, no shipped domain model.
+- `bun test src/integrations/search src/features/projects/search.integration.test.ts`: real clean/upgrade migration, Projects owner isolation, STORED/GIN and safe error/privacy proof; disposable admin DB permissions required for migration tests.
+- `bun run add-ons:test search`: official clean installation/build/removal with retained fixture data and migration history; PostgreSQL18 required.

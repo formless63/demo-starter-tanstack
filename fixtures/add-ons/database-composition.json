@@ -1,8 +1,26 @@
 {
- "projectName":"database-composition-clean-install","framework":"React","blank":true,"packageManager":"bun","toolchain":"biome",
- "capabilities":["jobs","api-platform","audit-log"],"addOnConfig":{"drizzle":{"database":"postgresql"}},
- "reviewedSharedFiles":{"drizzle.config.ts":"drizzle.config.ts","src/db/schema.ts":"src/db/schema.ts","drizzle":"drizzle","scripts/database-composition-fixture.ts":"scripts/database-composition-fixture.ts"},
- "expectedOfficialAddOns":["drizzle","better-auth","postgres-jobs"],
- "expectedFiles":["src/integrations/audit-log/schema.ts","src/integrations/jobs/lifecycle.server.ts"],
- "verificationCommands":[["bun","x","tsc","--noEmit"],["bun","scripts/database-composition-fixture.ts"]],"build":true
+	"projectName": "database-composition-clean-install",
+	"framework": "React",
+	"blank": true,
+	"packageManager": "bun",
+	"toolchain": "biome",
+	"capabilities": ["jobs", "api-platform", "audit-log", "search"],
+	"addOnConfig": { "drizzle": { "database": "postgresql" } },
+	"reviewedSharedFiles": {
+		"drizzle.config.ts": "drizzle.config.ts",
+		"src/db/schema.ts": "src/db/schema.ts",
+		"drizzle": "drizzle",
+		"scripts/database-composition-fixture.ts": "scripts/database-composition-fixture.ts"
+	},
+	"expectedOfficialAddOns": ["drizzle", "better-auth", "postgres-jobs"],
+	"expectedFiles": [
+		"src/integrations/audit-log/schema.ts",
+		"src/integrations/jobs/lifecycle.server.ts",
+		"src/integrations/search/schema.ts"
+	],
+	"verificationCommands": [
+		["bun", "x", "tsc", "--noEmit"],
+		["bun", "scripts/database-composition-fixture.ts"]
+	],
+	"build": true
 }

@@ -27,6 +27,8 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 | `cache-coordination` | `cache-coordination` | Done | Enabled | No | None | None | Valkey/Redis-compatible service on use | [Cache / Coordination](../capabilities/cache-coordination/CAPABILITY.md) |
 | `ai` | `ai` | Done | Enabled | No | None | None | Model endpoint only on use | [AI](../capabilities/ai/CAPABILITY.md) |
 
+| `search` | `search` | Done | Enabled | No | `drizzle` | None | PostgreSQL only | [Search](../capabilities/search/CAPABILITY.md) |
+
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
 ## Installing a capability
@@ -61,7 +63,7 @@ For an existing TanStack CLI-created application, run from its root:
 bunx @tanstack/cli@0.71.0 add https://raw.githubusercontent.com/formless63/demo-starter-tanstack/main/capabilities/jobs/add-on.json
 ```
 
-Replace the URL with the API Platform, Observability, Storage, Email, Audit Log, Cache or AI distributable (Webhooks uses the dependency transport described below) to select that capability. Review the resulting diff, configure its environment, apply any declared migrations, and run its `CAPABILITY.md` verification. Observability has no migrations or database dependency. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
+Replace the URL with the API Platform, Observability, Storage, Email, Audit Log, Cache AI or Search distributable (Webhooks uses the dependency transport described below) to select that capability. Review the resulting diff, configure its environment, apply any declared migrations, and run its `CAPABILITY.md` verification. Observability has no migrations or database dependency. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
 
 Official TanStack add-on dependencies are resolved by the CLI:
 
@@ -74,6 +76,8 @@ Official TanStack add-on dependencies are resolved by the CLI:
 - Audit Log declares `dependsOn: ["drizzle"]`; the fixture proves real migrations, coupled transactions and retained history on removal.
 - Cache declares `dependsOn: []`; the fixture proves backendless installation, actual Valkey and removal without touching external data.
 - AI declares `dependsOn: []`; the fixture proves backendless installation/build, actual local OpenAI-compatible HTTP generation/streaming/structured/cancellation and clean runtime removal/rebuild. Application telemetry remains outside the assets.
+
+- Search declares `dependsOn: ["drizzle"]`; it installs only helpers/smoke/docs. Domains define their generated vector/GIN and create a new reviewed migration. Disposable fixture SQL is never a production model.
 
 These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Webhooks requires Jobs; optional integrations remain independent.
 
@@ -161,3 +165,7 @@ The four SMTP/Webhooks/Audit/Cache v1 contracts fix shared behavioral bounds whi
 ### Shared-file preflight and reviewed composition
 
 Run `bun run add-ons:preflight <id ...>` before combining custom add-ons. It exits nonzero for unreviewed shared files (including journals/config); it never merges files or applies migrations. Webhooks' `installation.json` records its reviewed Jobs registry overlay, permitted only for its hard dependency. Existing customized applications still require manual diff review even when this check passes. `bun run add-ons:test:composition` proves a reviewed API + Audit + Jobs clean consumer using this reference application's unified schema/history; it is a fixture, not an installation or upgrade command for a deployed application. Public semantic upgrade/merge support remains deferred.
+
+## Search ownership
+
+Search requires baseline PostgreSQL/Drizzle and no capability. Jobs, Object Storage and Organizations remain optional future integrations. Application tables own authorization and typed equality filters. Compose owner predicates with explicit `simple` FTS, validate query/page/cursor input, keep descending rank/timestamp/ID order, and retain exact database rank/time for continuation. No generic public table-search function or universal search_documents table is installed. Query text stays out of logs/spans/metric labels; the root uses a session-scoped POST function. See the [contract](../capabilities/search/CAPABILITY.md) for helpers and the [evaluation](../SEARCH_MODULE_EVALUATION.md) for shared v1 defaults.
