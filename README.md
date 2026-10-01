@@ -4,6 +4,12 @@ A deployable, provider-neutral TanStack Start and React starter with Bun, Postgr
 
 The root repository is also a reference application. It intentionally enables every completed capability so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
 
+## Start your application
+
+Provide existing requirements, design artifacts and skill libraries, then ask your coding agent to **onboard this project** using the [onboarding workflow](docs/PROJECT-ONBOARDING.md). Review the proposed docs, capability choices, appearance and skill adaptations before approving customization. The [starting guide](docs/STARTING-A-PROJECT.md) retains manual setup and removal paths.
+
+Versioned `.project` metadata describes downstream decisions; the reference remains uninitialized. `bun run project:check` and `project:status` validate/summarize it without network calls. [Appearance tooling](docs/APPEARANCE.md) safely vendors TweakCN/shadcn style JSON, generates semantic CSS, and supports persisted Light/Dark/System. It never executes a registry installer or silently downloads fonts. Bootstrap and appearance are baseline authoring tooling, not catalog capabilities. See [evaluation](PROJECT_BOOTSTRAP_EVALUATION.md) for contracts and verification.
+
 ## Why this starter
 
 - Production-sensible defaults without a cloud-provider contract.
@@ -258,3 +264,5 @@ Optional server-only ephemeral cache, atomic counters, advisory leases and pub/s
 | Cache / Coordination | None | Realtime, API Platform, Jobs, Observability | Valkey 9.1.2 / common Redis protocol subset | No |
 
 Use `bun run cache:dev:valkey` for separate loopback ephemeral Valkey, configure server-only `CACHE_URL=redis://127.0.0.1:6379`, then `bun run cache:check` (PING only), `bun run cache:smoke` (unique prefix/exact cleanup), and `bun run cache:dev:down`. `bun run cache:compat` creates and tears down disposable real Valkey; `cache:unit` and `cache:telemetry` verify backendless behavior/safe optional signals. Values expire by default; advisory leases have no fencing/Redlock guarantees; pub/sub has no persistence/replay. See [evaluation](CACHE_COORDINATION_MODULE_EVALUATION.md) and [removal](docs/STARTING-A-PROJECT.md#remove-cache--coordination).
+
+PostgreSQL 18 stores PGDATA under `/var/lib/postgresql/18/docker`; Compose mounts its named volume at `/var/lib/postgresql`. Existing installations using the previous `/var/lib/postgresql/data` mount must preserve/restore their actual anonymous-volume cluster before changing mounts. See [database volume migration](docs/POSTGRES-VOLUME-MIGRATION.md). `bun run db:persistence:test` verifies fresh named-volume data survives container recreation.

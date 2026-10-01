@@ -18,3 +18,5 @@ Read only what matches the work: `.agents/context/architecture.md` for boundarie
 
 ## Reusable capabilities
 Reusable capabilities and their relationships are tracked in `ROADMAP.md` and `capabilities/catalog.json`; reference-app enablement is separate from generated-consumer defaults. Before installing, removing, creating, or changing capability dependencies, use the capability-change skill. Hard dependencies must be explicit and must not form cycles.
+
+Downstream initialization uses `.agents/skills/project-onboarding/SKILL.md`; Appearance changes use `.agents/skills/appearance-change/SKILL.md`. Review existing materials and approved plans before customization. These workflows are baseline tooling, not capabilities.

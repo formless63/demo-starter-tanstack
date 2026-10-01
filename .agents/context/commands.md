@@ -37,7 +37,7 @@
 - `bun run agents:check`: fast, read-only validation of canonical agent guidance, skills and project hook adapters.
 - `bun run agents:test`: synthetic hook payload and disposable Git fixture tests; no agent CLI or credentials.
 - `bun run check`: agent harness, capability governance, lint, types, tests, and production build.
-- Agent completion hooks run only staged/unstaged whitespace checks and the relevant capability/harness checks (`capabilities:check` and/or `agents:check`) when governed paths change; full task checks and CI remain required.
+- Agent completion hooks run only staged/unstaged whitespace checks and the relevant capability/harness checks (`capabilities:check`, `agents:check`, and/or `project:check`) when governed paths change; full task checks and CI remain required.
 - `docker compose build` (or the focused `docker compose build app`): build the shared production image used by migrations, `app`, and `worker`.
 - `docker compose up -d --wait postgres`: start PostgreSQL and require its healthcheck to pass.
 - `docker compose run --rm migrate`: explicitly apply committed migrations with the production image; a nonzero exit blocks the release.
@@ -66,3 +66,13 @@ For a downstream lean application, follow `docs/STARTING-A-PROJECT.md`. Its Jobs
 - `bun run cache:dev:valkey` / `cache:dev:down`: separate ephemeral loopback development service.
 - `bun run cache:telemetry`: root optional safe app.cache.* signal verification without backend.
 - `bun run add-ons:test cache-coordination`: independent clean installation/build, real Valkey and clean removal/rebuild.
+
+- `bun run project:check` / `project:status`: no-network profile/schema/template/appearance validation and read-only summary/drift; uninitialized reference succeeds.
+- `bun run project:test`: local onboarding, provenance, skill, theme/import/generation and color-policy fixtures.
+- `bun run theme:import -- <repository-file-or-public-HTTPS-url> [--kind tweakcn]`: bounded JSON-only vendoring to .project/theme.json; review provenance/font/accessibility choices before profile alignment/application.
+- `bun run theme:apply`: deterministic dedicated semantic CSS and generated mode policy only.
+- `bun run theme:check`: exact managed appearance drift check.
+- `bun run add-ons:preflight -- <ids...>`: inspect shared assets; unreviewed collisions fail before scaffold composition. The Jobs/Webhooks hard-dependency overlay is explicit, not a generic semantic merger.
+- `bun run add-ons:test:composition`: reviewed API/Audit/Jobs combined clean migrate/runtime/type/build proof; owned disposable database.
+- `bun run db:persistence:test`: own Compose project/volume, container recreation and retained marker; destroys only its fixture volume.
+- `NODE_ENV=production NITRO_PRESET=node-server bun run build`: production artifact when the shell otherwise has NODE_ENV=test. `E2E_BASE_URL=http://127.0.0.1:<port> bun run test:e2e` targets an already running production artifact rather than starting Vite.
