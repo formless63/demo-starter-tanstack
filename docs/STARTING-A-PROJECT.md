@@ -187,7 +187,7 @@ Run capability governance, types/build, Jobs smoke, E2E and production health. T
 5. Remove `audit-log` from `referenceApplication.enabledCapabilities`; update docs and run governance/typecheck/build/E2E. Independently packaged consumer fixtures remain usable without root integration.
 6. To prune authoring too, delete `capabilities/audit-log/`, evaluation and skill if unused; retain the catalog ID as deferred and remove implementation metadata, using the standard pruning recipe. Other planned statuses stay unchanged.
 
-Dropping deployed audit history requires a **new explicit destructive migration**, retention/privacy/backup decisions and operator review. Never delete/edit applied migrations. For a never-deployed fresh project only, consolidation may be a separate deliberate action. No v1 retention/purge automation exists. To reach the capability-free lean baseline, apply each of the nine removal recipes, removing Webhooks before Jobs.
+Dropping deployed audit history requires a **new explicit destructive migration**, retention/privacy/backup decisions and operator review. Never delete/edit applied migrations. For a never-deployed fresh project only, consolidation may be a separate deliberate action. No v1 retention/purge automation exists. To reach the capability-free lean baseline, apply each completed capability’s removal recipe, removing Notifications and Webhooks before Jobs.
 
 ### Remove Cache / Coordination
 

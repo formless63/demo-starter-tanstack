@@ -1,0 +1,67 @@
+{
+  "projectName": "realtime-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [],
+  "forbiddenOfficialAddOns": [
+    "better-auth",
+    "observability",
+    "object-storage",
+    "email",
+    "audit-log",
+    "postgres-jobs",
+    "cache-coordination"
+  ],
+  "expectedFiles": [
+    "src/integrations/realtime/realtime.server.ts",
+    "capabilities/realtime/CAPABILITY.md",
+    "REALTIME_MODULE_EVALUATION.md",
+    "server/routes/api/realtime/sse.ts",
+    "server/routes/api/realtime/websocket.ts",
+    "nitro.config.ts",
+    "vite.config.ts"
+  ],
+  "build": true,
+  "verificationCommands": [
+    [
+      "bun",
+      "run",
+      "realtime:unit"
+    ],
+    [
+      "bun",
+      "run",
+      "realtime:transport"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ],
+    [
+      "bun",
+      "scripts/realtime-clean-fixture.ts"
+    ],
+    [
+      "bun",
+      "scripts/realtime-removal-fixture.ts"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ]
+  ],
+  "verificationEnvironment": {
+    "NODE_ENV": "production",
+    "REALTIME_TRANSPORTS": "sse,websocket"
+  }
+}

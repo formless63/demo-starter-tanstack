@@ -18,7 +18,7 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, `AI`, and `Search` are ten completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
+`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, `AI`, `Search`, `Realtime`, and `Notifications` are twelve completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
 
 `defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
@@ -53,6 +53,9 @@ Only implemented capabilities receive an add-on directory. Planned entries such 
 | Cache / Coordination | None; no database/auth dependency | Realtime, API Platform, Jobs, Observability | Valkey/Redis-compatible service on use; tested Valkey 9.1.2 | Enabled | No | Done |
 | Search | None beyond baseline PostgreSQL and Drizzle | Jobs, Object Storage, Organizations | PostgreSQL only | Enabled | No | Done |
 
+| Realtime | None; baseline Node runtime / human authentication | Cache / Coordination, Notifications, Observability | None | Enabled | No | Done |
+| Notifications | Jobs; baseline PostgreSQL/Drizzle | Email, Realtime, Audit Log, Observability | Optional ntfy; optional SMTP through Email | Enabled | No | Done |
+
 | AI | None beyond baseline Node runtime | Jobs, Object Storage, Observability, Audit Log | Configured model provider only on use | Enabled | No | Done |
 
 AI uses a private OpenAI-compatible adapter with pinned OpenAI SDK 7.25.0, real incremental streaming, authoritative application-owned Zod validation through a single deadline/cancellation scope, stop-only structured success and no retries. It is backendless at normal build/start/worker/readiness; generic clean lifecycles execute local HTTP fixtures under Bun and Node, and shared production smokes execute the final image without production credentials. See [evaluation](AI_MODULE_EVALUATION.md).
@@ -65,6 +68,8 @@ Object Storage uses standard AWS SDK v3, with real private streaming/presign/mul
 | --- | --- | --- | --- | --- |
 | Realtime | Authenticated starter identity | Cache / Coordination, Notifications, Observability | None initially | Planned |
 | Notifications | Jobs | Email, Realtime, Audit Log | Optional ntfy; optional SMTP through Email | Planned |
+
+| Search | None; PostgreSQL-first | Jobs, Object Storage, Organizations | PostgreSQL initially | Planned |
 | Import / Export | Jobs, Object Storage | Notifications, Audit Log | None | Planned |
 
 ### Identity / policy

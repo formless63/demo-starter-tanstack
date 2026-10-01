@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "ai", "search"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "ai", "search", "realtime", "notifications"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -592,18 +592,124 @@
 			}
 		},
 		{
-			"id": "realtime", "displayName": "Realtime", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["cache-coordination", "notifications", "observability"], "baselineRequirements": ["authentication"], "externalRequirements": [],
-			"summary": "Authenticated server-to-client updates with no external service initially."
+			"id": "realtime",
+			"displayName": "Realtime",
+			"kind": "application-infrastructure",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"cache-coordination",
+				"notifications",
+				"observability"
+			],
+			"baselineRequirements": [
+				"node-runtime"
+			],
+			"externalRequirements": [],
+			"summary": "Authenticated server-to-client updates with no external service initially.",
+			"baselineIntegrations": [
+				"authentication"
+			],
+			"documentationPath": "capabilities/realtime/CAPABILITY.md",
+			"evaluationDocument": "REALTIME_MODULE_EVALUATION.md",
+			"agentSkill": ".agents/skills/realtime-change/SKILL.md",
+			"scripts": [
+				"realtime:unit",
+				"realtime:transport"
+			],
+			"environmentVariables": [
+				{
+					"name": "REALTIME_TRANSPORTS",
+					"default": "sse",
+					"description": "Server-only sse/websocket/sse,websocket; no duplicates.",
+					"required": false
+				}
+			],
+			"runtimeServices": [],
+			"migrations": [],
+			"tanstackAddOn": {
+				"addOnId": "realtime",
+				"sourceDirectory": "capabilities/realtime/.add-on",
+				"manifestPath": "capabilities/realtime/.add-on/info.json",
+				"distributablePath": "capabilities/realtime/add-on.json",
+				"cleanInstallFixture": "capabilities/realtime/test/clean-install.json",
+				"dependsOn": [],
+				"conflictsWith": []
+			}
 		},
 		{
-			"id": "notifications", "displayName": "Notifications", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": ["jobs"], "integratesWith": ["email", "realtime", "audit-log"], "baselineRequirements": [],
-			"externalRequirements": [
-				{ "name": "ntfy", "required": false, "description": "Optional push notification integration." },
-				{ "name": "SMTP through Email", "required": false, "description": "Optional email notification channel supplied by the Email capability." }
+			"id": "notifications",
+			"displayName": "Notifications",
+			"kind": "application-infrastructure",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [
+				"jobs"
 			],
-			"summary": "Durable multi-channel notification orchestration with optional delivery integrations."
+			"integratesWith": [
+				"email",
+				"realtime",
+				"audit-log",
+				"observability"
+			],
+			"baselineRequirements": [
+				"postgresql",
+				"drizzle"
+			],
+			"externalRequirements": [
+				{
+					"name": "ntfy",
+					"required": false,
+					"description": "Optional application-resolved HTTP delivery."
+				}
+			],
+			"summary": "Durable multi-channel notification orchestration with optional delivery integrations.",
+			"baselineIntegrations": [
+				"authentication"
+			],
+			"documentationPath": "capabilities/notifications/CAPABILITY.md",
+			"evaluationDocument": "NOTIFICATIONS_MODULE_EVALUATION.md",
+			"agentSkill": ".agents/skills/notifications-change/SKILL.md",
+			"scripts": [
+				"notifications:unit",
+				"notifications:smoke",
+				"notifications:compat"
+			],
+			"environmentVariables": [
+				{
+					"name": "NTFY_BASE_URL",
+					"description": "Optional lazy ntfy server HTTPS URL; no public default.",
+					"required": false
+				},
+				{
+					"name": "NTFY_TOKEN",
+					"description": "Optional private ntfy token resolved at execution.",
+					"required": false
+				},
+				{
+					"name": "NTFY_TIMEOUT_SECONDS",
+					"default": "10",
+					"description": "Integer 1–30 seconds.",
+					"required": false
+				}
+			],
+			"runtimeServices": [],
+			"migrations": [
+				"bun run db:migrate",
+				"bun run jobs:migrate"
+			],
+			"tanstackAddOn": {
+				"addOnId": "notifications",
+				"sourceDirectory": "capabilities/notifications/.add-on",
+				"manifestPath": "capabilities/notifications/.add-on/info.json",
+				"distributablePath": "capabilities/notifications/add-on.json",
+				"cleanInstallFixture": "capabilities/notifications/test/clean-install.json",
+				"dependsOn": [
+					"postgres-jobs"
+				],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "import-export", "displayName": "Import / Export", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
