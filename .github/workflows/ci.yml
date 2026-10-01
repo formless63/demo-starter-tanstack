@@ -59,6 +59,9 @@ jobs:
       - run: bun run agents:test
       - run: bun run capabilities:status
       - run: bun run capabilities:check
+      - run: bun run project:check
+      - run: bun run project:status
+      - run: bun run theme:check
       - run: docker compose build app
       - run: bun run db:persistence:test
       - run: docker compose up -d --wait postgres
@@ -94,5 +97,7 @@ jobs:
           curl --fail --show-error -D - -o /dev/null -H 'X-Request-ID: container-smoke' http://127.0.0.1:3000/api/health | grep -i 'x-request-id: container-smoke'
       - run: curl --fail --show-error http://127.0.0.1:3000/api/openapi.json | jq -e '.openapi == "3.1.1"'
       - run: curl --fail --show-error --output /dev/null http://127.0.0.1:3000/docs/api
+      - name: Verify production appearance and hydration
+        run: E2E_BASE_URL=http://127.0.0.1:3000 bun run test:e2e
       - if: always()
         run: docker compose down --volumes --remove-orphans

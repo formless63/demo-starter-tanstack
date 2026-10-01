@@ -152,3 +152,7 @@ Before installing, removing, or changing a capability, use `.agents/skills/capab
 Webhooks uses Standard Webhooks HMAC v1 with exact raw-byte verification, stable serialized events, application-owned targets/secrets, and the existing Jobs worker for bounded native pg-boss retries. Its disposable HTTP/Jobs fixture runs through the generic custom dependency transport. DNS/network policy and durable inbound replay storage remain explicit application responsibilities.
 
 Architecture pre-wave remediation keeps the sparse dependency graph unchanged: bounded producer/runtime recovery, reviewed custom file-collision preflight, strengthened clean removal fixtures and a unified database-composition proof. Publication/general semantic merging remains deferred.
+
+## Starter authoring / project bootstrap — not capabilities
+
+Agent-led existing-material onboarding, portable `.project` profiles/provenance/skill reviews, semantic theme import/generation and Light/Dark/System policy are baseline starter tooling. See `docs/PROJECT-ONBOARDING.md` and `docs/APPEARANCE.md`. They introduce no capability IDs or hard dependency edges and do not advance a planned runtime capability. Deferred profile selections remain unavailable until implemented through capability governance.

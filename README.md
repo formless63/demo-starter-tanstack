@@ -4,6 +4,12 @@ A deployable, provider-neutral TanStack Start and React starter with Bun, Postgr
 
 The root repository is also a reference application. It intentionally enables every completed capability so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
 
+## Start your application
+
+Provide existing requirements, design artifacts and skill libraries, then ask your coding agent to **onboard this project** using the [onboarding workflow](docs/PROJECT-ONBOARDING.md). Review the proposed docs, capability choices, appearance and skill adaptations before approving customization. The [starting guide](docs/STARTING-A-PROJECT.md) retains manual setup and removal paths.
+
+Versioned `.project` metadata describes downstream decisions; the reference remains uninitialized. `bun run project:check` and `project:status` validate/summarize it without network calls. [Appearance tooling](docs/APPEARANCE.md) safely vendors TweakCN/shadcn style JSON, generates semantic CSS, and supports persisted Light/Dark/System. It never executes a registry installer or silently downloads fonts. Bootstrap and appearance are baseline authoring tooling, not catalog capabilities. See [evaluation](PROJECT_BOOTSTRAP_EVALUATION.md) for contracts and verification.
+
 ## Why this starter
 
 - Production-sensible defaults without a cloud-provider contract.

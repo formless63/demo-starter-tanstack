@@ -18,6 +18,12 @@
       "type": "public-url",
       "title": "Official semantic CSS guide",
       "url": "https://tailwindcss.com/docs/theme"
+    },
+    {
+      "id": "theme-export",
+      "type": "design-document",
+      "title": "Vendored local TweakCN style JSON",
+      "path": "input/tweakcn-modern-minimal.json"
     }
   ]
 }

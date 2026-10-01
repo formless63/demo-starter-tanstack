@@ -3,7 +3,7 @@ import {randomUUID} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 const project=`persistence-${randomUUID()}`;
 function compose(...args:string[]) {
- const result=spawnSync('docker',['compose','-p',project,'-f','compose.yaml',...args],{env:{...process.env,POSTGRES_PORT:'0'},encoding:'utf8'});
+ const result=spawnSync('docker',['compose','-p',project,'-f','compose.yaml',...args],{env:{...process.env,POSTGRES_PORT:'0',POSTGRES_DB:'starter',POSTGRES_USER:'starter',POSTGRES_PASSWORD:'persistence-only-fixture'},encoding:'utf8'});
  assert.equal(result.status,0,'Disposable PostgreSQL persistence command failed'); return result.stdout.trim();
 }
 try {
