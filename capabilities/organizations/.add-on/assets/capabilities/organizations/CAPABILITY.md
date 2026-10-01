@@ -1,6 +1,6 @@
 # Organizations / Tenancy
 
-Status: **in progress pending hosted CI**. Implementation and root UI composition are complete. Local protocol fixtures, independent clean installation/runtime/removal/rebuild, root checks, development and production browser coverage, production image, explicit migrations, standalone worker and health verification pass. Exact-head hosted CI is still queued; completion remains gated on its success. Clean consumers remain opt-in (`defaultInstalled:false`).
+Status: **done**. Root composition and independent clean consumer lifecycles are verified locally and through hosted CI. Clean consumers remain opt-in (`defaultInstalled:false`).
 
 ## Cross-framework v1 contract
 
@@ -38,4 +38,4 @@ Organization/member/invitation/session data and applied migrations survive remov
 
 ## Verification
 
-`bun capabilities/organizations/test/contract.ts` owns a uniquely named disposable pinned PostgreSQL18.1 fixture and currently proves independent native HTTP/auth.api behavior with Drizzle/node-postgres. `native-claim-proof.ts` observes committed claim before membership and ordinary compensation under Bun and bundled Node24. No customer/production data is used. Actual SIGKILL interruption through both entrypoints and the full dispatch matrix on both node-postgres and Bun SQL now pass; Local timeout/outage, independent Bun/Node24 clean consumer install/runtime/removal/rebuild, root checks and development/production browser coverage pass. Exact-head hosted CI remains queued; status remains in-progress. See [evaluation](../../ORGANIZATIONS_MODULE_EVALUATION.md).
+`bun capabilities/organizations/test/contract.ts` owns a uniquely named disposable pinned PostgreSQL18.1 fixture and currently proves independent native HTTP/auth.api behavior with Drizzle/node-postgres. `native-claim-proof.ts` observes committed claim before membership and ordinary compensation under Bun and bundled Node24. No customer/production data is used. Actual SIGKILL interruption through both entrypoints and the full dispatch matrix on both node-postgres and Bun SQL now pass; Local timeout/outage, independent Bun/Node24 clean consumer install/runtime/removal/rebuild, root checks and development/production browser coverage pass. Hosted CI verifies the generic capability matrix. See [evaluation](../../ORGANIZATIONS_MODULE_EVALUATION.md).

@@ -221,7 +221,7 @@ Removing Search code never deletes application records. Dropping the generated c
 
 ## Identity policy capabilities
 
-Each independent consumer is opt-in: select `capabilities/organizations/add-on.json`, `capabilities/authorization/add-on.json` or `capabilities/feature-flags/add-on.json` through the generic CLI. Review shared auth/schema/config overlays before combining them; use existing journals and generate additive migrations in a deployed application. Never replace an applied journal with a fresh scaffold journal. The root's notes example remains separate from personal Projects.
+The root reference deliberately enables all three completed identity capabilities; independent consumers remain opt-in. Select `capabilities/organizations/add-on.json`, `capabilities/authorization/add-on.json` or `capabilities/feature-flags/add-on.json` through the generic CLI. Review shared auth/schema/config overlays before combining them; use existing journals and generate additive migrations in a deployed application. Never replace an applied journal with a fresh scaffold journal. The root's notes example remains separate from personal Projects.
 
 ### Remove Organizations
 

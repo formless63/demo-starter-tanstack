@@ -13,6 +13,13 @@ const requiredWave = [
 	"webhooks",
 	"audit-log",
 	"cache-coordination",
+	"ai",
+	"search",
+	"realtime",
+	"notifications",
+	"organizations",
+	"authorization",
+	"feature-flags",
 ];
 
 const completed = catalog.capabilities.filter(

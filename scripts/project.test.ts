@@ -10,6 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
+import catalog from "../capabilities/catalog.json";
 import { applyTheme } from "./lib/theme.ts";
 import { checkProject, loadProject, projectStatus } from "./lib/project.ts";
 import {
@@ -81,7 +82,11 @@ describe("project bootstrap contract", () => {
 		[
 			"planned selected",
 			(d: any) => {
-				d.capabilities.selected.push("organizations");
+				const planned = catalog.capabilities.find(
+					({ status }) => status === "planned",
+				);
+				if (!planned) throw new Error("Fixture requires a planned capability");
+				d.capabilities.selected.push(planned.id);
 				d.capabilities.deferred = [];
 			},
 			"not implemented",

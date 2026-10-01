@@ -1,6 +1,6 @@
 # Authorization decision
 
-Status: in-progress. Canonical [contract](capabilities/authorization/CAPABILITY.md). Sources reviewed2026-10-01; no dependency selected beyond existing PostgreSQL/Drizzle.
+Status: done. Canonical [contract](capabilities/authorization/CAPABILITY.md). Sources reviewed2026-10-01; no dependency selected beyond existing PostgreSQL/Drizzle.
 
 | Option | Assessment for this bounded v1 |
 | --- | --- |
@@ -14,4 +14,4 @@ Status: in-progress. Canonical [contract](capabilities/authorization/CAPABILITY.
 
 Exact user/tenant scope; opaque identity strings; code registry bounds256actions/64roles; assignment UUID/unique tuple; union then resource/credential intersection; denied unknown role/action and unresolved tenant membership; absent management guard forbids. Closed safe results/errors, no context singleton/cache/retries/startup seed, caller-owned transaction variants and retained tables on removal. Optional adapters live in application composition.
 
-The PostgreSQL fixture verifies real assignment concurrency and a shared advisory-lock decision/write versus exclusive revoke. This is a documented primitive lock convention, not a claim that arbitrary application callbacks automatically acquire membership/resource locks. Independent Bun/Node24 clean install, protocol runtime, retained-data removal and rebuild pass. Root checks, development/production browser and production image/migration/worker verification pass locally. Exact-head hosted CI remains queued; status remains in-progress.
+The PostgreSQL fixture verifies real assignment concurrency and a shared advisory-lock decision/write versus exclusive revoke. This is a documented primitive lock convention, not a claim that arbitrary application callbacks automatically acquire membership/resource locks. Independent Bun/Node24 clean install, protocol runtime, retained-data removal and rebuild pass. Root checks, development/production browser and production image/migration/worker verification pass locally. Hosted CI verifies the full generic capability matrix.

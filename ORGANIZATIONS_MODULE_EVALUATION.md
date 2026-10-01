@@ -2,7 +2,7 @@
 
 ## Selection and launch gate
 
-The baseline pins Better Auth 1.7.7. Organizations will use its official organization plugin, with Drizzle transactions explicitly enabled; no parallel authentication or tenant service is selected. Organizations, Authorization and Feature Flags remain in progress and are not delivered add-ons yet.
+The baseline pins Better Auth 1.7.7. Organizations uses its official organization plugin, with Drizzle transactions explicitly enabled; no parallel authentication or tenant service is selected. Organizations, Authorization and Feature Flags are completed independent opt-in add-ons with verified reference composition and generic lifecycle/hosted checks.
 
 ## Verified invitation boundary
 

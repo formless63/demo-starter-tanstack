@@ -185,7 +185,7 @@ The integrated migration journal retains both original additive SQL files and ti
 
 ## Identity policy capabilities
 
-Organizations, Authorization and Feature Flags are three independent opt-in add-ons, currently in-progress. The root reference composes their auth/UI/policy/projection; catalog enablement is finalized only after completion gates. Generic lifecycle CI discovers installable in-progress authoring alongside completed add-ons, so unfinished work is tested without claiming completion.
+Organizations, Authorization and Feature Flags are three completed independent opt-in add-ons. The root reference deliberately enables their auth/UI/policy/projection. Generic lifecycle CI discovers installable authoring alongside completed add-ons; the completed reference currently has 15 add-ons.
 
 | ID | Official prerequisites | Optional application integrations | Canonical contract |
 | --- | --- | --- | --- |

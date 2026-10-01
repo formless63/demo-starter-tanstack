@@ -1,6 +1,6 @@
 # Feature Flags v1
 
-Status: in-progress. Independent opt-in PostgreSQL boolean provider. See [evaluation](../../FEATURE_FLAGS_MODULE_EVALUATION.md).
+Status: done. Independent opt-in PostgreSQL boolean provider. See [evaluation](../../FEATURE_FLAGS_MODULE_EVALUATION.md).
 
 ## Contract
 
@@ -20,4 +20,4 @@ Use generic compile/test tooling. `.add-on` overlay authoring is authoritative; 
 
 ## Verification
 
-Disposable PostgreSQL18 contract proves supplied golden vectors/boundaries, Unicode JSON encoding, unknown/disabled/default, exact precedence, deterministic cohorts, conflicts/no-op, rollback, retained values, timeout/outage and malformed stored data. Local timeout/outage, independent Bun/Node24 clean consumer install/runtime/removal/rebuild, root checks and development/production browser coverage pass. Exact-head hosted CI remains queued; status remains in-progress.
+Disposable PostgreSQL18 contract proves supplied golden vectors/boundaries, Unicode JSON encoding, unknown/disabled/default, exact precedence, deterministic cohorts, conflicts/no-op, rollback, retained values, timeout/outage and malformed stored data. Local timeout/outage, independent Bun/Node24 clean consumer install/runtime/removal/rebuild, root checks and development/production browser coverage pass. Hosted CI verifies the generic capability matrix.

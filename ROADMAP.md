@@ -70,9 +70,9 @@ Object Storage uses standard AWS SDK v3, with real private streaming/presign/mul
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Organizations / Tenancy | Starter authentication | Audit Log, Notifications | PostgreSQL | In progress |
-| Authorization | Starter authentication | Organizations, API Platform, Audit Log | PostgreSQL | In progress |
-| Feature Flags | None | Organizations, Authorization, Audit Log | PostgreSQL | In progress |
+| Organizations / Tenancy | Starter authentication | Audit Log, Notifications | PostgreSQL | Done |
+| Authorization | Starter authentication | Organizations, API Platform, Audit Log | PostgreSQL | Done |
+| Feature Flags | None | Organizations, Authorization, Audit Log | PostgreSQL | Done |
 
 Starter authentication is a baseline requirement, not a capability edge.
 
@@ -161,4 +161,4 @@ Search v1 uses explicit simple PostgreSQL18 full-text search, weighted A/B STORE
 
 ### Identity policy Wave 2
 
-Organizations → Authorization → Feature Flags are independently packaged and in-progress, with reference composition and isolated PostgreSQL/lifecycle proofs under development. See their capability contracts and decision documents; final root/browser/production/exact-head CI gates govern completion. Native Better Auth admission bounds are not serialized quotas, and its invitation claim/membership crash window is documented explicitly.
+Organizations → Authorization → Feature Flags are completed independent opt-in add-ons, deliberately enabled in the reference application. Isolated PostgreSQL/consumer lifecycles, scoped reference policies, browser/production checks and the generic hosted CI matrix verify the implementation. See their capability contracts and decision documents. Native Better Auth admission bounds are not serialized quotas, and its invitation claim/membership crash window is documented explicitly.

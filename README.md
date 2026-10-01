@@ -47,9 +47,9 @@ Baseline components are not optional capability modules. Future integrations in 
 | Search | Done | Optional | Baseline PostgreSQL + Drizzle | Application-owned FTS, weighted generated vectors, safe queries and keyset pages | [Search contract](capabilities/search/CAPABILITY.md) |
 | Realtime | Done | Optional | Baseline Node; human session integration | Authenticated SSE and WebSocket hints, bounded output; optional Cache fanout | [Realtime contract](capabilities/realtime/CAPABILITY.md) |
 | Notifications | Done | Optional | Jobs + baseline PostgreSQL/Drizzle | Durable recipient-scoped in-app records, atomic delivery enqueue, optional Email/ntfy/hints | [Notifications contract](capabilities/notifications/CAPABILITY.md) |
-| Organizations / Tenancy | In progress | Optional | Baseline Better Auth + PostgreSQL/Drizzle + Node | Guarded native administration and authoritative tenant context | [Organizations](capabilities/organizations/CAPABILITY.md) |
-| Authorization | In progress | Optional | Baseline Better Auth + PostgreSQL/Drizzle + Node | Exact-scope code roles, assignments and explicit resource policy | [Authorization](capabilities/authorization/CAPABILITY.md) |
-| Feature Flags | In progress | Optional | Baseline PostgreSQL/Drizzle + Node | Boolean definitions, exact overrides and deterministic cohorts | [Feature Flags](capabilities/feature-flags/CAPABILITY.md) |
+| Organizations / Tenancy | Done | Optional | Baseline Better Auth + PostgreSQL/Drizzle + Node | Guarded native administration and authoritative tenant context | [Organizations](capabilities/organizations/CAPABILITY.md) |
+| Authorization | Done | Optional | Baseline Better Auth + PostgreSQL/Drizzle + Node | Exact-scope code roles, assignments and explicit resource policy | [Authorization](capabilities/authorization/CAPABILITY.md) |
+| Feature Flags | Done | Optional | Baseline PostgreSQL/Drizzle + Node | Boolean definitions, exact overrides and deterministic cohorts | [Feature Flags](capabilities/feature-flags/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -252,7 +252,7 @@ For registries, set `APP_IMAGE` to the immutable image reference and use that sa
 
 ## Identity policy track
 
-Native Better Auth organization administration is separate from application permissions. Tenant selection never shares personal Projects. Exact-scope policy unions code roles and retains owner predicates; boolean flags only control an innocuous panel. Explicit local operator demo commands live in `scripts/identity-demo.ts`; nothing seeds on startup. Final lifecycle/browser/production/exact-head CI acceptance is pending. See [installation/removal](docs/STARTING-A-PROJECT.md#identity-policy-capabilities).
+Native Better Auth organization administration is separate from application permissions. Tenant selection never shares personal Projects. Exact-scope policy unions code roles and retains owner predicates; boolean flags only control an innocuous panel. Explicit local operator demo commands live in `scripts/identity-demo.ts`; nothing seeds on startup. Independent clean consumer lifecycle, scoped reference, browser and production checks pass; hosted CI verifies the complete generic capability matrix. See [installation/removal](docs/STARTING-A-PROJECT.md#identity-policy-capabilities).
 
 ## Repository conventions
 

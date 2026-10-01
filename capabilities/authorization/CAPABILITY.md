@@ -1,6 +1,6 @@
 # Authorization v1
 
-Status: in-progress. Opt-in; no other capability is required. See [evaluation](../../AUTHORIZATION_MODULE_EVALUATION.md).
+Status: done. Opt-in; no other capability is required. See [evaluation](../../AUTHORIZATION_MODULE_EVALUATION.md).
 
 ## Contract
 
@@ -24,4 +24,4 @@ Remove application policy imports/adapters and schema export, then this capabili
 
 ## Verification
 
-Real disposable PostgreSQL18 fixture exercises default denial, union, orphan roles, exact scopes, tenant revocation, credential intersection, concurrent deduplication, rollback, next-request revocation, protected-write locking, timeout and outage. Independent clean installation, Bun/Node24 protocol runtime, retained-data removal and rebuild pass. Root checks and development/production browser coverage pass locally. Exact-head hosted CI remains queued; status is in-progress.
+Real disposable PostgreSQL18 fixture exercises default denial, union, orphan roles, exact scopes, tenant revocation, credential intersection, concurrent deduplication, rollback, next-request revocation, protected-write locking, timeout and outage. Independent clean installation, Bun/Node24 protocol runtime, retained-data removal and rebuild pass. Root checks and development/production browser coverage pass locally. Hosted CI verifies the generic capability matrix.
