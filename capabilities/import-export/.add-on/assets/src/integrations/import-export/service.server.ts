@@ -69,7 +69,20 @@ function classify(error: unknown) {
 					? "cancelled"
 					: "unavailable",
 		);
-	const code = (error as { code?: string })?.code;
+	let code: string | undefined;
+	let current: unknown = error;
+	for (
+		let depth = 0;
+		depth < 4 && current && typeof current === "object";
+		depth++
+	) {
+		const value = current as { code?: string; cause?: unknown };
+		if (typeof value.code === "string") {
+			code = value.code;
+			break;
+		}
+		current = value.cause;
+	}
 	return new TransferError(
 		[
 			"40001",
@@ -211,6 +224,9 @@ export function createTransfers(deps: TransferDependencies) {
 				controller.signal,
 			);
 			id = row.id;
+			const controllers = active.get(row.id) ?? new Set<AbortController>();
+			controllers.add(controller);
+			active.set(row.id, controllers);
 			const source = await boundedBody(
 				input.body,
 				config.maxBytes,
@@ -264,13 +280,21 @@ export function createTransfers(deps: TransferDependencies) {
 				controller.signal,
 			);
 		} catch (error) {
-			const safe = controller.signal.aborted
-				? new TransferError("timeout")
-				: classify(error);
+			const safe =
+				controller.signal.reason instanceof TransferError
+					? controller.signal.reason
+					: controller.signal.aborted
+						? new TransferError("timeout")
+						: classify(error);
 			if (id) await failure(id, safe);
 			throw safe;
 		} finally {
 			clearTimeout(timer);
+			if (id) {
+				const controllers = active.get(id);
+				controllers?.delete(controller);
+				if (!controllers?.size) active.delete(id);
+			}
 			controller.abort();
 		}
 	}
@@ -283,7 +307,7 @@ export function createTransfers(deps: TransferDependencies) {
 		await deps.jobs();
 		return transaction(async (tx) => {
 			await tx.execute(
-				sql`select pg_advisory_xact_lock(hashtextextended(${JSON.stringify([ctx.requesterId, ctx.scope, "import", input.idempotencyKey])},0))`,
+				sql`select pg_advisory_xact_lock(hashtextextended(${JSON.stringify([ctx.requesterId, ctx.scope.kind, ctx.scope.id, "import", input.idempotencyKey])},0))`,
 			);
 			const row = await load(tx, input.transferId, ctx, true);
 			await authorize(tx, ctx, row.definition, row.version);
@@ -343,7 +367,7 @@ export function createTransfers(deps: TransferDependencies) {
 			const fp = fingerprint([def.name, def.version]);
 			// Serialize same-key creation without introducing a second durable lock/queue.
 			await tx.execute(
-				sql`select pg_advisory_xact_lock(hashtextextended(${JSON.stringify([ctx.requesterId, ctx.scope, "export", input.idempotencyKey])},0))`,
+				sql`select pg_advisory_xact_lock(hashtextextended(${JSON.stringify([ctx.requesterId, ctx.scope.kind, ctx.scope.id, "export", input.idempotencyKey])},0))`,
 			);
 			const [existing] = await tx
 				.select()
@@ -489,12 +513,9 @@ export function createTransfers(deps: TransferDependencies) {
 		const artifact = await transaction(async (tx) => {
 			const row = await load(tx, id, ctx, true);
 			await authorize(tx, ctx, row.definition, row.version);
-			if (
-				row.direction !== "export" ||
-				row.status !== "succeeded" ||
-				!row.outputKey
-			)
+			if (row.direction !== "export" || row.status !== "succeeded")
 				throw new TransferError("conflict");
+			if (!row.outputKey) throw new TransferError("expired");
 			return {
 				key: row.outputKey,
 				expiry: row.artifactExpiresAt?.getTime() ?? 0,
@@ -559,6 +580,11 @@ export function createTransfers(deps: TransferDependencies) {
 							errorCode: "expired",
 						});
 				}
+				if (options.execute === true)
+					await tx
+						.update(transfers)
+						.set({ outputKey: null, updatedAt: new Date() })
+						.where(eq(transfers.id, row.id));
 				return [
 					...new Set([row.sourceKey, row.outputKey, ...row.artifactKeys]),
 				].filter((key): key is string => !!key);
@@ -812,6 +838,6 @@ export function createTransfers(deps: TransferDependencies) {
 		reconcileTransfer: safe(reconcileTransfer),
 		reconcileTransfers: safe(reconcileTransfers),
 		purgeTransferArtifacts: safe(purgeTransferArtifacts),
-		run,
+		run: safe(run),
 	};
 }

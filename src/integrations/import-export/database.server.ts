@@ -17,8 +17,17 @@ export function createTransferTransactions(
 	): Promise<T> => {
 		const remaining = deadline - Date.now();
 		if (remaining <= 0) throw new TransferError("timeout");
+		let url: string;
+		try {
+			url = connectionString();
+			const parsed = new URL(url);
+			if (!["postgres:", "postgresql:"].includes(parsed.protocol))
+				throw new Error();
+		} catch {
+			throw new TransferError("configuration");
+		}
 		const client = new pg.Client({
-			connectionString: connectionString(),
+			connectionString: url,
 			connectionTimeoutMillis: Math.max(1, Math.min(5000, remaining)),
 		});
 		let timedOut = false;
@@ -38,7 +47,12 @@ export function createTransferTransactions(
 				interrupted = true;
 				throw new TransferError("unavailable");
 			}
-			await client.connect();
+			try {
+				await client.connect();
+			} catch (error) {
+				if (timedOut || interrupted) throw error;
+				throw new TransferError("unavailable");
+			}
 			if (timedOut) throw new TransferError("timeout");
 			const database = drizzle(client, { schema });
 			return await database.transaction(

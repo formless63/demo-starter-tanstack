@@ -7,6 +7,7 @@ import {
 	projectInputSchema,
 } from "../features/projects/project-schema";
 import { insertProjectInTransaction } from "../features/projects/project-write.server";
+import { AuditLogError } from "../integrations/audit-log/validation";
 import { createTransferTransactions } from "../integrations/import-export/database.server";
 import { createTransferJobs } from "../integrations/import-export/jobs.server";
 import {
@@ -40,7 +41,13 @@ const registry = createTransferRegistry([
 			for (const raw of rows) {
 				signal.throwIfAborted();
 				const data = raw;
-				await insertProjectInTransaction(tx, context.requesterId, data);
+				try {
+					await insertProjectInTransaction(tx, context.requesterId, data);
+				} catch (error) {
+					if (error instanceof AuditLogError && error.code === "DATABASE_ERROR")
+						throw new TransferError("unavailable");
+					throw error;
+				}
 			}
 		},
 		async *exportRows(tx, context, signal) {
