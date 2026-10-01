@@ -70,3 +70,5 @@ Generic CI discovers AI from the catalog; root unit tests exercise real transpor
 5. Retain add-on authoring assets/docs/skill by default. Pruning them is a separate authoring-source choice; update catalog add-on paths/skill/evaluation/status and documentation coherently.
 
 The CLI provides no uninstall transaction. `scripts/ai-removal-fixture.ts` applies this runtime-only removal only inside its explicitly named disposable scaffold. No external data, account or credential is touched.
+
+Header construction must preserve the accepted API key spelling; leading/trailing whitespace and any Headers normalization are rejected as configuration errors. HTTP exceptions use the literal original authority localhost/127.0.0.1/[::1], never normalized abbreviated/integer/hex IPv4. Signals must pass the intrinsic AbortSignal brand check before network access. The pre-parser 32 MiB guard preserves invalid-output even when the SDK wraps oversized error-body reads; only an operation-local finite flag is retained, with no provider body/cause exposure.

@@ -7,6 +7,47 @@ import { finishReason, usage, validateAiInput } from "./validation.server";
 
 const input = { messages: [{ role: "user" as const, content: "hello" }] };
 describe("AI v1 backendless contract", () => {
+	it("rejects forged signal brands safely before network", async () => {
+		const signal = Object.create(AbortSignal.prototype);
+		expect(() => validateAiInput({ ...input, signal })).toThrow(AiError);
+		await expect(
+			createAi().generateText({ ...input, signal }),
+		).rejects.toMatchObject({ code: "invalid-request" });
+	});
+	it("limits HTTP to literal original loopback authorities", () => {
+		for (const host of [
+			"127.1",
+			"2130706433",
+			"0x7f000001",
+			"0177.0.0.1",
+			"127.000.000.001",
+		]) {
+			expect(() =>
+				resolveAiConfig({
+					AI_MODEL: "x",
+					AI_BASE_URL: `http://${host}/v1`,
+					NODE_ENV: "test",
+				}),
+			).toThrow(AiError);
+			expect(
+				resolveAiConfig({
+					AI_MODEL: "x",
+					AI_BASE_URL: `https://${host}/v1`,
+					NODE_ENV: "production",
+				}).baseUrl,
+			).toBe(`https://${host}/v1`);
+		}
+		for (const host of ["localhost", "127.0.0.1", "[::1]"]) {
+			expect(
+				resolveAiConfig({
+					AI_MODEL: "x",
+					AI_BASE_URL: `http://${host}:1234/v1`,
+					NODE_ENV: "test",
+				}).baseUrl,
+			).toBe(`http://${host}:1234/v1`);
+		}
+	});
+
 	it("is lazy and has canonical configuration defaults", async () => {
 		createAi();
 		expect(resolveAiConfig({ AI_MODEL: "explicit-model" })).toEqual({
@@ -148,6 +189,8 @@ describe("AI v1 backendless contract", () => {
 				).rejects.toMatchObject({ code: "configuration" });
 			}
 		for (const apiKey of [
+			" private-key",
+			"private-key ",
 			"private-key\ud800",
 			"private-key\u0100",
 			"private-key🚀",

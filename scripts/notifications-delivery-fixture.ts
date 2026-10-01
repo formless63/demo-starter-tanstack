@@ -20,7 +20,7 @@ try {
   const mailpitUrl = `http://127.0.0.1:${port(mailpit,8025)}`, ntfyUrl=`http://127.0.0.1:${port(ntfy,80)}`;
   await Promise.all([ready(`${mailpitUrl}/api/v1/messages`),ready(`${ntfyUrl}/v1/health`)]);
   process.env.PGBOSS_SCHEMA=schema; process.env.PGBOSS_DATABASE_URL=process.env.DATABASE_URL; process.env.PGBOSS_USE_LISTEN_NOTIFY="false";
-  const migration = createJobsBoss({migrate:true,schedule:false,supervise:false}); await migration.start(); await migration.stop();
+  const migration = createJobsBoss("migration"); await migration.start(); await migration.stop();
   await db.insert(user).values({id:recipientId,name:"Delivery fixture",email:`initial-${suffix}@example.test`});
   const queued = await db.transaction(tx=>createNotificationInTransaction(tx,{recipientId,type:"fixture.delivery",title:"Current delivery",body:"Initially queued body"},["email","ntfy"]));
   // Resolve current recipient/content AFTER enqueue, never from a copied Jobs payload.
