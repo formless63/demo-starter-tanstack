@@ -29,6 +29,16 @@ describe("Ops access", () => {
 			allows: () => true,
 		});
 	});
+	it("deduplicates before enforcing the 100 distinct operator limit", () => {
+		expect(operatorIds(Array(1001).fill(" valid-user ").join(","))).toEqual(
+			new Set(["valid-user"]),
+		);
+		expect(() =>
+			operatorIds(
+				Array.from({ length: 101 }, (_, i) => `distinct-${i}`).join(","),
+			),
+		).toThrow();
+	});
 	it("fails malformed configuration closed", () => {
 		expect(() => operatorIds("a\u0000")).toThrow();
 		expect(() => operatorIds("a".repeat(129))).toThrow();

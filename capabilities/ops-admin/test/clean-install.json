@@ -50,10 +50,6 @@
     ],
     [
       "bun",
-      "scripts/ops-removal-fixture.ts"
-    ],
-    [
-      "bun",
       "x",
       "tsc",
       "--noEmit"

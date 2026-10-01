@@ -40,9 +40,11 @@ export function operatorIds(raw = "") {
 		.split(",")
 		.map((x) => x.trim())
 		.filter(Boolean);
-	if (entries.length > 100 || entries.some((x) => !validOpaqueId(x)))
+	if (entries.some((x) => !validOpaqueId(x)))
 		throw new OpsError("configuration");
-	return new Set(entries);
+	const ids = new Set(entries);
+	if (ids.size > 100) throw new OpsError("configuration");
+	return ids;
 }
 export type OpsGuard = {
 	policy: "narrow" | "replace";

@@ -2,8 +2,8 @@ import { checkCache } from "#/integrations/cache/cache.server";
 import { cacheConfig } from "#/integrations/cache/config.server";
 import type { OpsAdapter } from "#/integrations/ops-admin/ops.server";
 import { storageConfig } from "#/integrations/storage/config.server";
-import { checkStorage } from "#/integrations/storage/storage.server";
 import { inspectOpsJobs, opsJobsConfigured } from "./ops-jobs.server";
+import { inspectOpsStorage } from "./ops-storage.server";
 
 function configured(check: () => unknown) {
 	try {
@@ -38,10 +38,7 @@ export const opsAdapters: OpsAdapter[] = [
 		id: "storage",
 		title: "Private storage reachability",
 		isConfigured: () => configured(() => storageConfig()),
-		inspect: async () => {
-			await checkStorage();
-			return { status: "ok" };
-		},
+		inspect: inspectOpsStorage,
 	},
 	{
 		id: "cache",
