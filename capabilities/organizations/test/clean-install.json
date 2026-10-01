@@ -1,0 +1,48 @@
+{
+  "projectName": "organizations-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "addOnConfig": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "expectedOfficialAddOns": [
+    "better-auth",
+    "drizzle"
+  ],
+  "forbiddenOfficialAddOns": [
+    "audit-log",
+    "notifications",
+    "authorization",
+    "feature-flags",
+    "api-platform",
+    "postgres-jobs"
+  ],
+  "expectedFiles": [
+    "src/lib/auth.ts",
+    "src/integrations/organizations/auth.server.ts",
+    "src/integrations/organizations/schema.ts",
+    "capabilities/organizations/CAPABILITY.md"
+  ],
+  "verificationCommands": [
+    [
+      "bun",
+      "capabilities/organizations/test/contract.ts"
+    ],
+    [
+      "bun",
+      "capabilities/organizations/test/contract.ts",
+      "--bun-sql"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ]
+  ],
+  "build": true
+}
