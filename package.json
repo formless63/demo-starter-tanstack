@@ -66,7 +66,9 @@
     "cache:telemetry": "bun scripts/cache-telemetry.ts",
     "add-ons:preflight": "bun scripts/add-ons.ts preflight",
     "add-ons:test:composition": "bun scripts/add-ons.ts test-composition fixtures/add-ons/database-composition.json",
-    "db:persistence:test": "bun scripts/postgres-persistence.ts"
+    "db:persistence:test": "bun scripts/postgres-persistence.ts",
+    "project:check": "bun scripts/project.ts check",
+    "project:status": "bun scripts/project.ts status"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",

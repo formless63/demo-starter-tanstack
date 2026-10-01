@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "id": "supplied-spec",
+      "type": "repository-file",
+      "title": "Supplied field workflows",
+      "path": "input/SPEC.md"
+    },
+    {
+      "id": "incoming-skills",
+      "type": "external-material",
+      "title": "Reviewed hypothetical skill library",
+      "path": "input/skills-review.md"
+    },
+    {
+      "id": "public-design",
+      "type": "public-url",
+      "title": "Official semantic CSS guide",
+      "url": "https://tailwindcss.com/docs/theme"
+    }
+  ]
+}
