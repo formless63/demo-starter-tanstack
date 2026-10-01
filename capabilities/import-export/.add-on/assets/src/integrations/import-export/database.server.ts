@@ -72,7 +72,7 @@ export function createTransferTransactions(
 			if (timedOut) throw new TransferError("timeout");
 			const database = drizzle(client, { schema });
 			const transactionDeadline = Math.min(deadline, Date.now() + 30000);
-			return await database.transaction(
+			const result = await database.transaction(
 				async (tx) => {
 					try {
 						const ms = transactionDeadline - Date.now();
@@ -93,6 +93,8 @@ export function createTransferTransactions(
 					? { isolationLevel: "repeatable read", accessMode: "read only" }
 					: undefined,
 			);
+			if (databaseTimedOut) throw new TransferError("timeout");
+			return result;
 		} catch (error) {
 			if (timedOut) throw new TransferError("timeout");
 			if (interrupted)
