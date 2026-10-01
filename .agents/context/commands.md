@@ -76,3 +76,7 @@ For a downstream lean application, follow `docs/STARTING-A-PROJECT.md`. Its Jobs
 - `bun run add-ons:test:composition`: reviewed API/Audit/Jobs combined clean migrate/runtime/type/build proof; owned disposable database.
 - `bun run db:persistence:test`: own Compose project/volume, container recreation and retained marker; destroys only its fixture volume.
 - `NODE_ENV=production NITRO_PRESET=node-server bun run build`: production artifact when the shell otherwise has NODE_ENV=test. `E2E_BASE_URL=http://127.0.0.1:<port> bun run test:e2e` targets an already running production artifact rather than starting Vite.
+
+- `bun run search:smoke`: real PostgreSQL18 FTS safety/weight/websearch/keyset contract against a temporary fixture table, no shipped domain model.
+- `bun test src/integrations/search src/features/projects/search.integration.test.ts`: real clean/upgrade migration, Projects owner isolation, STORED/GIN and safe error/privacy proof; disposable admin DB permissions required for migration tests.
+- `bun run add-ons:test search`: official clean installation/build/removal with retained fixture data and migration history; PostgreSQL18 required.
