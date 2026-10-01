@@ -37,12 +37,14 @@ try{
  assert.equal(await auth.can(db,{...bob,credentialAllows:()=>true},'notes.read'),false);
  const page=await auth.listAssignments(db,alice,alice.scope,{limit:1});assert.equal(page.items.length,1);assert.ok(page.nextCursor);assert.equal((await auth.listAssignments(db,alice,alice.scope,{limit:1,cursor:page.nextCursor})).items.length,1);
  assert.throws(()=>pageInput({cursor:`${page.nextCursor}=`}));assert.throws(()=>pageInput({limit:101}));
- await assert.rejects(db.transaction(async tx=>{await auth.grantRoleInTransaction(tx,alice,{scope:bob.scope,userId:'bob',roleId:'reader'});throw new Error('fixture rollback');}));assert.equal(await auth.can(db,bob,'notes.read'),false);
+ const auditBefore=(await pool.query('SELECT count(*)::int AS count FROM fixture_audit')).rows[0].count;
+ await assert.rejects(db.transaction(async tx=>{await auth.grantRoleInTransaction(tx,alice,{scope:bob.scope,userId:'bob',roleId:'reader'});throw new Error('fixture rollback');}));assert.equal(await auth.can(db,bob,'notes.read'),false);assert.equal((await pool.query('SELECT count(*)::int AS count FROM fixture_audit')).rows[0].count,auditBefore);
  const tenantGrant={scope:tenant.scope,userId:'alice',roleId:'reader'};await auth.grantRole(db,alice,tenantGrant);assert.equal(await auth.can(db,tenant,'notes.read'),true);
  await pool.query("DELETE FROM fixture_membership");assert.equal(await auth.can(db,tenant,'notes.read'),false);assert.equal((await db.select().from(authorizationAssignments)).length,3);
  assert.equal(await defineAuthorization(registry).can(db,tenant,'notes.read'),false);
  await auth.revokeRole(db,alice,grant);assert.equal(await auth.can(db,alice,'notes.read'),false);assert.equal((await auth.revokeRole(db,alice,grant)).changed,false);
  await db.insert(authorizationAssignments).values({id:randomUUID(),scopeKind:'user',scopeId:'bob',userId:'bob',roleId:'removed',createdAt:new Date()});assert.equal(await auth.can(db,bob,'notes.read'),false);
+ await auth.revokeRole(db,alice,{scope:bob.scope,userId:'bob',roleId:'removed'});assert.equal((await auth.revokeRole(db,alice,{scope:bob.scope,userId:'bob',roleId:'removed'})).changed,false);
  const mapped=defineAuthorization(registry,{mappedRoles:context=>context.userId==='bob'?['reader']:[]});assert.equal(await mapped.can(db,bob,'notes.read'),true);assert.equal(await mapped.can(db,alice,'notes.read'),false);
  await auth.grantRole(db,alice,grant);
  let acquired!:()=>void,release!:()=>void;const started=new Promise<void>(r=>acquired=r),hold=new Promise<void>(r=>release=r);

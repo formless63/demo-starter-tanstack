@@ -128,6 +128,14 @@ export async function setFlagTransactionBounds(
 	await tx.execute(sql`SET LOCAL lock_timeout='2s'`);
 }
 export function defineFeatureFlags(options: FlagOptions = {}) {
+	if (
+		!options ||
+		typeof options !== "object" ||
+		[options.managementGuard, options.audit].some(
+			(value) => value !== undefined && typeof value !== "function",
+		)
+	)
+		throw new FeatureFlagsError("configuration");
 	async function guard(
 		tx: FlagTransaction,
 		actor: FlagActor,
@@ -137,7 +145,7 @@ export function defineFeatureFlags(options: FlagOptions = {}) {
 		opaqueId(actor.userId);
 		if (
 			!options.managementGuard ||
-			!(await options.managementGuard(actor, operation, tx))
+			(await options.managementGuard(actor, operation, tx)) !== true
 		)
 			throw new FeatureFlagsError("forbidden");
 	}

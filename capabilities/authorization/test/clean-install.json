@@ -32,6 +32,11 @@
     ],
     [
       "bun",
+      "capabilities/authorization/test/node.ts",
+      "authorization"
+    ],
+    [
+      "bun",
       "x",
       "tsc",
       "--noEmit"

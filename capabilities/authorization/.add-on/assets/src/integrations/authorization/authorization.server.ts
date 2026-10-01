@@ -85,6 +85,17 @@ export function defineAuthorization(
 	registry: AuthorizationRegistry,
 	options: AuthorizationOptions = {},
 ) {
+	if (
+		!options ||
+		typeof options !== "object" ||
+		[
+			options.tenantMembership,
+			options.mappedRoles,
+			options.managementGuard,
+			options.audit,
+		].some((value) => value !== undefined && typeof value !== "function")
+	)
+		throw new AuthorizationError("configuration");
 	const actions = new Map<string, ActionDefinition>();
 	const roles = new Map<string, ReadonlySet<string>>();
 	try {
@@ -132,7 +143,8 @@ export function defineAuthorization(
 			return context.scope.id === context.userId ? undefined : "scope-mismatch";
 		if (
 			!options.tenantMembership ||
-			!(await options.tenantMembership(context.userId, context.scope.id, tx))
+			(await options.tenantMembership(context.userId, context.scope.id, tx)) !==
+				true
 		)
 			return "scope-mismatch";
 	}
@@ -169,12 +181,13 @@ export function defineAuthorization(
 				)
 			)
 				return { allowed: false, reason: "no-grant" };
-			if (context.credentialAllows && !context.credentialAllows(action))
+			if (context.credentialAllows && context.credentialAllows(action) !== true)
 				return { allowed: false, reason: "no-grant" };
 			if (
 				definition.resource &&
 				(resource === undefined ||
-					!(await definition.resource(context, resource, tx)))
+					resource === null ||
+					(await definition.resource(context, resource, tx)) !== true)
 			)
 				return { allowed: false, reason: "resource-denied" };
 			return { allowed: true, reason: "allowed" };
@@ -239,7 +252,7 @@ export function defineAuthorization(
 		if (await verify(actor, tx)) throw new AuthorizationError("forbidden");
 		if (
 			!options.managementGuard ||
-			!(await options.managementGuard(actor, scope, operation, tx))
+			(await options.managementGuard(actor, scope, operation, tx)) !== true
 		)
 			throw new AuthorizationError("forbidden");
 	}
@@ -254,7 +267,8 @@ export function defineAuthorization(
 		const scope = exactScope(input.scope),
 			userId = opaqueId(input.userId),
 			roleId = actionId(input.roleId, 64, false);
-		if (!roles.has(roleId)) throw new AuthorizationError("invalid-input");
+		if (operation === "grant" && !roles.has(roleId))
+			throw new AuthorizationError("invalid-input");
 		try {
 			await setAuthorizationTransactionBounds(tx);
 			await guard(tx, actor, scope, operation);
@@ -262,7 +276,7 @@ export function defineAuthorization(
 				operation === "grant" &&
 				scope.kind === "tenant" &&
 				(!options.tenantMembership ||
-					!(await options.tenantMembership(userId, scope.id, tx)))
+					(await options.tenantMembership(userId, scope.id, tx)) !== true)
 			)
 				throw new AuthorizationError("not-found");
 			// Transaction-scoped subject/scope lock serializes the 64-assignment bound;

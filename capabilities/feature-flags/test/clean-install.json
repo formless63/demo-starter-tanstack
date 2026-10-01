@@ -32,6 +32,11 @@
     ],
     [
       "bun",
+      "capabilities/feature-flags/test/node.ts",
+      "feature-flags"
+    ],
+    [
+      "bun",
       "x",
       "tsc",
       "--noEmit"

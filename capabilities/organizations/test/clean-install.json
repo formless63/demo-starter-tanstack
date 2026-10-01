@@ -39,6 +39,11 @@
     ],
     [
       "bun",
+      "capabilities/organizations/test/node.ts",
+      "organizations"
+    ],
+    [
+      "bun",
       "x",
       "tsc",
       "--noEmit"

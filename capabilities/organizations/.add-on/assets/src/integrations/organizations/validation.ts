@@ -150,9 +150,19 @@ export function encodeCursor(row: { createdAt: Date; id: string }) {
 }
 export function normalizeOrganizationError(error: unknown): OrganizationError {
 	if (error instanceof OrganizationError) return error;
-	const code =
-		(error as { code?: unknown; cause?: { code?: unknown } } | null)?.code ??
-		(error as { cause?: { code?: unknown } } | null)?.cause?.code;
+	const outer = error as {
+		code?: unknown;
+		errno?: unknown;
+		cause?: { code?: unknown; errno?: unknown };
+	} | null;
+	const code = [
+		outer?.code,
+		outer?.errno,
+		outer?.cause?.code,
+		outer?.cause?.errno,
+	].find(
+		(value) => value === "23505" || value === "57014" || value === "55P03",
+	);
 	if (code === "23505") return new OrganizationError("conflict");
 	if (code === "57014" || code === "55P03")
 		return new OrganizationError("timeout");

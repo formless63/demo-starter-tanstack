@@ -4,15 +4,33 @@
 	"blank": true,
 	"packageManager": "bun",
 	"toolchain": "biome",
-	"capabilities": ["jobs", "api-platform", "audit-log", "search", "notifications"],
-	"addOnConfig": { "drizzle": { "database": "postgresql" } },
+	"capabilities": [
+		"jobs",
+		"api-platform",
+		"audit-log",
+		"search",
+		"notifications"
+	],
+	"addOnConfig": {
+		"drizzle": {
+			"database": "postgresql"
+		}
+	},
 	"reviewedSharedFiles": {
 		"drizzle.config.ts": "drizzle.config.ts",
 		"src/db/schema.ts": "src/db/schema.ts",
 		"drizzle": "drizzle",
-		"scripts/database-composition-fixture.ts": "scripts/database-composition-fixture.ts"
+		"scripts/database-composition-fixture.ts": "scripts/database-composition-fixture.ts",
+		"src/features/organizations/schema.ts": "src/features/organizations/schema.ts",
+		"src/integrations/organizations/schema.ts": "src/integrations/organizations/schema.ts",
+		"src/integrations/authorization/schema.ts": "src/integrations/authorization/schema.ts",
+		"src/integrations/feature-flags/schema.ts": "src/integrations/feature-flags/schema.ts"
 	},
-	"expectedOfficialAddOns": ["drizzle", "better-auth", "postgres-jobs"],
+	"expectedOfficialAddOns": [
+		"drizzle",
+		"better-auth",
+		"postgres-jobs"
+	],
 	"expectedFiles": [
 		"src/integrations/audit-log/schema.ts",
 		"src/integrations/jobs/lifecycle.server.ts",
@@ -20,8 +38,16 @@
 		"src/integrations/notifications/schema.ts"
 	],
 	"verificationCommands": [
-		["bun", "x", "tsc", "--noEmit"],
-		["bun", "scripts/database-composition-fixture.ts"]
+		[
+			"bun",
+			"x",
+			"tsc",
+			"--noEmit"
+		],
+		[
+			"bun",
+			"scripts/database-composition-fixture.ts"
+		]
 	],
 	"build": true
 }

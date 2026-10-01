@@ -14,8 +14,16 @@ export function personalPolicyContext(userId: string): AuthorizationContext {
 export const applicationPolicy = defineAuthorization(
 	{
 		actions: [
-			{ id: "projects.read" },
-			{ id: "projects.create" },
+			{
+				id: "projects.read",
+				resource: (context, resource) =>
+					(resource as { ownerId?: string }).ownerId === context.userId,
+			},
+			{
+				id: "projects.create",
+				resource: (context, resource) =>
+					(resource as { ownerId?: string }).ownerId === context.userId,
+			},
 			{
 				id: "projects.update",
 				resource: (context, resource) =>

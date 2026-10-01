@@ -55,7 +55,9 @@ export async function findProjectsForOwner(
 	ownerId: string,
 	context: AuthorizationContext = personalPolicyContext(ownerId),
 ) {
-	await applicationPolicy.requirePermission(db, context, "projects.read");
+	await applicationPolicy.requirePermission(db, context, "projects.read", {
+		ownerId,
+	});
 	return db
 		.select(projectFields)
 		.from(projects)
@@ -81,6 +83,7 @@ export async function insertProjectForOwner(
 			tx,
 			context,
 			"projects.create",
+			{ ownerId },
 		);
 		const [project] = await tx
 			.insert(projects)
@@ -189,6 +192,7 @@ export async function searchProjectsForOwner(
 		db,
 		personalPolicyContext(ownerId),
 		"projects.read",
+		{ ownerId },
 	);
 	const input = parseSearchInput(request);
 	const query = searchQuery(input.query);

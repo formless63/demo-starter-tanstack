@@ -10,5 +10,7 @@ export function createBoundedOrganizationAuthDatabase<
 		options: "-c statement_timeout=5000 -c lock_timeout=2000",
 		connectionTimeoutMillis: 5000,
 	});
+	// pg removes a failed idle client; discard its raw diagnostic rather than emitting it.
+	pool.on("error", () => {});
 	return { db: drizzle(pool, { schema }), close: () => pool.end() };
 }
