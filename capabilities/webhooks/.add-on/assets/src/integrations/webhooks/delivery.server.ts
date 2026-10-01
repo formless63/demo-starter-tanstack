@@ -147,6 +147,13 @@ export async function deliverWebhook(
 		}
 		const controller = new AbortController();
 		const signal = controller.signal;
+		const deadlineAt = started + timeout;
+		const assertWithinDeadline = () => {
+			if (signal.aborted || performance.now() >= deadlineAt) {
+				controller.abort();
+				throw new WebhookDeliveryError("timeout", true);
+			}
+		};
 		let timer: ReturnType<typeof setTimeout> | undefined;
 		const attempt = async () => {
 			try {
@@ -171,9 +178,9 @@ export async function deliverWebhook(
 				if (error instanceof WebhookDeliveryError) throw error;
 				throw new WebhookDeliveryError("target", true);
 			}
-			signal.throwIfAborted();
+			assertWithinDeadline();
 			const url = await validateWebhookTarget(target, signal);
-			signal.throwIfAborted();
+			assertWithinDeadline();
 			const timestamp = Math.floor(Date.now() / 1000);
 			const bytes = Buffer.from(delivery.body, "utf8");
 			let signature: string;
@@ -187,6 +194,7 @@ export async function deliverWebhook(
 			} catch {
 				throw new WebhookDeliveryError("configuration", false);
 			}
+			assertWithinDeadline();
 			try {
 				const response = await fetch(url, {
 					method: "POST",
@@ -215,15 +223,16 @@ export async function deliverWebhook(
 			return { outcome: "success" as const, status };
 		};
 		try {
-			return await Promise.race([
-				attempt(),
-				new Promise<never>((_, reject) => {
-					timer = setTimeout(() => {
+			const deadline = new Promise<never>((_, reject) => {
+				timer = setTimeout(
+					() => {
 						controller.abort();
 						reject(new WebhookDeliveryError("timeout", true));
-					}, timeout);
-				}),
-			]);
+					},
+					Math.max(0, deadlineAt - performance.now()),
+				);
+			});
+			return await Promise.race([attempt(), deadline]);
 		} finally {
 			clearTimeout(timer);
 			controller.abort();
