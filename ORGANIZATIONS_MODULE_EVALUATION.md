@@ -25,12 +25,10 @@ node /tmp/organizations-native-claim-proof.mjs
 
 The fixture creates/removes only its uniquely named container. Credentials exist only in this disposable fixture. Its pinned official mirror is PostgreSQL18.1 Alpine digest `sha256:aa6eb304ddb6dd26df23d05db4e5cb05af8951cda3e0dc57731b771e0ef4ab29`.
 
-## Cross-framework v1 contract
+## Cross-framework v1 contract — adopted native compatibility revision
 
-The dispatched contract requires invitation claim plus membership acceptance to use the supported transactional path, with unique membership enforcement. Native 1.7.7 provides a conditional atomic claim, then transactional membership/session work, then compensation on caught failure. It does **not** provide one native enclosing transaction for both stages. A process crash or unavailable compensation can leave accepted status without membership; no diagnostic here claims otherwise.
+The orchestrator adopted the native 1.7.7 acceptance contract on 2026-10-01: a single-winner conditional pending-to-accepted claim followed by transactional membership/session creation where supported, with best-effort restoration to pending on ordinary failure. Claim plus membership is **not crash-atomic**. A process interruption or unavailable compensation can leave accepted status without membership. Only authoritative persisted membership grants tenant access; an invitation status never does.
 
-The native primitive alone therefore cannot substantiate an atomic claim-plus-membership contract. This issue is distinct from the already documented organization-creation orphan limitation.
+This issue is distinct from the organization-creation orphan limitation. No outer dispatch transaction framework, copied plugin internals, blind acceptance replay or automatic owner repair is introduced.
 
-Smallest conservative contract revision, **proposed for parent coordination, not adopted**: explicitly describe the native acceptance as a conditional single-winner claim followed by transactional membership/session work and best-effort compensation on failure; require refresh/operator diagnosis after ambiguous failure, never silently retry, and do not claim crash-atomic acceptance. Retain matching verified email, owner/role guards, unique membership and safe conflict outcomes.
-
-If a single enclosing transaction remains mandatory, retain that contract and verify an application-owned transaction around **all** native acceptance entrypoints without bypassing dispatch. That is a separate integration design decision and proof, rather than a property of enabling the upstream adapter option. No runtime behavior or shared contract was changed in this checkpoint.
+The independent contract fixture additionally exercises native HTTP and auth.api bootstrap, role/owner invariants, verified matching email, concurrent admission, terminal invitations, stale selection after removal, scoped reads and ordinary insertion-failure compensation. Its current interruption proof deliberately injects the inconsistent durable state; actual process-window interruption and Bun SQL driver verification remain required before completion. See [operational recovery](capabilities/organizations/CAPABILITY.md#operator-recovery).
