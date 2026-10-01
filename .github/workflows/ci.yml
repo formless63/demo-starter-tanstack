@@ -93,6 +93,11 @@ jobs:
       - run: docker compose run --rm jobs-migrate
       - run: bun run production:smoke
       - run: docker compose run --rm worker node .output/notifications-smoke.mjs
+      - name: Verify combined Import and Ops on both real storage providers
+        run: |
+          bun run import-export:unit
+          bun run storage:abort
+          IMPORT_EXPORT_FIXTURE_SCRIPT=scripts/import-export-ops-fixture.ts bun run import-export:compat
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run add-ons:test:composition

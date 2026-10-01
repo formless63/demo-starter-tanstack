@@ -1,6 +1,6 @@
 # Ops / Admin v1
 
-Status: in progress. Independent opt-in add-on; defaultInstalled is false. The reference wires explicit adapters. Verification remains a prerequisite to done.
+Status: done. Independent opt-in add-on; defaultInstalled is false. The reference wires explicit adapters. Integration changes require full verification.
 
 ## Access and contract
 
@@ -28,7 +28,7 @@ To remove an optional capability first remove its entry/import in application-ow
 
 ## Verification
 
-`bun run ops:reference:removal` independently prunes each root optional adapter and its imports, then typechecks/builds an isolated copy. The generic clean consumer verifies retained human login/session and database health plus removed Ops route 404 after clearing generated state.
+`bun run ops:reference:removal` independently prunes each root optional adapter and its imports, then typechecks/builds an isolated copy. The generic clean consumer asserts Jobs/Storage/Cache/Observability packages are genuinely unavailable, verifies baseline-only Ops, then retained human login/session and database health plus removed Ops route 404 after clearing generated state.
 
 `bun run ops:unit` covers allowlist/session/guard boundaries, safe failures, missing configuration, registry validation, counts, isolation, deadlines and hung-work/concurrency limits. Generic clean-install fixture exercises baseline-only adapters and removal/rebuild. Real read-only canaries live in scripts/ops-jobs-fixture.ts (PostgreSQL cached metadata), scripts/ops-storage-fixture.ts (HEAD proxy with disposable storage:compat providers) and scripts/ops-cache-fixture.ts (PING/connection metadata through a disposable Valkey proxy). The baseline consumer runtime fixture explicitly migrates its own unique database and proves human session/operator boundaries before code removal. Browser, production and exact-head hosted CI run evidence is tracked in the draft PR; do not infer completion from unit tests.
 
