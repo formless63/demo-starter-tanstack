@@ -53,8 +53,8 @@ function OpsPage() {
 	return (
 		<main className="mx-auto max-w-5xl space-y-6 p-6">
 			<h1 className="text-2xl font-semibold">Operational overview</h1>
-			<a href="/app/projects" className="underline">
-				Back to app
+			<a href="/" className="underline">
+				Home
 			</a>
 			<button
 				type="button"
