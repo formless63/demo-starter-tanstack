@@ -6,6 +6,11 @@ import pg from 'pg';
 import {readFileSync} from 'node:fs';
 if(!process.cwd().includes('ops-addon-clean-install'))throw new Error('Disposable consumer required');
 if(JSON.parse(readFileSync('node_modules/better-auth/package.json','utf8')).version !== '1.7.7')throw new Error('Baseline Better Auth version mismatch');
+// Independent Ops must restore sessions and serve health with optional packages genuinely unavailable.
+for(const name of ['pg-boss','@aws-sdk/client-s3','redis','pino','@opentelemetry/api']){
+ let available=false;try{import.meta.resolve(name);available=true;}catch{}
+ if(available)throw new Error(`Optional provider package unexpectedly available: ${name}`);
+}
 const adminUrl=process.env.DATABASE_URL!;const admin=new pg.Client({connectionString:adminUrl});await admin.connect();
 const database=`ops_fixture_${randomUUID().replaceAll('-','')}`;
 try{
