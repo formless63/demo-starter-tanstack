@@ -138,8 +138,8 @@ try {
 				...Array.from({ length: 31 }, (_, i) => ({
 					id: `tie-${String(i).padStart(2, "0")}`,
 					owner: "a",
-					title: "tie",
-					body: null,
+					title: "",
+					body: "tie",
 					updatedAt: new Date("2026-01-01"),
 				})),
 			]);
@@ -219,6 +219,9 @@ try {
 		const first = await search({ query: "tie", limit: 1 });
 		assert.ok(first.nextCursor);
 		const decoded = decodeSearchCursor(first.nextCursor);
+		const storedRank = await tx.execute(sql`SELECT ts_rank_cd(vector, websearch_to_tsquery('simple', 'tie'), 32)::text AS rank FROM search_fixture WHERE id = 'tie-00'`);
+		assert.equal(decoded.rank, storedRank.rows[0].rank);
+		assert.notEqual(decoded.rank, "0.5"); // pagination exercises a non-binary-exact B-weight rank
 		assert.equal(decoded.updatedAt, "2026-01-01T00:00:00.000123Z");
 		assert.equal(encodeSearchCursor(decoded), first.nextCursor);
 		const asCursor = (value: unknown) =>
