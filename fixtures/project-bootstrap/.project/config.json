@@ -32,9 +32,9 @@
       "userSelectable": true
     },
     "theme": {
-      "source": "custom",
-      "name": "fixture-initial",
-      "reference": "input/SPEC.md",
+      "source": "tweakcn",
+      "name": "modern-minimal",
+      "reference": "input/tweakcn-modern-minimal.json",
       "file": ".project/theme.json"
     },
     "fonts": "system-fallback"

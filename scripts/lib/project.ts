@@ -1,23 +1,10 @@
-import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
-import { resolve, sep } from 'node:path';
+import { readJson, repositoryFile } from './project-files.ts';
+import { checkTheme } from './theme.ts';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { z } from 'zod';
-import { configSchema, sourcesSchema, skillsSchema, schemaFiles, relativePath, safePublicUrl, safeReference, validateTheme, type ProjectConfig } from './project-contracts.ts';
+import { configSchema, sourcesSchema, skillsSchema, schemaFiles, safePublicUrl, safeReference, validateTheme, type ProjectConfig } from './project-contracts.ts';
 
-export function readJson(root: string, path: string): unknown {
- const file = resolve(root,path);
- if (!repositoryFile(root,path)) throw new Error('JSON reference must be a repository file.');
- try {
-  if (statSync(file).size > 512*1024) throw new Error();
-  return JSON.parse(readFileSync(file,'utf8'));
- } catch { throw new Error('Cannot read bounded project JSON.'); }
-}
-export function repositoryFile(root: string, path: string): boolean {
- if (!relativePath.safeParse(path).success || /(?:^|\/)\.env(?:$|\.)(?!example$|sample$)/.test(path)) return false;
- try {
-  const actual = realpathSync(resolve(root,path));
-  return actual.startsWith(realpathSync(root)+sep) && statSync(actual).isFile();
- } catch { return false; }
-}
 function parse<T>(schema: z.ZodType<T>, input: unknown, label: string): T {
  const result = schema.safeParse(input);
  if (!result.success) throw new Error(`Invalid ${label} schema. Check field types, allowed keys, and relative paths.`);
@@ -80,7 +67,8 @@ export function checkProject(root: string): string[] {
   }
   for (const name of ['PROJECT','SPEC','DESIGN']) if (!repositoryFile(root,`docs/templates/project/${name}.md`)) errors.push(`Missing ${name} template.`);
   for (const path of ['scripts/project.ts','.agents/skills/project-onboarding/SKILL.md','.agents/prompts/onboard-project.md']) if (!repositoryFile(root,path)) errors.push('Missing bootstrap tooling/guidance.');
-  loadProject(root);
+  const config = loadProject(root);
+  if (config || existsSync(resolve(root,"appearance/default-theme.json"))) errors.push(...checkTheme(root));
  } catch (error) { errors.push(error instanceof Error ? error.message : 'Invalid project metadata.'); }
  return errors;
 }

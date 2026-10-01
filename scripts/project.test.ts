@@ -2,6 +2,7 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, sy
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
+import { applyTheme } from './lib/theme.ts';
 import { checkProject, loadProject, projectStatus } from './lib/project.ts';
 import { configSchema, sourcesSchema, skillsSchema, validateTheme } from './lib/project-contracts.ts';
 const repository = resolve(import.meta.dirname,'..');
@@ -10,9 +11,10 @@ afterEach(()=>{for(const root of temporary.splice(0)) rmSync(root,{recursive:tru
 export function fixture() {
  const root=mkdtempSync(resolve(tmpdir(),'project-bootstrap-'));temporary.push(root);
  cpSync(resolve(repository,'fixtures/project-bootstrap'),root,{recursive:true});
- for(const path of ['.agents/schemas','docs/templates/project','scripts/project.ts','.agents/skills/project-onboarding','.agents/prompts/onboard-project.md','capabilities/catalog.json']) {
+ for(const path of ['appearance','.agents/schemas','docs/templates/project','scripts/project.ts','.agents/skills/project-onboarding','.agents/prompts/onboard-project.md','capabilities/catalog.json']) {
   mkdirSync(resolve(root,path,'..'),{recursive:true});cpSync(resolve(repository,path),resolve(root,path),{recursive:true});
  }
+ applyTheme(root);
  return root;
 }
 function change(root:string,file:string,edit:(data:any)=>void) {
@@ -23,7 +25,7 @@ describe('project bootstrap contract',()=>{
   const root=fixture();expect(checkProject(root)).toEqual([]);expect(loadProject(root)?.capabilities.deferred).toEqual(['realtime']);
   const before=readFileSync(resolve(root,'.project/config.json'),'utf8');expect(projectStatus(root)).toContain('Skills: 2 installed; 4 reviewed');expect(projectStatus(root)).toContain('Enablement drift:');expect(readFileSync(resolve(root,'.project/config.json'),'utf8')).toBe(before);
  });
- test('reference uninitialized still validates tooling',()=>{const root=fixture();rmSync(resolve(root,'.project'),{recursive:true});expect(checkProject(root)).toEqual([]);expect(projectStatus(root)).toContain('uninitialized');rmSync(resolve(root,'docs/templates/project/PROJECT.md'));expect(checkProject(root)).toContain('Missing PROJECT template.');});
+ test('reference uninitialized still validates tooling',()=>{const root=fixture();rmSync(resolve(root,'.project'),{recursive:true});applyTheme(root);expect(checkProject(root)).toEqual([]);expect(projectStatus(root)).toContain('uninitialized');rmSync(resolve(root,'docs/templates/project/PROJECT.md'));expect(checkProject(root)).toContain('Missing PROJECT template.');});
  test.each([
   ['unknown ID',(d:any)=>d.capabilities.selected.push('unknown-id'),'Unknown capability'],
   ['planned selected',(d:any)=>{d.capabilities.selected.push('realtime');d.capabilities.deferred=[];},'not implemented'],
