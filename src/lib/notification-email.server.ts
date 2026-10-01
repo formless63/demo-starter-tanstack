@@ -12,10 +12,14 @@ export function notificationEmailAdapter(options: {
 }): NotificationAdapter {
 	return async (notification, { signal }) => {
 		if (signal.aborted) return { outcome: "permanent", category: "rejected" };
-		const address = await options.resolveEmail(
-			notification.recipientId,
-			signal,
-		);
+		let address: string | null;
+		try {
+			address = await options.resolveEmail(notification.recipientId, signal);
+		} catch (error) {
+			// Resolution cannot have delivered: preserve only explicitly safe transient failures.
+			if (error instanceof NotificationError) throw error;
+			throw new NotificationError("unavailable", false);
+		}
 		if (signal.aborted) return { outcome: "permanent", category: "rejected" };
 		if (!address) return { outcome: "permanent", category: "not-found" };
 		try {
@@ -37,12 +41,12 @@ export function notificationEmailAdapter(options: {
 		} catch (error) {
 			if (error instanceof EmailError) {
 				// Email deliberately does not retry ambiguous acceptance/connection loss.
-				if (
-					!error.retryable &&
-					["timeout", "connection", "unknown"].includes(error.code)
-				)
+				if (["timeout", "connection", "unknown"].includes(error.code))
 					return { outcome: "ambiguous" };
-				throw new NotificationError("unavailable", error.retryable);
+				throw new NotificationError(
+					"unavailable",
+					error.code === "temporary-rejection" && error.retryable,
+				);
 			}
 			return { outcome: "ambiguous" };
 		}

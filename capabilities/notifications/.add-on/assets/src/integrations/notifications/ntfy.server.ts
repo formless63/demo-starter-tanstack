@@ -52,7 +52,8 @@ export async function publishNtfy(
 				AbortSignal.timeout(config.timeoutSeconds * 1000),
 			])
 		: AbortSignal.timeout(config.timeoutSeconds * 1000);
-	if (signal.aborted) return { outcome: "permanent" as const, category: "rejected" as const };
+	if (signal.aborted)
+		return { outcome: "permanent" as const, category: "rejected" as const };
 	// ntfy explicitly uses at-least-once HTTP retries; lost responses can duplicate delivery.
 	try {
 		const response = await (options.fetch ?? fetch)(config.url, {

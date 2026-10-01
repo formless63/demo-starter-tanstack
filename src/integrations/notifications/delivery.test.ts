@@ -1,12 +1,13 @@
 import { expect, it, vi } from "vitest";
+import { notificationEmailAdapter } from "../../lib/notification-email.server";
+import { EmailError } from "../email/errors.server";
 import {
 	createNotificationJobs,
 	type NotificationAdapter,
 } from "./jobs.server";
 import { notificationValues } from "./notifications.server";
 import { NotificationError } from "./validation";
-import { notificationEmailAdapter } from "../../lib/notification-email.server";
-import { EmailError } from "../email/errors.server";
+
 const row = notificationValues({
 	recipientId: "fixture",
 	type: "fixture.created",
@@ -67,13 +68,17 @@ it("bounds never-resolving lookup and late successful delivery without retry", a
 				adapters: { email: adapter },
 			})["notifications.deliver"].handler;
 			const result = handler(payload);
-			await vi.advanceTimersByTimeAsync(55000);
+			await Promise.resolve();
+			await Promise.resolve();
+			vi.advanceTimersByTime(55000);
 			expect(await result).toEqual({
 				outcome: phase === "lookup" ? "permanent" : "ambiguous",
 				category: "rejected",
 			});
 			pending.resolve(row);
-			await vi.advanceTimersByTimeAsync(1);
+			await Promise.resolve();
+			await Promise.resolve();
+			vi.advanceTimersByTime(1);
 			expect(adapter).toHaveBeenCalledTimes(phase === "lookup" ? 0 : 1);
 		}
 	} finally {
@@ -111,6 +116,7 @@ it("retries only explicit safe failure and persists finite allowlisted output", 
 		new EmailError("timeout", false),
 		new EmailError("connection", false),
 		new EmailError("unknown", false),
+		new EmailError("timeout", true),
 		new Error("private"),
 	]) {
 		await expect(
@@ -137,5 +143,29 @@ it("retries only explicit safe failure and persists finite allowlisted output", 
 				}),
 			}),
 		),
+	).rejects.toMatchObject({ retryable: true });
+});
+
+it("keeps known recipient-loading failures separate from invoked SMTP failures", async () => {
+	const run = (failure: unknown) =>
+		createNotificationJobs({
+			load: async () => row,
+			adapters: {
+				email: notificationEmailAdapter({
+					resolveEmail: async () => {
+						throw failure;
+					},
+					email: () => {
+						throw new Error("must not send");
+					},
+				}),
+			},
+		})["notifications.deliver"].handler(payload);
+	await expect(run(new Error("private lookup failure"))).resolves.toEqual({
+		outcome: "permanent",
+		category: "rejected",
+	});
+	await expect(
+		run(new NotificationError("unavailable", true)),
 	).rejects.toMatchObject({ retryable: true });
 });

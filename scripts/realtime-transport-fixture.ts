@@ -12,7 +12,7 @@ const nativePeers = new Map<string, { bufferedAmount: number }>();
 // This disposable protocol fixture substitutes application authorization; production uses Better Auth.
 const authorize = (url: string, headers: Headers) => {
   const query = new URL(url).searchParams;
-  if (headers.get("cookie") !== "session=fixture-human" || headers.has("authorization") || headers.has("x-api-key") || query.get("channel") === "foreign" || [...query.keys()].some(k => k !== "channel")) throw new Response("Unauthorized", { status: 401 });
+  if (headers.get("cookie") !== "session=fixture-human" || headers.has("authorization") || headers.has("x-api-key") || query.size > 0) throw new Response("Unauthorized", { status: 401 });
   return ["fixture"];
 };
 const adapter = nodeAdapter({ idleTimeout: 0, hooks: {
