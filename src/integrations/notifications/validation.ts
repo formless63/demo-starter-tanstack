@@ -102,7 +102,12 @@ export function validateNotificationMetadata(input: unknown = {}): {
 		if (entries.length > METADATA_LIMITS.keys) fail();
 		const result: { [key: string]: NotificationJson } = {};
 		for (const [key, descriptor] of entries) {
-			if (key.length > 64 || controls.test(key) || invalidUnicode.test(key))
+			if (
+				!key.length ||
+				key.length > 64 ||
+				controls.test(key) ||
+				invalidUnicode.test(key)
+			)
 				fail();
 			if (
 				sensitive.test(key.toLowerCase().replace(/[^a-z0-9]/g, "")) ||

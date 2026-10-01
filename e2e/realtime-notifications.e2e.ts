@@ -18,6 +18,8 @@ test("human cookie authorization and committed notification hint over SSE and We
     ]);
     await page.goto("/app/projects"); await expect(page.getByRole("heading", { name: "Projects", exact: true })).toBeVisible();
     await expect(page.getByRole("combobox", { name: "Color mode" })).toBeEnabled({ timeout: 15000 });
+    const ownChannelQuery = `user:${createHash("sha256").update(userId).digest("hex")}`;
+    expect(await page.evaluate(async channel => (await fetch(`/api/realtime/sse?channel=${encodeURIComponent(channel)}`)).status, ownChannelQuery)).toBe(401);
     const denied = await page.evaluate(async () => (await fetch("/api/realtime/sse?channel=user:foreign")).status); expect(denied).toBe(401);
     expect(await page.evaluate(async () => (await fetch("/api/realtime/sse?token=forbidden")).status)).toBe(401);
     await page.evaluate(async () => {

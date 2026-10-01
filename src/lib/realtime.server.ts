@@ -18,7 +18,7 @@ export async function authorizeRealtime(
 			throw new RealtimeError("configuration");
 		const url = new URL(request.url);
 		if (
-			[...url.searchParams.keys()].some((k) => k !== "channel") ||
+			url.search !== "" ||
 			request.headers.has("authorization") ||
 			request.headers.has("x-api-key")
 		)
@@ -35,12 +35,6 @@ export async function authorizeRealtime(
 		const session = await auth.api.getSession({ headers: request.headers });
 		if (!session?.user) throw new RealtimeError("unauthorized");
 		const channel = recipientChannel(session.user.id);
-		const requested = url.searchParams.getAll("channel");
-		if (
-			requested.length &&
-			(requested.length !== 1 || requested[0] !== channel)
-		)
-			throw new RealtimeError("unauthorized");
 		return [channel];
 	} catch (error) {
 		if (error instanceof RealtimeError) throw error;

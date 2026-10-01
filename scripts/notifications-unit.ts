@@ -9,7 +9,7 @@ assert.throws(() => notificationValues({ ...input, id: row.id } as typeof input)
 assert.throws(() => notificationValues({ ...input, body: "🦀".repeat(1025) })); assert.throws(() => notificationValues({ ...input, body: "<b>html</b>" }));
 assert.equal(decodeNotificationCursor(encodeNotificationCursor(row)).id, row.id);
 assert.throws(() => notificationDeliveryPayload.parse({ notificationId: row.id, channel: "email", email: "private" }));
-assert.throws(() => ntfyConfig({})); assert.equal(ntfyConfig({ NTFY_BASE_URL: "http://127.0.0.1:8080" }).timeoutSeconds, 10);
+assert.throws(() => ntfyConfig({})); assert.equal(ntfyConfig({ NODE_ENV: "test", NTFY_BASE_URL: "http://127.0.0.1:8080" }).timeoutSeconds, 10);
 const jobs = createNotificationJobs({ load: async () => row, adapters: {} }); assert.equal(jobs["notifications.deliver"].queue.retryLimit, 5);
 assert.deepEqual(await jobs["notifications.deliver"].handler({ notificationId: row.id, channel: "email" }), { outcome: "permanent", category: "disabled" });
 console.info("Backendless Notifications contracts verified without Email, Realtime, Audit or ntfy");
