@@ -15,15 +15,15 @@ SMTP/Nodemailer provides a portable mature MIME/TLS/auth implementation without 
 
 ## Contract and security
 
-Security is explicit: `tls` maps to secure true, `starttls` maps to secure false/requireTLS true, `opportunistic` maps to both false with normal advertised upgrade behavior. Port never selects a mode. TLS certificate validation stays enabled with no override in the public config. Credentials are complete pair or absent; configured credentials set `forceAuth` so verification cannot silently succeed without authenticating when AUTH is not advertised. SMTP 454 authentication rejection remains temporary/retryable; 535 is authentication/non-retryable. Lazy configuration accepts unused installation and enabled auth validates structure without contacting SMTP.
+Security is explicit: `tls` maps to secure true, `starttls` maps to secure false/requireTLS true, `opportunistic` maps to both false with normal advertised upgrade behavior. Port never selects a mode. TLS certificate validation stays enabled with no override in the public config. Credentials are complete pair or absent; configured credentials set `forceAuth` so verification cannot silently succeed without authenticating when AUTH is not advertised. Authentication is non-retryable, including SMTP 454/535. Lazy configuration accepts unused installation and enabled auth validates structure without contacting SMTP.
 
-Non-pooled SMTP sessions close per operation. Connection/greeting/DNS timeouts 5s and socket 15s bound stalls; no startup/readiness verification, worker or daemon. `close()` releases state; normal exit also clears singleton references. The app-owned singleton has the same close lifecycle.
+Non-pooled SMTP sessions close per operation. Connection/greeting/DNS timeouts 5s and socket 10s bound stalls; no startup/readiness verification, worker or daemon. `close()` releases state; normal exit also clears singleton references. The app-owned singleton has the same close lifecycle.
 
-From/default reply-to are fixed server configuration; recipients use structured addresses. Counts default 50/max100 across To/Cc/Bcc and the transport has a second `maxRecipients` guard. Addresses 254/name128/subject200 characters; each body ≤1MiB UTF-8. Controls are rejected in headers. Nodemailer generates RFC MIME; no home-grown complete RFC parser.
+From/default reply-to are fixed server configuration; recipients use structured addresses. Counts default 50/max100 across To/Cc/Bcc and the transport has a second `maxRecipients` guard. Addresses 254/name128/subject200 characters; combined text + HTML ≤1MiB UTF-8. Controls are rejected in headers. Nodemailer generates RFC MIME; no home-grown complete RFC parser.
 
 Whitelist message fields, with `disableFileAccess`/`disableUrlAccess` at both layers and `attachDataUrls: false`. No attachments, body path/href objects, raw MIME, custom envelope/headers/DKIM or plugin input. Literal HTML resources remain application content but the server never resolves them. This keeps file disclosure/SSRF and unreviewed content expansion out of v1.
 
-SMTP response classification is safe and static: 451 temporary/retryable, 550 permanent/non-retryable; auth/TLS/config/message failures are distinct. Original causes stay server-only and `toJSON()` omits them. Connection reset/timeout are ambiguous and not automatically retryable. No automatic send retries: the peer may accept a message before a lost acknowledgement. Partial acceptance is a typed result carrying server-only accepted/rejected/messageId, never a blanket retry-triggering error.
+SMTP response classification is safe and static: 451 temporary/retryable, 550 permanent/non-retryable; auth/TLS/config/message failures are distinct. Original causes stay server-only and `toJSON()` omits them. Connection reset/timeout are ambiguous and not automatically retryable. No automatic send retries: the peer may accept a message before a lost acknowledgement. Partial acceptance is a typed result carrying accepted/rejected counts and messageId, never a blanket retry-triggering error.
 
 ## SMTP and authentication evidence
 
@@ -35,7 +35,7 @@ Chaos is enabled only for isolated fixtures. Setting `Sender.ErrorCode` to 451/5
 
 Reference smoke exercises the real Better Auth sign-in request handler, captures SMTP text/HTML, checks canonical `APP_BASE_URL` origin and HTML encoding, verifies the persisted key is not the raw token, follows verification and proves redirect/session plus verified email. Process output is captured internally and checked for recipient/sender/host/subject/body link/token/Message-ID leakage before releasing only a static success/failure message. No console fallback remains. A deterministic SMTP 550 also proves the real handler returns only a static 503 browser failure. Production uses the same callback without the former deliberate throw.
 
-Mailpit is explicitly optional, loopback-bound, temporary by default, capped 200, Host-allowlisted, and configured without forwarding/relay or named volumes. Unique Docker projects/random ports isolate fixture state and teardown removes only fixture-owned resources. Production readiness remains database-only with Email unconfigured/unused.
+Mailpit is explicitly optional, loopback-bound, temporary by default, capped 100, Host-allowlisted, and configured without forwarding/relay or named volumes. Unique Docker projects/random ports isolate fixture state and teardown removes only fixture-owned resources. Production readiness remains database-only with Email unconfigured/unused.
 
 ## Optional composition and lifecycle
 

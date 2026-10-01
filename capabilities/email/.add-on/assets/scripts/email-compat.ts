@@ -39,7 +39,8 @@ try {
 		const subject = `SMTP ${mode} 世界 ${id}`;
 		const content = renderMagicLinkEmail({ appName: "<Starter> & Friends", url: "https://app.example.test/sign-in?token=fixture&next=%2F", appBaseUrl: "https://app.example.test" });
 		const result = await email.sendEmail({ to: [{ address: `${id}@example.test` }], cc: [{ address: `cc-${id}@example.test` }], bcc: [{ address: `bcc-${id}@example.test` }], subject, ...(mode !== "html" ? { text: `Unicode ☕ ${content.text}` } : {}), ...(mode !== "text" ? { html: content.html } : {}) });
-		assert.equal(result.outcome, "accepted"); assert.equal(result.accepted.length, 3); assert.ok(result.messageId);
+		assert.equal(typeof result.accepted, "number"); assert.equal(typeof result.rejected, "number");
+		assert.equal(result.outcome, "accepted"); assert.equal(result.accepted, 3); assert.ok(result.messageId);
 		const mail = await captured(url, item => item.Subject === subject);
 		assert.equal(mail.From.Address, config.from.address); assert.equal(mail.ReplyTo[0]?.Address, config.replyTo?.address);
 		assert.equal(mail.To[0]?.Address, `${id}@example.test`); assert.equal(mail.Cc[0]?.Address, `cc-${id}@example.test`);
@@ -55,22 +56,24 @@ try {
 	}
 	const base: EmailMessage = { to: [{ address: "ok@example.test" }], subject: `Partial ${randomUUID()}`, text: "private fixture" };
 	const partial = await email.sendEmail({ ...base, cc: [{ address: "rejected@outside.invalid" }] });
-	assert.equal(partial.outcome, "partial"); assert.deepEqual(partial.accepted, ["ok@example.test"]); assert.deepEqual(partial.rejected, ["rejected@outside.invalid"]);
+	assert.equal(partial.outcome, "partial"); assert.equal(partial.accepted, 1); assert.equal(partial.rejected, 1);
 	await captured(url, item => item.Subject === base.subject);
 	const before = (await (await api(url, "messages")).json() as { total: number }).total;
 	await assert.rejects(email.sendEmail({ ...base, to: Array.from({ length: 51 }, () => ({ address: "ok@example.test" })) }), EmailError);
 	for (const key of ["raw", "path", "href", "headers", "attachments"]) await assert.rejects(email.sendEmail({ ...base, [key]: "file:///etc/passwd" }), EmailError);
 	await assert.rejects(email.sendEmail({ ...base, html: { href: "http://127.0.0.1/private" } } as unknown as EmailMessage), EmailError);
 	assert.equal((await (await api(url, "messages")).json() as { total: number }).total, before);
-	for (const [status, code, retryable] of [[451, "temporary_rejection", true], [550, "permanent_rejection", false]] as const) {
+	for (const [status, code, retryable] of [[451, "temporary-rejection", true], [550, "permanent-rejection", false]] as const) {
 		await api(url, "chaos", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Sender: { ErrorCode: status, Probability: 100 } }) });
+		const attemptsBefore = [...wire.matchAll(/MAIL FROM:/g)].length;
 		await assert.rejects(email.sendEmail(base), error => error instanceof EmailError && error.code === code && error.retryable === retryable);
 		assert.equal((await (await api(url, "messages")).json() as { total: number }).total, before, "No automatic send retry or unexpected capture");
+ assert.equal([...wire.matchAll(/MAIL FROM:/g)].length, attemptsBefore + 1);
 	}
 	await api(url, "chaos", { method: "PUT", headers: { "Content-Type": "application/json" }, body: "{}" });
 	// A local server without STARTTLS must fail required upgrade; no certificate bypass.
 	const requiredTls = createEmail({ ...config, security: "starttls" });
-	try { await assert.rejects(requiredTls.verifyEmailTransport(), error => error instanceof EmailError && (error.code === "tls" || error.code === "permanent_rejection")); } finally { requiredTls.close(); }
+	try { await assert.rejects(requiredTls.verifyEmailTransport(), error => error instanceof EmailError && (error.code === "tls" || error.code === "permanent-rejection")); } finally { requiredTls.close(); }
 	const authenticated = createEmail({ ...config, user: "fixture-user", password: "fixture-password" });
 	await api(url, "chaos", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Authentication: { ErrorCode: 535, Probability: 100 } }) });
 	try { await assert.rejects(authenticated.verifyEmailTransport(), error => error instanceof EmailError && error.code === "authentication" && !error.retryable); } finally { authenticated.close(); }

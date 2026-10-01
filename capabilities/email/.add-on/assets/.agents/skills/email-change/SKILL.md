@@ -14,3 +14,5 @@ Read `capabilities/email/CAPABILITY.md` and `EMAIL_MODULE_EVALUATION.md`; use ca
 - Mailpit stays loopback/local/test-only with temporary storage, bounded messages and no relay. Chaos belongs only in disposable fixtures.
 - Jobs and Observability are optional application wiring. No generic queue or message retention is implied. Domain authentication/deliverability and bounce handling remain outside v1.
 - Update real SMTP/Mailpit compatibility when transport behavior changes. Run `email:unit`, `email:compat --reference`, `add-ons:test email`, governance and ordinary affected verification; recompile retained assets.
+
+- Combined text + HTML is capped at 1 MiB; subject200, counts-only delivery result, fixed socket10s/connection-greeting-DNS5s. Authentication never retries; safe rejection codes use hyphens.

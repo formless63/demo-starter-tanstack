@@ -5,15 +5,15 @@ import { createCache, CacheError, cacheError } from "../src/integrations/cache/c
 import { cacheConfig, logicalName } from "../src/integrations/cache/config.server";
 
 const safe = (error: unknown) => error instanceof CacheError && error.code === "configuration";
-for (const env of [ {}, { CACHE_URL: "https://bad" }, { CACHE_URL: "redis://host", CACHE_KEY_PREFIX: "" }, { CACHE_URL: "redis://host", CACHE_MAX_VALUE_BYTES: "16777217" }, { CACHE_URL: "redis://host", CACHE_DEFAULT_TTL_SECONDS: "0" }, { CACHE_URL: "redis://host", CACHE_CONNECT_TIMEOUT_MS: "10001" }, { CACHE_URL: "redis://host", CACHE_COMMAND_TIMEOUT_MS: "NaN" } ]) assert.throws(() => cacheConfig(env), safe);
+for (const env of [ {}, { CACHE_URL: "https://bad" }, { CACHE_URL: "redis://host", CACHE_KEY_PREFIX: "" }, { CACHE_URL: "redis://host", CACHE_MAX_VALUE_BYTES: "1048577" }, { CACHE_URL: "redis://host", CACHE_DEFAULT_TTL_SECONDS: "0" } ]) assert.throws(() => cacheConfig(env), safe);
 for (const url of ["redis://127.0.0.1:6379", "rediss://user:password@example.com:6380/0"]) {
 	const config = cacheConfig({ CACHE_URL: url });
-	assert.equal(config.prefix, "app:"); assert.equal(config.ttlSeconds, 300); assert.equal(config.maxValueBytes, 1048576);
+	assert.equal(config.prefix, "app"); assert.equal(config.ttlSeconds, 300); assert.equal(config.maxValueBytes, 1048576);
 }
 for (const name of ["", "\n", "has space", "a".repeat(257), "é", "a\u007f"]) assert.throws(() => logicalName(name));
 assert.equal(logicalName("one/a:2_b.c-d"), "one/a:2_b.c-d");
 const secret = "redis://username:password@host/private-key/value/token";
-const error = new CacheError("connection", new Error(secret));
+const error = new CacheError("unavailable", new Error(secret));
 assert.equal(error.cause instanceof Error, true);
 assert.equal(JSON.stringify(error).includes(secret), false);
 assert.equal(inspect(error).includes(secret), false);
@@ -27,10 +27,14 @@ await assert.rejects(lazy.get("x"), safe);
 await lazy.close(); await lazy.close();
 const unused = createCache({ env: {} }); await unused.close();
 const validated = createCache({ env: { CACHE_URL: "redis://127.0.0.1:1", CACHE_MAX_VALUE_BYTES: "8" } });
-const invalid = (error: unknown) => error instanceof CacheError && error.code === "invalid_input";
+const invalid = (error: unknown) => error instanceof CacheError && error.code === "invalid-input";
 await assert.rejects(validated.set("key", "123456789"), invalid);
 await assert.rejects(validated.publish("channel", "123456789"), invalid);
-await assert.rejects(validated.acquireLease("lease", { ttlMs: 300001 }), invalid);
+await assert.rejects(validated.acquireLease("lease", 301), invalid);
+await assert.rejects(validated.acquireLease("lease", 1), invalid);
 await assert.rejects(validated.increment("counter", { ttlSeconds: 0 }), invalid);
 await validated.close();
+for (const changes of [{ CACHE_DEFAULT_TTL_SECONDS: "86401" }, { CACHE_MAX_VALUE_BYTES: "1048577" }, { CACHE_KEY_PREFIX: "a".repeat(129) }, { CACHE_KEY_PREFIX: "app:" }]) assert.throws(() => cacheConfig({ CACHE_URL: "redis://host", ...changes }), safe);
+assert.equal(cacheConfig({ CACHE_URL: "redis://host", CACHE_DEFAULT_TTL_SECONDS: "86400", CACHE_KEY_PREFIX: "a".repeat(128) }).ttlSeconds, 86400);
+await assert.rejects(validated.get("x"), error => error instanceof CacheError && error.code === "closed");
 console.info("Backendless cache configuration, limits, safety and lazy lifecycle passed");

@@ -40,7 +40,7 @@ export function actionIdentifier(value: unknown): string {
 	if (!result.includes(".")) fail();
 	return result;
 }
-export function optionalId(value: unknown, max = 256): string | null {
+export function optionalId(value: unknown, max = 128): string | null {
 	return value === undefined || value === null
 		? null
 		: boundedString(value, max);
@@ -53,9 +53,14 @@ export function createAuditActor(
 	type: string,
 	id?: string | null,
 ): AuditIdentity {
-	return { type: identifier(type), id: optionalId(id) };
+	return { type: identifier(type, 32), id: optionalId(id) };
 }
-export const createAuditSubject = createAuditActor;
+export function createAuditSubject(
+	type: string,
+	id?: string | null,
+): AuditIdentity {
+	return { type: identifier(type, 64), id: optionalId(id) };
+}
 export function auditDate(value: unknown): Date {
 	if (
 		!(value instanceof Date) ||
@@ -76,7 +81,7 @@ export const METADATA_LIMITS = {
 } as const;
 // Reject, never redact: callers must deliberately select safe context.
 const sensitive =
-	/password|secret|token|authorization|cookie|apikey|credential/;
+	/password|passwd|pwd|secret|token|authorization|cookie|apikey|credential/;
 export function validateAuditMetadata(input: unknown = {}): {
 	[key: string]: AuditJson;
 } {
@@ -94,7 +99,7 @@ export function validateAuditMetadata(input: unknown = {}): {
 			if (
 				controls.test(value) ||
 				invalidUnicode.test(value) ||
-				Buffer.byteLength(value) > METADATA_LIMITS.bytes
+				value.length > 1024
 			)
 				fail();
 			return value;
@@ -133,9 +138,12 @@ export function validateAuditMetadata(input: unknown = {}): {
 		if (entries.length > METADATA_LIMITS.keys) fail();
 		const result: { [key: string]: AuditJson } = {};
 		for (const [key, descriptor] of entries) {
-			boundedString(key, 128);
+			boundedString(key, 64);
 			if (
 				sensitive.test(key.toLowerCase().replace(/[^a-z0-9]/g, "")) ||
+				["request", "session", "body", "header", "headers"].includes(
+					key.toLowerCase().replace(/[^a-z0-9]/g, ""),
+				) ||
 				["__proto__", "prototype", "constructor"].includes(key) ||
 				!("value" in descriptor) ||
 				!descriptor.enumerable

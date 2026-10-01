@@ -18,3 +18,5 @@ Read `capabilities/cache-coordination/CAPABILITY.md` and `CACHE_COORDINATION_MOD
 - Optional Realtime/API/Jobs/Observability integrations stay optional; reusable assets import none of them. Jobs remains durable in PostgreSQL.
 
 Run backendless cache units, actual Valkey compatibility, telemetry safety when affected, clean installation/removal, governance and normal repository verification. Keep source/assets/compiled distributable/contracts/evaluation aligned.
+
+- Canonical TTL1–86400/value ceiling1MiB; get returns Buffer, setWithoutExpiry explicit, leases seconds2–300 and stale tokens false. Fixed connect2s/operation5s, no automatic reconnect/resubscribe/offline replay. closeCache owns only singleton; manual instances caller-owned. Observer receives only finite operation/success-error/durationSeconds/get hit-miss.

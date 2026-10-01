@@ -22,7 +22,7 @@ let cache: ReturnType<typeof createCache> | undefined;
 try {
 	const port = docker(["port", container, "6379/tcp"]).split(":").at(-1);
 	const url = `redis://127.0.0.1:${port}`;
-	cache = createCache({ env: { CACHE_URL: url, CACHE_KEY_PREFIX: `removal:${randomUUID()}` } });
+	cache = createCache({ env: { CACHE_URL: url, CACHE_KEY_PREFIX: `removal-${randomUUID()}` } });
 	// The compatibility suite already covers reconnect; readiness has a bounded wait here.
 	const deadline = Date.now() + 10_000;
 	while (true) {
@@ -37,7 +37,7 @@ try {
 		env: { ...process.env, CACHE_URL: url }, stdio: "inherit",
 	});
 	assert.equal(removal.status, 0);
-	assert.equal(await cache.get("retained"), "application-owned-data");
+	assert.deepEqual(await cache.get("retained"), Buffer.from("application-owned-data"));
 	console.info("Cache application removal retained the backend and its existing data");
 } finally {
 	await cache?.close();

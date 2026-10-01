@@ -18,7 +18,7 @@ export const webhookDeliveryPayload = z.strictObject({
 		.string()
 		.min(1)
 		.max(128)
-		.regex(/^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*$/),
+		.regex(/^[a-z][a-z0-9._-]{0,127}$/),
 	body: z
 		.string()
 		.refine((body) => Buffer.byteLength(body) <= DEFAULT_BODY_BYTES),

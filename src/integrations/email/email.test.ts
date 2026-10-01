@@ -92,7 +92,8 @@ describe("Email configuration and safety", () => {
 				maxRecipients: 50,
 				connectionTimeout: 5000,
 				greetingTimeout: 5000,
-				socketTimeout: 15000,
+				socketTimeout: 10000,
+				dnsTimeout: 5000,
 			});
 			assert.strictEqual(options.tls, undefined);
 			assert.strictEqual(options.pool, undefined);
@@ -135,6 +136,19 @@ describe("Email configuration and safety", () => {
 				disableUrlAccess: true,
 				attachDataUrls: false,
 			},
+		);
+	});
+	it("enforces combined UTF-8 size and exact subject boundary", () => {
+		assert.doesNotThrow(() =>
+			validateMessage({ ...message, subject: "x".repeat(200) }, config),
+		);
+		assert.throws(
+			() =>
+				validateMessage(
+					{ ...message, text: "x".repeat(600000), html: "x".repeat(600000) },
+					config,
+				),
+			EmailError,
 		);
 	});
 	it("bounds input and rejects injection and unsupported content resolution", () => {
@@ -188,9 +202,9 @@ describe("Email configuration and safety", () => {
 describe("Email errors and magic-link rendering", () => {
 	it("classifies failures conservatively and serializes only safe data", () => {
 		for (const [input, code, retryable] of [
-			[{ responseCode: 451 }, "temporary_rejection", true],
-			[{ code: "EAUTH", responseCode: 454 }, "temporary_rejection", true],
-			[{ responseCode: 550 }, "permanent_rejection", false],
+			[{ responseCode: 451 }, "temporary-rejection", true],
+			[{ code: "EAUTH", responseCode: 454 }, "authentication", false],
+			[{ responseCode: 550 }, "permanent-rejection", false],
 			[{ code: "EAUTH", responseCode: 535 }, "authentication", false],
 			[{ code: "ECONNREFUSED" }, "connection", true],
 			[{ code: "ECONNRESET" }, "connection", false],

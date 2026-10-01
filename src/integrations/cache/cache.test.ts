@@ -18,13 +18,13 @@ describe("cache without infrastructure", () => {
 			env: { CACHE_URL: "redis://127.0.0.1:1", CACHE_MAX_VALUE_BYTES: "2" },
 		});
 		await expect(cache.set("key", "oversized")).rejects.toMatchObject({
-			code: "invalid_input",
+			code: "invalid-input",
 		});
 		await expect(cache.publish("channel", "oversized")).rejects.toMatchObject({
-			code: "invalid_input",
+			code: "invalid-input",
 		});
 		await expect(cache.get("bad\nkey")).rejects.toMatchObject({
-			code: "invalid_input",
+			code: "invalid-input",
 		});
 		await cache.close();
 	});
@@ -32,7 +32,7 @@ describe("cache without infrastructure", () => {
 		const cause = new Error(
 			"rediss://user:secret@host/key?value=private-token",
 		);
-		const error = new CacheError("connection", cause);
+		const error = new CacheError("unavailable", cause);
 		expect(error.cause).toBe(cause);
 		expect(JSON.stringify(error)).not.toContain(cause.message);
 		expect(inspect(error)).not.toContain(cause.message);

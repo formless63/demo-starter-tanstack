@@ -4,7 +4,8 @@ import { CacheError, invalid } from "./errors.server";
 export function logicalName(value: string) {
 	invalid(
 		typeof value === "string" &&
-			/^[A-Za-z0-9][A-Za-z0-9:._/-]{0,255}$/.test(value),
+			/^[A-Za-z0-9][A-Za-z0-9:._/-]{0,255}$/.test(value) &&
+			!value.split("/").some((part) => !part || part === "." || part === ".."),
 	);
 	return value;
 }
@@ -20,35 +21,30 @@ export function cacheConfig(env: NodeJS.ProcessEnv = process.env) {
 		invalid(
 			["redis:", "rediss:"].includes(parsed.protocol) &&
 				!!parsed.hostname &&
+				(!parsed.port || Number(parsed.port) > 0) &&
+				!url.includes("?") &&
+				!url.includes("#") &&
 				!parsed.search &&
 				!parsed.hash &&
 				/^\/(?:\d+)?$/.test(parsed.pathname || "/"),
 		);
-		const prefix = env.CACHE_KEY_PREFIX ?? "app:";
-		invalid(/^[A-Za-z0-9][A-Za-z0-9:._/-]{0,63}$/.test(prefix));
+		const prefix = env.CACHE_KEY_PREFIX ?? "app";
+		invalid(/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(prefix));
 		return {
 			url,
-			prefix: prefix.endsWith(":") ? prefix : `${prefix}:`,
+			prefix,
 			ttlSeconds: boundedInteger(
 				Number(env.CACHE_DEFAULT_TTL_SECONDS ?? 300),
 				1,
-				604800,
+				86400,
 			),
 			maxValueBytes: boundedInteger(
 				Number(env.CACHE_MAX_VALUE_BYTES ?? 1048576),
 				1,
-				16777216,
+				1048576,
 			),
-			connectTimeoutMs: boundedInteger(
-				Number(env.CACHE_CONNECT_TIMEOUT_MS ?? 3000),
-				100,
-				10000,
-			),
-			commandTimeoutMs: boundedInteger(
-				Number(env.CACHE_COMMAND_TIMEOUT_MS ?? 2000),
-				100,
-				10000,
-			),
+			connectTimeoutMs: 2000,
+			commandTimeoutMs: 5000,
 		};
 	} catch (cause) {
 		throw new CacheError("configuration", cause);

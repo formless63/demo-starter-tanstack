@@ -9,7 +9,7 @@ initObservability({ destination: { write: line => logs.push(line) }, registerSig
 const privateData = { accepted: ["private-recipient@example.test"], rejected: ["private-rejected@example.test"], messageId: "private-message-id", subject: "private-subject", body: "private-body", url: "https://private-host.invalid/?token=private-token", user: "private-smtp-user", password: "private-password" };
 await observeEmail({ operation: "send", security: "tls", recipientCount: 2 }, async () => ({ ...privateData, outcome: "partial" as const }));
 await observeEmail({ operation: "verify", security: "starttls", recipientCount: 0 }, async () => ({ verified: true }));
-await assert.rejects(observeEmail({ operation: "send", security: "opportunistic", recipientCount: 1 }, async () => { throw new EmailError("temporary_rejection", true, privateData); }));
+await assert.rejects(observeEmail({ operation: "send", security: "opportunistic", recipientCount: 1 }, async () => { throw new EmailError("temporary-rejection", true, privateData); }));
 await flushObservability();
 const exported = JSON.stringify({ logs: logs.map(line => JSON.parse(line)), spans: spans.getFinishedSpans().map(span => ({ name: span.name, attributes: span.attributes, events: span.events })), metrics: metrics.getMetrics() });
 for (const secret of ["private-recipient", "private-rejected", "private-message-id", "private-subject", "private-body", "private-host", "private-token", "private-smtp-user", "private-password"]) assert.ok(!exported.includes(secret));
