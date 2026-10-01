@@ -88,7 +88,10 @@
     "import-export:unit": "bun scripts/import-export-unit.ts",
     "import-export:compat": "bun scripts/import-export-compat.ts",
     "import-export:operator": "bun scripts/import-export-operator.ts",
-    "storage:abort": "bun scripts/storage-abort-fixture.ts"
+    "storage:abort": "bun scripts/storage-abort-fixture.ts",
+    "ops:unit": "vitest run src/integrations/ops-admin/ops.test.ts",
+    "ops:reference:removal": "bun scripts/ops-reference-removal-fixture.ts",
+    "add-ons:verify:reference": "bun scripts/add-ons.ts verify-reference"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",
