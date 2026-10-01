@@ -21,7 +21,8 @@
     "NOTIFICATIONS_MODULE_EVALUATION.md",
     "src/integrations/jobs/worker.server.ts",
     "src/integrations/notifications/schema.ts",
-    "drizzle/0000_notifications.sql"
+    "drizzle/0000_notifications.sql",
+    "fixtures/notifications-contract.json"
   ],
   "build": true,
   "addOnConfig": {

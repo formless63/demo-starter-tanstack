@@ -40,13 +40,16 @@ export function notificationEmailAdapter(options: {
 			};
 		} catch (error) {
 			if (error instanceof EmailError) {
-				// Email deliberately does not retry ambiguous acceptance/connection loss.
+				// Typed retryability identifies proven-safe pre-send/SMTP rejection failures.
+				if (
+					error.retryable &&
+					["connection", "temporary-rejection"].includes(error.code)
+				)
+					throw new NotificationError("unavailable", true);
+				// Timeout, reset/connection loss and unknown acceptance stay terminal.
 				if (["timeout", "connection", "unknown"].includes(error.code))
 					return { outcome: "ambiguous" };
-				throw new NotificationError(
-					"unavailable",
-					error.code === "temporary-rejection" && error.retryable,
-				);
+				throw new NotificationError("unavailable", false);
 			}
 			return { outcome: "ambiguous" };
 		}

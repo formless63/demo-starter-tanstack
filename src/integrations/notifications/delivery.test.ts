@@ -1,3 +1,5 @@
+import vectors from "../../../fixtures/notifications-contract.json";
+import type { EmailErrorCode } from "../email/errors.server";
 import { expect, it, vi } from "vitest";
 import { notificationEmailAdapter } from "../../lib/notification-email.server";
 import { EmailError } from "../email/errors.server";
@@ -191,4 +193,29 @@ it("handles a late adapter rejection after cancellation without redispatch", asy
 	reject(new Error("private late response"));
 	await new Promise((resolve) => setTimeout(resolve, 0));
 	expect(adapter).toHaveBeenCalledTimes(1);
+});
+
+it("composes shared typed Email retry vectors without retrying ambiguous acceptance", async () => {
+	for (const vector of vectors.emailErrors) {
+		const sendEmail = vi.fn(async () => {
+			throw new EmailError(vector.code as EmailErrorCode, vector.retryable);
+		});
+		const adapter = notificationEmailAdapter({
+			resolveEmail: async () => "fixture@example.test",
+			email: () => ({ sendEmail }),
+		});
+		const result = createNotificationJobs({
+			load: async () => row,
+			adapters: { email: adapter },
+		})["notifications.deliver"].handler(payload);
+		if (vector.settlement === "retry")
+			await expect(result).rejects.toMatchObject({ retryable: true });
+		else
+			await expect(result).resolves.toEqual(
+				vector.settlement === "ambiguous"
+					? { outcome: "ambiguous" }
+					: { outcome: "permanent", category: "rejected" },
+			);
+		expect(sendEmail).toHaveBeenCalledTimes(1);
+	}
 });
