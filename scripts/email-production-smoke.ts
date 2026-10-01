@@ -21,7 +21,7 @@ try {
 		DATABASE_URL: "postgresql://starter:starter@postgres:5432/starter", MAGIC_LINK_ENABLED: "true", SMTP_HOST: "mailpit", SMTP_PORT: "1025", SMTP_SECURITY: "opportunistic", EMAIL_FROM_ADDRESS: "starter@example.test", EMAIL_FROM_NAME: "Starter",
 	};
 	docker(["create", "--name", name, "--network", network, "-p", `127.0.0.1:${port}:3000`, ...Object.entries(environment).flatMap(([key, value]) => ["-e", `${key}=${value}`]), process.env.EMAIL_SMOKE_IMAGE || "tanstack-launchpad:local"]);
-	docker(["network", "connect", "tanstack-launchpad_default", name]);
+	docker(["network", "connect", `${process.env.COMPOSE_PROJECT_NAME || "tanstack-launchpad"}_default`, name]);
 	docker(["start", name]);
 	let ready = false;
 	for (let i = 0; i < 60; i++) {
