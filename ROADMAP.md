@@ -18,7 +18,7 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, and `Cache / Coordination` are eight completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
+`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, and `AI` are nine completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
 
 `defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
@@ -52,11 +52,9 @@ Only implemented capabilities receive an add-on directory. Planned entries such 
 | Audit Log | None beyond baseline PostgreSQL and Drizzle | API Platform, Organizations, Jobs, Invoice Ninja, Stripe, Medusa | PostgreSQL | Enabled | No | Done |
 | Cache / Coordination | None; no database/auth dependency | Realtime, API Platform, Jobs, Observability | Valkey/Redis-compatible service on use; tested Valkey 9.1.2 | Enabled | No | Done |
 
-### Foundational / backend
+| AI | None beyond baseline Node runtime | Jobs, Object Storage, Observability, Audit Log | Configured model provider only on use | Enabled | No | Done |
 
-| Capability | Requires | Integrates with | External | Status |
-| --- | --- | --- | --- | --- |
-| AI | None | Jobs, Object Storage, Observability, Audit Log | Configured model provider | Planned |
+AI uses a private OpenAI-compatible adapter with pinned OpenAI SDK 7.25.0, real incremental streaming, authoritative application-owned Zod validation through a single deadline/cancellation scope, stop-only structured success and no retries. It is backendless at normal build/start/worker/readiness; generic clean lifecycles execute local HTTP fixtures under Bun and Node, and shared production smokes execute the final image without production credentials. See [evaluation](AI_MODULE_EVALUATION.md).
 
 Object Storage uses standard AWS SDK v3, with real private streaming/presign/multipart verification on RustFS and Garage. Optional third-party Noooste Garage UI 0.13.0 is infrastructure, not a capability dependency. No storage is needed for build/start; application owners decide readiness policy. MinIO is not the default. Email pins Nodemailer 10.0.13 for lazy provider-neutral SMTP with explicit TLS, safe messages/errors, no retries, and awaited Better Auth magic links. Mailpit v1.31.3 verifies real SMTP and deterministic Chaos; no provider SDK or generic queue is added.
 
