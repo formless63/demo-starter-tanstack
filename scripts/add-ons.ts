@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
@@ -18,6 +18,7 @@ interface AddOnMetadata {
 
 interface Capability {
 	id: string;
+	requires: string[];
 	status: string;
 	tanstackAddOn?: AddOnMetadata;
 }
@@ -27,6 +28,8 @@ interface Catalog {
 }
 
 interface CleanInstallFixture {
+ capabilities?: string[];
+ reviewedSharedFiles?: Record<string,string>;
 	projectName: string;
 	framework: "React" | "Solid";
 	blank: boolean;
@@ -168,10 +171,10 @@ function customDependencyOrder(
 	return ordered;
 }
 async function withAddOnServer<T>(
-	capability: Capability & { tanstackAddOn: AddOnMetadata },
+	capabilities: (Capability & { tanstackAddOn: AddOnMetadata })[],
 	work: (urls: string[], aliases: Map<string, string>) => Promise<T>,
 ) {
-	const ordered = customDependencyOrder(capability);
+	const ordered = [...new Map(capabilities.flatMap(customDependencyOrder).map(c => [c.id,c])).values()];
 	const payloads = new Map<string, Buffer>(
 		await Promise.all(
 			ordered.map(
@@ -234,9 +237,10 @@ function assertRecordContains(
 
 async function cleanInstall(
 	capability: Capability & { tanstackAddOn: AddOnMetadata },
+ fixturePath?: string,
 ) {
 	const fixture = await readJson<CleanInstallFixture>(
-		resolve(root, capability.tanstackAddOn.cleanInstallFixture),
+		resolve(root, fixturePath ?? capability.tanstackAddOn.cleanInstallFixture),
 	);
 	const manifest = await readJson<AddOnManifest>(
 		resolve(root, capability.tanstackAddOn.manifestPath),
@@ -246,9 +250,15 @@ async function cleanInstall(
 	);
 	const target = resolve(temporaryRoot, fixture.projectName);
 
-	let installedAliases = new Map<string, string>();
+	const chosen = selectedAddOns(catalog, fixture.capabilities ?? [capability.id]);
+ const closure = [...new Map(chosen.flatMap(customDependencyOrder).map(c=>[c.id,c])).values()];
+ const collisions = installationCollisions(root, closure);
+ for (const collision of collisions) {
+  if (!Object.keys(fixture.reviewedSharedFiles ?? {}).some(path => collision.path === path || collision.path.startsWith(`${path}/`))) throw new Error(`Review shared add-on file before installation: ${collision.path}`);
+ }
+ let installedAliases = new Map<string, string>();
 	try {
-		await withAddOnServer(capability, async (urls, aliases) => {
+		await withAddOnServer(chosen, async (urls, aliases) => {
 			installedAliases = aliases;
 			const args = [
 				"create",
@@ -273,6 +283,11 @@ async function cleanInstall(
 			await run(cliPath, args, root);
 		});
 
+		for (const [targetPath, sourcePath] of Object.entries(fixture.reviewedSharedFiles ?? {})) {
+   const source = resolve(root,sourcePath); const destination = resolve(target,targetPath);
+   if (!source.startsWith(`${root}/`) || !destination.startsWith(`${target}/`)) throw new Error("Shared-file review path escapes fixture root");
+   await cp(source,destination,{recursive:true});
+  }
 		const cta = await readJson<CtaJson>(resolve(target, ".cta.json"));
 		for (const dependency of fixture.expectedOfficialAddOns) {
 			if (
@@ -321,7 +336,7 @@ async function cleanInstall(
 		const installedPackage = await readJson<PackageJson>(
 			resolve(target, "package.json"),
 		);
-		for (const dependency of customDependencyOrder(capability)) {
+		for (const dependency of closure) {
 			const dependencyManifest = await readJson<AddOnManifest>(
 				resolve(root, dependency.tanstackAddOn.manifestPath),
 			);
@@ -379,11 +394,13 @@ async function cleanInstall(
 	}
 }
 
+import { installationCollisions } from "./add-on-policy";
+
 const [command, ...requested] = process.argv.slice(2);
 const catalog = await readJson<Catalog>(
 	resolve(root, "capabilities/catalog.json"),
 );
-const addOns = selectedAddOns(catalog, requested);
+const addOns = selectedAddOns(catalog, command === "test-composition" ? [] : requested);
 
 if (command === "matrix") {
 	console.info(
@@ -397,7 +414,7 @@ if (command === "matrix") {
 			"Select one capability to serve with its dependency closure",
 		);
 	await withAddOnServer(
-		addOns[0] as Capability & { tanstackAddOn: AddOnMetadata },
+		addOns,
 		async (urls) => {
 			console.info(`TanStack CLI --add-ons ${urls.join(",")}`);
 			console.info(
@@ -409,6 +426,16 @@ if (command === "matrix") {
 			});
 		},
 	);
+} else if (command === "preflight") {
+ const closure=[...new Map(addOns.flatMap(customDependencyOrder).map(c=>[c.id,c])).values()];
+ const collisions=installationCollisions(root,closure);
+ for(const collision of collisions) console.error(`Review required: ${collision.path} (${collision.owners.join(", ")})`);
+ if(collisions.length) process.exitCode=1; else console.info("No unreviewed custom add-on collisions");
+} else if(command === "test-composition") {
+ const fixture = await readJson<CleanInstallFixture>(resolve(root, requested[0]));
+ const chosen=selectedAddOns(catalog,fixture.capabilities ?? []);
+ for(const c of chosen) await compile(c,true);
+ await cleanInstall(chosen[0],requested[0]);
 } else if (command === "compile") {
 	for (const capability of addOns) await compile(capability, false);
 } else if (command === "test") {

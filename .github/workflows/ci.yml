@@ -60,6 +60,7 @@ jobs:
       - run: bun run capabilities:status
       - run: bun run capabilities:check
       - run: docker compose build app
+      - run: bun run db:persistence:test
       - run: docker compose up -d --wait postgres
       - run: docker compose run --rm migrate
       - run: docker compose run --rm jobs-migrate
@@ -68,6 +69,7 @@ jobs:
       - run: docker compose run --rm worker node .output/webhooks-smoke.mjs
       - run: bun run lint
       - run: bun run typecheck
+      - run: bun run add-ons:test:composition
       - run: bun run observability:smoke
       - name: Verify ephemeral cache on actual Valkey and optional safe telemetry
         run: |

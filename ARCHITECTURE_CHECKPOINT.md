@@ -18,6 +18,29 @@ Evidence collected in this pass:
 - A selective official CLI clean-create probe selecting API Platform + Audit Log completed successfully but retained only `0000_audit_log` in the installed journal, proving A06's migration-history collision. The consumer/server were disposable and cleaned; no database or provider suite was started for this probe.
 - For the explicitly requested Nuxt packaging comparison, inspected a read-only clone of [the companion repository](https://github.com/formless63/demo-starter-nuxt/tree/6b131b0e9155618f1295888f826a68c7f1166be8), commit `6b131b0e9155618f1295888f826a68c7f1166be8`. Paths prefixed **Nuxt:** below refer to that snapshot, not this repository. Its package lifecycle was inspected, not executed or certified by this pass.
 
+## Remediation status — October 1, 2026
+
+The original findings below are historical review evidence. This table records their disposition without rewriting the audit.
+
+| Item | Disposition | Correction / verification or named future scope |
+| --- | --- | --- |
+| A01 | FIXED IN THIS PASS | PostgreSQL 18 named-volume parent mount; disposable container recreation/sentinel test and preservation migration guide. Existing live volumes are not automatically migrated. |
+| A02 | FIXED IN THIS PASS | Producer disables schedule/supervise; worker retains ownership; real Jobs/Webhooks lifecycle and production worker proofs. |
+| A03 | FIXED IN THIS PASS | Shared recovery/stop barrier plus worker partial-start cleanup; failed start, failed prepare and concurrent restart regression tests. |
+| A04 | FIXED IN THIS PASS | Compose producer/worker Jobs env aligned; transactional canonical DB guard; credential-equivalent/different DB tests and real commit/rollback tests. |
+| A05 | FIXED IN THIS PASS | Bounded actual-byte JSON reader/deadline, safe 408/413 and OpenAPI; oversized/dishonest length/stalled stream tests. |
+| A06 | FIXED IN THIS PASS | Generic collision preflight, explicitly reviewed hard-dependency overlays, unified API/Audit/Jobs clean migration/runtime fixture. General public semantic merging remains an accepted publication limitation. |
+| A07 | FIXED IN THIS PASS | Empty optional fallback, exact integers/booleans and identifier bounds validated before connection; malformed-value tests. |
+| A08 | DEFERRED TO NAMED FUTURE CAPABILITY | Notifications: bidirectional custom-edge/reference closure governance. Project profiles independently enforce selected closure in this pass. |
+| A09 | DEFERRED TO NAMED FUTURE CAPABILITY | Ops / Admin: Redis URL defense-in-depth sanitation before expanding operational logging. |
+| A10 | DEFERRED TO NAMED FUTURE CAPABILITY | Notifications / Realtime: ordered application business-work drain and external-client shutdown. Appearance starts no backend work. |
+| A11 | FIXED IN THIS PASS | Jobs/API explicit type/runtime/removal checks retaining data/history, run by existing catalog CI. |
+| A12 | ACCEPTED LIMITATION | Current CI cost is acceptable; measured sharding remains future CI maintenance. |
+| A13 | ACCEPTED LIMITATION | Authority/pointers clarified in Bootstrap docs; wholesale documentation generation remains deferred. |
+| A14 | DEFERRED TO NAMED FUTURE CAPABILITY | Organizations: baseline auth/deployment validation parity. Bootstrap profile contains no credentials/runtime auth env. |
+
+No Critical/High item or pre-wave blocker remains in the code after these repairs. Full verification is recorded in PROJECT_BOOTSTRAP_EVALUATION.md; publication limitations and future capability design remain explicit.
+
 ## 1. Capability dependency architecture
 
 The catalog expresses the current graph accurately at the reusable-source boundary:

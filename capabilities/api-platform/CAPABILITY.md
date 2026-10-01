@@ -140,3 +140,7 @@ The clean-install fixture resolves official Better Auth and PostgreSQL Drizzle d
 ## Agent guidance
 
 Read `ROADMAP.md`, this file, `.agents/skills/capability-change/SKILL.md`, `.agents/skills/auth-change/SKILL.md`, and `.agents/skills/api-contract-change/SKILL.md` before changing API Platform. Keep native TanStack routes as dispatch, keep schemas shared between runtime and OpenAPI, never log or persist raw keys, preserve human-session-only key management, and update contracts/tests/versioning analysis with every external API change.
+
+## Architecture checkpoint corrections
+
+Machine JSON input defaults to 64 KiB and a 10-second complete-read deadline, checks actual bytes and malformed/oversized declared lengths, and cancels unread input. Safe 413 payload_too_large and 408 request_timeout envelopes are declared in OpenAPI. Optional reviewed parser limits are bounded to 1 MiB/30 seconds. The independent lifecycle fixture explicitly typechecks installed/removal states and retains credential schema/migration history on removal.
