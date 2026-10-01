@@ -760,12 +760,18 @@
 			"id": "authorization", "displayName": "Authorization", "kind": "identity-policy", "status": "in-progress", "defaultInstalled": false,
 			"requires": [], "integratesWith": ["organizations", "api-platform", "audit-log"], "baselineRequirements": ["authentication", "postgresql", "drizzle", "node-runtime"],
 			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Policy assignments and application authorization data." }],
+			"evaluationDocument": "AUTHORIZATION_MODULE_EVALUATION.md",
+			"documentationPath": "capabilities/authorization/CAPABILITY.md",
+			"tanstackAddOn": {"addOnId": "authorization", "sourceDirectory": "capabilities/authorization/.add-on", "manifestPath": "capabilities/authorization/.add-on/info.json", "distributablePath": "capabilities/authorization/add-on.json", "cleanInstallFixture": "capabilities/authorization/test/clean-install.json", "dependsOn": ["better-auth", "drizzle"], "conflictsWith": []},
 			"summary": "Application policy and permission primitives layered on authenticated identity."
 		},
 		{
 			"id": "feature-flags", "displayName": "Feature Flags", "kind": "identity-policy", "status": "in-progress", "defaultInstalled": false,
 			"requires": [], "integratesWith": ["organizations", "authorization", "audit-log"], "baselineRequirements": ["postgresql", "drizzle", "node-runtime"], "baselineIntegrations": ["authentication"],
 			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Flag definitions, targeting, and evaluation state." }],
+			"evaluationDocument": "FEATURE_FLAGS_MODULE_EVALUATION.md",
+			"documentationPath": "capabilities/feature-flags/CAPABILITY.md",
+			"tanstackAddOn": {"addOnId": "feature-flags", "sourceDirectory": "capabilities/feature-flags/.add-on", "manifestPath": "capabilities/feature-flags/.add-on/info.json", "distributablePath": "capabilities/feature-flags/add-on.json", "cleanInstallFixture": "capabilities/feature-flags/test/clean-install.json", "dependsOn": ["drizzle"], "conflictsWith": []},
 			"summary": "Database-backed release and targeting controls without a required SaaS provider."
 		},
 		{

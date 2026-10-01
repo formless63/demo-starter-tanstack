@@ -1,0 +1,41 @@
+{
+  "projectName": "feature-flags-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "addOnConfig": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "expectedOfficialAddOns": [
+    "drizzle"
+  ],
+  "forbiddenOfficialAddOns": [
+    "organizations",
+    "audit-log",
+    "notifications",
+    "api-platform",
+    "postgres-jobs",
+    "better-auth",
+    "authorization"
+  ],
+  "expectedFiles": [
+    "src/integrations/feature-flags/feature-flags.server.ts",
+    "capabilities/feature-flags/CAPABILITY.md"
+  ],
+  "verificationCommands": [
+    [
+      "bun",
+      "capabilities/feature-flags/test/contract.ts"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ]
+  ],
+  "build": true
+}

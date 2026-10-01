@@ -1,14 +1,11 @@
-import { sql } from "drizzle-orm";
 import {
 	boolean,
 	index,
-	integer,
 	pgTable,
 	text,
 	timestamp,
 	uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { tsvector, weightedSearchVector } from "../integrations/search/schema";
 
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -39,7 +36,6 @@ export const session = pgTable(
 		updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
 			.defaultNow()
 			.notNull(),
-		activeOrganizationId: text("active_organization_id"),
 		ipAddress: text("ip_address"),
 		userAgent: text("user_agent"),
 		userId: text("user_id")
@@ -107,87 +103,4 @@ export const verification = pgTable(
 	(table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const apikey = pgTable(
-	"apikey",
-	{
-		id: text("id").primaryKey(),
-		configId: text("config_id").default("default").notNull(),
-		name: text("name"),
-		start: text("start"),
-		referenceId: text("reference_id").notNull(),
-		prefix: text("prefix"),
-		key: text("key").notNull(),
-		refillInterval: integer("refill_interval"),
-		refillAmount: integer("refill_amount"),
-		lastRefillAt: timestamp("last_refill_at", {
-			mode: "date",
-			withTimezone: true,
-		}),
-		enabled: boolean("enabled").default(true),
-		rateLimitEnabled: boolean("rate_limit_enabled").default(true),
-		rateLimitTimeWindow: integer("rate_limit_time_window").default(60_000),
-		rateLimitMax: integer("rate_limit_max").default(1_000),
-		requestCount: integer("request_count").default(0),
-		remaining: integer("remaining"),
-		lastRequest: timestamp("last_request", {
-			mode: "date",
-			withTimezone: true,
-		}),
-		expiresAt: timestamp("expires_at", {
-			mode: "date",
-			withTimezone: true,
-		}),
-		createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
-			.defaultNow()
-			.notNull(),
-		updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
-			.defaultNow()
-			.notNull(),
-		permissions: text("permissions"),
-		metadata: text("metadata"),
-	},
-	(table) => [
-		index("apikey_config_id_idx").on(table.configId),
-		index("apikey_reference_id_idx").on(table.referenceId),
-		index("apikey_key_idx").on(table.key),
-	],
-);
-
-export const projects = pgTable(
-	"project",
-	{
-		searchVector: tsvector("search_vector").generatedAlwaysAs(
-			weightedSearchVector(sql`"name"`, sql`"description"`),
-		),
-		id: text("id").primaryKey(),
-		name: text("name").notNull(),
-		description: text("description"),
-		ownerId: text("owner_id")
-			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
-		createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
-			.defaultNow()
-			.notNull(),
-		updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
-			.defaultNow()
-			.notNull(),
-	},
-	(table) => [
-		index("project_owner_updated_idx").on(table.ownerId, table.updatedAt),
-		index("project_search_vector_idx").using("gin", table.searchVector),
-	],
-);
-
-export { organizationNotes } from "../features/organizations/schema";
-export { auditEvents } from "../integrations/audit-log/schema";
 export { authorizationAssignments } from "../integrations/authorization/schema";
-export {
-	flagDefinitions,
-	flagOverrides,
-} from "../integrations/feature-flags/schema";
-export { notifications } from "../integrations/notifications/schema";
-export {
-	invitation,
-	member,
-	organization,
-} from "../integrations/organizations/schema";
