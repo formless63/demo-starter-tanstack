@@ -64,7 +64,7 @@ Object Storage uses standard AWS SDK v3, with real private streaming/presign/mul
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Import / Export | Jobs, Object Storage | Notifications, Audit Log | None | Planned |
+| Import / Export | Jobs, Object Storage | Notifications, Audit Log | None additional | In progress |
 
 ### Identity / policy
 

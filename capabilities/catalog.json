@@ -712,8 +712,8 @@
 			}
 		},
 		{
-			"id": "import-export", "displayName": "Import / Export", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": ["jobs", "object-storage"], "integratesWith": ["notifications", "audit-log"], "baselineRequirements": [], "externalRequirements": [],
+			"id": "import-export", "displayName": "Import / Export", "kind": "application-infrastructure", "status": "in-progress", "defaultInstalled": false,
+			"requires": ["jobs", "object-storage"], "integratesWith": ["notifications", "audit-log"], "baselineRequirements": ["postgresql", "drizzle", "node-runtime"], "baselineIntegrations": ["authentication"], "externalRequirements": [],
 			"summary": "Asynchronous bulk data ingestion and export backed by durable jobs and objects."
 		},
 		{
