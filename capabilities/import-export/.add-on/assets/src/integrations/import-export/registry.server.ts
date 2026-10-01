@@ -53,3 +53,7 @@ export function createTransferRegistry(definitions: readonly Definition[]) {
 		},
 	};
 }
+
+export function defineTransferDefinition<T>(definition: Definition<T>) {
+	return definition;
+}

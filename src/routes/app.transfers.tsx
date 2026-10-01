@@ -1,12 +1,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { transferAction } from "../features/import-export/transfers.functions";
 export const Route = createFileRoute("/app/transfers")({
 	component: TransfersPage,
 });
 function TransfersPage() {
 	const client = useQueryClient();
+	const exportKey = useRef<string | undefined>(undefined);
 	const [file, setFile] = useState<File | null>(null);
 	const [message, setMessage] = useState("");
 	const [busy, setBusy] = useState(false);
@@ -27,11 +28,18 @@ function TransfersPage() {
 				setMessage("Transfer updated");
 				await refresh();
 			}
+			return result.ok;
 		} catch {
 			setMessage("Transfer request failed");
+			return false;
 		} finally {
 			setBusy(false);
 		}
+	}
+	async function exportProjects() {
+		exportKey.current ??= crypto.randomUUID();
+		if (await action({ action: "export", idempotencyKey: exportKey.current }))
+			exportKey.current = undefined;
 	}
 	async function upload() {
 		if (!file) return;
@@ -85,9 +93,7 @@ function TransfersPage() {
 					type="button"
 					className="rounded-lg border px-4 py-2"
 					disabled={busy}
-					onClick={() =>
-						action({ action: "export", idempotencyKey: crypto.randomUUID() })
-					}
+					onClick={exportProjects}
 				>
 					Export Projects
 				</button>

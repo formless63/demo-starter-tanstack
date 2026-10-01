@@ -70,12 +70,11 @@ function lexicalBounds(text: string) {
 			if (quoted && text[i] === '"') {
 				i++;
 				field++;
-				row += 2;
+				row++;
 			} else quoted = !quoted;
 		} else if (c === "," && !quoted) {
 			field = 0;
 			columns++;
-			row++;
 		} else if ((c === "\n" || c === "\r") && !quoted) {
 			if (c === "\r" && text[i] === "\n") i++;
 			field = 0;

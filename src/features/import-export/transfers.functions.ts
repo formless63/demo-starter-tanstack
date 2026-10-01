@@ -10,7 +10,7 @@ interface Input {
 export const transferAction = createServerFn({ method: "POST" })
 	.validator((value: Input) => value)
 	.handler(async ({ data }) => {
-		const { TransferError } = await import(
+		const { TransferError, transferErrorStatus } = await import(
 			"../../integrations/import-export/validation"
 		);
 		try {
@@ -82,6 +82,10 @@ export const transferAction = createServerFn({ method: "POST" })
 		} catch (e) {
 			const error =
 				e instanceof TransferError ? e : new TransferError("unknown");
+			const { setResponseStatus } = await import(
+				"@tanstack/react-start/server"
+			);
+			setResponseStatus(transferErrorStatus[error.code]);
 			return {
 				ok: false as const,
 				error: error.toJSON() as {

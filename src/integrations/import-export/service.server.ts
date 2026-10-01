@@ -187,11 +187,11 @@ export function createTransfers(deps: TransferDependencies) {
 						undefined,
 						controller.signal,
 					);
-					id = randomUUID();
+					const receiptId = randomUUID();
 					const [row] = await tx
 						.insert(transfers)
 						.values({
-							id,
+							id: receiptId,
 							requesterId: ctx.requesterId,
 							scopeKind: ctx.scope.kind,
 							scopeId: ctx.scope.id,
@@ -210,6 +210,7 @@ export function createTransfers(deps: TransferDependencies) {
 				false,
 				controller.signal,
 			);
+			id = row.id;
 			const source = await boundedBody(
 				input.body,
 				config.maxBytes,
@@ -251,7 +252,12 @@ export function createTransfers(deps: TransferDependencies) {
 						})
 						.where(eq(transfers.id, row.id))
 						.returning();
-					return transferSummary(staged);
+					return {
+						id: staged.id,
+						status: staged.status,
+						byteCount: source.byteCount,
+						hash: source.hash,
+					};
 				},
 				deadline,
 				false,
@@ -658,7 +664,8 @@ export function createTransfers(deps: TransferDependencies) {
 						);
 						if (row.artifactExpiresAt!.getTime() <= Date.now())
 							throw new TransferError("expired");
-						await def.importRows(tx, rows, ctx, controller.signal);
+						if (rows.length)
+							await def.importRows(tx, rows, ctx, controller.signal);
 						check();
 						await finish(tx, current, {
 							status: "succeeded",
