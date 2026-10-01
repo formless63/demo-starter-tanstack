@@ -753,8 +753,8 @@
 			"summary": "Medusa commerce synchronization using reliable background and webhook processing."
 		},
 		{
-			"id": "ops-admin", "displayName": "Ops / Admin", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["observability", "jobs", "audit-log", "object-storage", "cache-coordination", "webhooks"], "baselineRequirements": ["authentication"], "externalRequirements": [],
+			"id": "ops-admin", "displayName": "Ops / Admin", "kind": "operations-ui-infrastructure", "status": "in-progress", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["observability", "jobs", "audit-log", "object-storage", "cache-coordination", "webhooks"], "baselineRequirements": ["authentication", "node-runtime"], "externalRequirements": [],
 			"summary": "Authenticated operational surfaces assembled from installed capability adapters."
 		},
 		{
