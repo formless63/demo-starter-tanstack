@@ -1,6 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
 import { and, desc, eq, lt, or, sql } from "drizzle-orm";
-import type { db as appDb } from "../../db";
 import type { JobHandlerContext } from "../jobs/types";
 import { StorageError } from "../storage/errors.server";
 import type { createStorage } from "../storage/storage.server";
@@ -44,7 +43,12 @@ export function transferSummary(row: Transfer) {
 	};
 }
 export interface TransferDependencies {
-	db: typeof appDb;
+	transaction<T>(
+		work: (tx: Transaction) => Promise<T>,
+		deadline: number,
+		snapshot?: boolean,
+		signal?: AbortSignal,
+	): Promise<T>;
 	registry: ReturnType<typeof createTransferRegistry>;
 	storage(): ReturnType<typeof createStorage>;
 	enqueue(tx: Transaction, transferId: string): Promise<string>;
@@ -90,20 +94,9 @@ export function createTransfers(deps: TransferDependencies) {
 		work: (tx: Transaction) => Promise<T>,
 		deadline = Date.now() + 30000,
 		snapshot = false,
+		signal?: AbortSignal,
 	) {
-		const ms = Math.min(30000, deadline - Date.now());
-		if (ms <= 0) throw new TransferError("timeout");
-		return deps.db.transaction(
-			async (tx) => {
-				await tx.execute(
-					sql`select set_config('transaction_timeout', ${`${ms}ms`}, true), set_config('statement_timeout', ${`${ms}ms`}, true), set_config('lock_timeout', ${`${Math.min(5000, ms)}ms`}, true)`,
-				);
-				return work(tx);
-			},
-			snapshot
-				? { isolationLevel: "repeatable read", accessMode: "read only" }
-				: undefined,
-		);
+		return deps.transaction(work, deadline, snapshot, signal);
 	}
 	const visible = (ctx: TransferContext) =>
 		and(
@@ -185,33 +178,38 @@ export function createTransfers(deps: TransferDependencies) {
 		);
 		let id: string | undefined;
 		try {
-			const row = await transaction(async (tx) => {
-				const definition = await authorize(
-					tx,
-					ctx,
-					input.definition,
-					undefined,
-					controller.signal,
-				);
-				id = randomUUID();
-				const [row] = await tx
-					.insert(transfers)
-					.values({
-						id,
-						requesterId: ctx.requesterId,
-						scopeKind: ctx.scope.kind,
-						scopeId: ctx.scope.id,
-						definition: definition.name,
-						version: definition.version,
-						direction: "import",
-						status: "uploading",
-						sourceKey: deps.storage().createKey("transfer-sources"),
-						createdAt: new Date(),
-						updatedAt: new Date(),
-					})
-					.returning();
-				return row;
-			}, deadline);
+			const row = await transaction(
+				async (tx) => {
+					const definition = await authorize(
+						tx,
+						ctx,
+						input.definition,
+						undefined,
+						controller.signal,
+					);
+					id = randomUUID();
+					const [row] = await tx
+						.insert(transfers)
+						.values({
+							id,
+							requesterId: ctx.requesterId,
+							scopeKind: ctx.scope.kind,
+							scopeId: ctx.scope.id,
+							definition: definition.name,
+							version: definition.version,
+							direction: "import",
+							status: "uploading",
+							sourceKey: deps.storage().createKey("transfer-sources"),
+							createdAt: new Date(),
+							updatedAt: new Date(),
+						})
+						.returning();
+					return row;
+				},
+				deadline,
+				false,
+				controller.signal,
+			);
 			const source = await boundedBody(
 				input.body,
 				config.maxBytes,
@@ -227,32 +225,38 @@ export function createTransfers(deps: TransferDependencies) {
 				.headObject(row.sourceKey!, { signal: controller.signal });
 			if (head.contentLength !== source.byteCount)
 				throw new TransferError("invalid-format");
-			return await transaction(async (tx) => {
-				const current = await load(tx, row.id, ctx, true);
-				if (current.status !== "uploading") throw new TransferError("conflict");
-				await authorize(
-					tx,
-					ctx,
-					row.definition,
-					row.version,
-					controller.signal,
-				);
-				const [staged] = await tx
-					.update(transfers)
-					.set({
-						status: "staged",
-						byteCount: source.byteCount,
-						sourceLength: source.byteCount,
-						sourceHash: source.hash,
-						artifactExpiresAt: new Date(
-							Date.now() + config.artifactTtlSeconds * 1000,
-						),
-						updatedAt: new Date(),
-					})
-					.where(eq(transfers.id, row.id))
-					.returning();
-				return transferSummary(staged);
-			}, deadline);
+			return await transaction(
+				async (tx) => {
+					const current = await load(tx, row.id, ctx, true);
+					if (current.status !== "uploading")
+						throw new TransferError("conflict");
+					await authorize(
+						tx,
+						ctx,
+						row.definition,
+						row.version,
+						controller.signal,
+					);
+					const [staged] = await tx
+						.update(transfers)
+						.set({
+							status: "staged",
+							byteCount: source.byteCount,
+							sourceLength: source.byteCount,
+							sourceHash: source.hash,
+							artifactExpiresAt: new Date(
+								Date.now() + config.artifactTtlSeconds * 1000,
+							),
+							updatedAt: new Date(),
+						})
+						.where(eq(transfers.id, row.id))
+						.returning();
+					return transferSummary(staged);
+				},
+				deadline,
+				false,
+				controller.signal,
+			);
 		} catch (error) {
 			const safe = controller.signal.aborted
 				? new TransferError("timeout")
@@ -587,22 +591,27 @@ export function createTransfers(deps: TransferDependencies) {
 			if (Date.now() >= deadline) throw new TransferError("timeout");
 		};
 		try {
-			const row = await transaction(async (tx) => {
-				const row = await load(tx, id, undefined, true);
-				if (row.status !== "pending") return row;
-				await authorize(
-					tx,
-					contextOf(row),
-					row.definition,
-					row.version,
-					controller.signal,
-				);
-				await tx
-					.update(transfers)
-					.set({ startedAt: new Date(), updatedAt: new Date() })
-					.where(eq(transfers.id, id));
-				return row;
-			}, deadline);
+			const row = await transaction(
+				async (tx) => {
+					const row = await load(tx, id, undefined, true);
+					if (row.status !== "pending") return row;
+					await authorize(
+						tx,
+						contextOf(row),
+						row.definition,
+						row.version,
+						controller.signal,
+					);
+					await tx
+						.update(transfers)
+						.set({ startedAt: new Date(), updatedAt: new Date() })
+						.where(eq(transfers.id, id));
+					return row;
+				},
+				deadline,
+				false,
+				controller.signal,
+			);
 			if (row.status !== "pending") return { outcome: row.status };
 			check();
 			const ctx = contextOf(row);
@@ -635,27 +644,32 @@ export function createTransfers(deps: TransferDependencies) {
 					config,
 				);
 				check();
-				await transaction(async (tx) => {
-					const current = await load(tx, id, undefined, true);
-					if (current.status !== "pending") return;
-					check();
-					await authorize(
-						tx,
-						ctx,
-						row.definition,
-						row.version,
-						controller.signal,
-					);
-					if (row.artifactExpiresAt!.getTime() <= Date.now())
-						throw new TransferError("expired");
-					await def.importRows(tx, rows, ctx, controller.signal);
-					check();
-					await finish(tx, current, {
-						status: "succeeded",
-						rowCount: rows.length,
-						byteCount: source.byteCount,
-					});
-				}, deadline);
+				await transaction(
+					async (tx) => {
+						const current = await load(tx, id, undefined, true);
+						if (current.status !== "pending") return;
+						check();
+						await authorize(
+							tx,
+							ctx,
+							row.definition,
+							row.version,
+							controller.signal,
+						);
+						if (row.artifactExpiresAt!.getTime() <= Date.now())
+							throw new TransferError("expired");
+						await def.importRows(tx, rows, ctx, controller.signal);
+						check();
+						await finish(tx, current, {
+							status: "succeeded",
+							rowCount: rows.length,
+							byteCount: source.byteCount,
+						});
+					},
+					deadline,
+					false,
+					controller.signal,
+				);
 			} else {
 				const snapshot = await transaction(
 					async (tx) => {
@@ -690,51 +704,62 @@ export function createTransfers(deps: TransferDependencies) {
 					},
 					deadline,
 					true,
+					controller.signal,
 				);
 				check();
 				const key = deps.storage().createKey("transfer-exports");
-				await transaction(async (tx) => {
-					const current = await load(tx, id, undefined, true);
-					if (current.status !== "pending")
-						throw new TransferError("cancelled");
-					if (current.artifactKeys.length >= 64)
-						throw new TransferError("limit-exceeded");
-					await tx
-						.update(transfers)
-						.set({
-							artifactKeys: [...current.artifactKeys, key],
-							updatedAt: new Date(),
-						})
-						.where(eq(transfers.id, id));
-				}, deadline);
+				await transaction(
+					async (tx) => {
+						const current = await load(tx, id, undefined, true);
+						if (current.status !== "pending")
+							throw new TransferError("cancelled");
+						if (current.artifactKeys.length >= 64)
+							throw new TransferError("limit-exceeded");
+						await tx
+							.update(transfers)
+							.set({
+								artifactKeys: [...current.artifactKeys, key],
+								updatedAt: new Date(),
+							})
+							.where(eq(transfers.id, id));
+					},
+					deadline,
+					false,
+					controller.signal,
+				);
 				await deps.storage().putObject(key, snapshot.bytes, {
 					contentLength: snapshot.bytes.length,
 					contentType: "text/csv",
 					signal: controller.signal,
 				});
 				check();
-				await transaction(async (tx) => {
-					const current = await load(tx, id, undefined, true);
-					if (current.status !== "pending") return;
-					check();
-					await authorize(
-						tx,
-						ctx,
-						row.definition,
-						row.version,
-						controller.signal,
-					);
-					await finish(tx, current, {
-						status: "succeeded",
-						outputKey: key,
-						artifactExpiresAt: new Date(
-							Date.now() + config.artifactTtlSeconds * 1000,
-						),
-						snapshotAt: snapshot.snapshotAt,
-						rowCount: snapshot.count,
-						byteCount: snapshot.bytes.length,
-					});
-				}, deadline);
+				await transaction(
+					async (tx) => {
+						const current = await load(tx, id, undefined, true);
+						if (current.status !== "pending") return;
+						check();
+						await authorize(
+							tx,
+							ctx,
+							row.definition,
+							row.version,
+							controller.signal,
+						);
+						await finish(tx, current, {
+							status: "succeeded",
+							outputKey: key,
+							artifactExpiresAt: new Date(
+								Date.now() + config.artifactTtlSeconds * 1000,
+							),
+							snapshotAt: snapshot.snapshotAt,
+							rowCount: snapshot.count,
+							byteCount: snapshot.bytes.length,
+						});
+					},
+					deadline,
+					false,
+					controller.signal,
+				);
 			}
 			return { outcome: "completed" };
 		} catch (error) {

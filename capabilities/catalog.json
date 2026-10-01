@@ -737,6 +737,7 @@
 			"summary": "Asynchronous bulk data ingestion and export backed by durable jobs and objects.",
 			"documentationPath": "capabilities/import-export/CAPABILITY.md",
 			"evaluationDocument": "IMPORT_EXPORT_MODULE_EVALUATION.md",
+			"agentSkill": ".agents/skills/import-export-change/SKILL.md",
 			"scripts": [
 				"import-export:unit",
 				"import-export:compat",

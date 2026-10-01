@@ -19,3 +19,9 @@ Actual PostgreSQL18.1 + pg-boss12.35.0 and each real RustFS1.0.0/Garage2.4.1 pas
 ## Remaining completion gate
 
 Generic clean-consumer install/runtime/removal/rebuild, all completed lifecycles, expanded race/deadline/crash/retry/snapshot fixtures, root/browser development+production, production image/explicit migrations/standalone worker/health and exact final-head hosted CI remain required. No done/ready/merge claim is made until those pass. Callback cooperative cancellation and customized consumer overlays must remain explicit limitations; source/package metadata is not runtime evidence.
+
+## Additional checkpoint evidence
+
+Root check passes331 tests with0 failures plus governance/lint/types/build; development browser suite passes12 cases including session/scoped transfer UI, safe expired source and durable cancellation without S3. Generic Import/Export clean installation, real two-provider runtime, removal/typecheck/rebuild passes with only Jobs/Storage closure. PostgreSQL deadline fixture closes active query I/O and rolls back on explicit abort; owned transactions do not replay writes.
+
+Canonical Docker build and full completed-lifecycle run are blocked by anonymous Docker Hub HTTP429: oven/bun1.4.2 and Storage's required noooste/garage-ui:v0.13.0. Node24.21.0 Docker Official Image is available through official ECR mirror; host-built runtime image is supplementary evidence, not a passed canonical Dockerfile build. Hosted PR runs remain queued at the current checkpoint. These gates remain open; no verification requirement was weakened.
