@@ -26,7 +26,7 @@ export function validateAiConfig(
 			config.timeoutSeconds > 300 ||
 			(config.apiKey !== undefined &&
 				(typeof config.apiKey !== "string" ||
-					config.apiKey.trim() !== config.apiKey ||
+					/^[ \t]|[ \t]$/.test(config.apiKey) ||
 					Buffer.from(config.apiKey).toString() !== config.apiKey ||
 					Array.from(config.apiKey).some((char) => {
 						const code = char.charCodeAt(0);

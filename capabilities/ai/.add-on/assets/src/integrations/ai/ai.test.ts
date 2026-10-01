@@ -155,7 +155,12 @@ describe("AI v1 backendless contract", () => {
 			expect(validateAiConfig({ ...base, model }).model).toBe(model);
 			expect(resolveAiConfig({ AI_MODEL: model }).model).toBe(model);
 		}
-		for (const apiKey of ["", "local-éÿ", "x".repeat(256 * 1024)]) {
+		for (const apiKey of [
+			"",
+			"local-éÿ",
+			"\u00a0key\u00a0",
+			"x".repeat(256 * 1024),
+		]) {
 			expect(validateAiConfig({ ...base, apiKey }).apiKey).toBe(apiKey);
 			expect(
 				resolveAiConfig({ AI_MODEL: base.model, AI_API_KEY: apiKey }).apiKey,
