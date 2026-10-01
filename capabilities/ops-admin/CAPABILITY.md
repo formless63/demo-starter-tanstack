@@ -28,6 +28,6 @@ To remove an optional capability first remove its entry/import in application-ow
 
 ## Verification
 
-`bun run ops:unit` covers allowlist/session/guard boundaries, safe failures, missing configuration, registry validation, counts, isolation, deadlines and hung-work/concurrency limits. Generic clean-install fixture exercises baseline-only adapters and removal/rebuild. Browser, real protocol, production and exact-head hosted CI gates are tracked in the draft PR; do not infer completion from unit tests.
+`bun run ops:unit` covers allowlist/session/guard boundaries, safe failures, missing configuration, registry validation, counts, isolation, deadlines and hung-work/concurrency limits. Generic clean-install fixture exercises baseline-only adapters and removal/rebuild. Real read-only canaries live in scripts/ops-jobs-fixture.ts (PostgreSQL cached metadata), scripts/ops-storage-fixture.ts (HEAD proxy with disposable storage:compat providers) and scripts/ops-cache-fixture.ts (PING/connection metadata through a disposable Valkey proxy). The baseline consumer runtime fixture explicitly migrates its own unique database and proves human session/operator boundaries before code removal. Browser, production and exact-head hosted CI run evidence is tracked in the draft PR; do not infer completion from unit tests.
 
 Evaluation: [OPS_ADMIN_MODULE_EVALUATION.md](../../OPS_ADMIN_MODULE_EVALUATION.md).

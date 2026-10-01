@@ -2,6 +2,20 @@ import pg from "pg";
 import { PgBoss } from "pg-boss";
 import { jobsDatabaseUrl, jobsSchema } from "#/integrations/jobs/boss.server";
 import { jobRegistry } from "#/integrations/jobs/registry";
+export function opsJobsConfigured() {
+	try {
+		const url = new URL(jobsDatabaseUrl());
+		jobsSchema();
+		return (
+			["postgres:", "postgresql:"].includes(url.protocol) &&
+			Boolean(url.hostname) &&
+			Boolean(url.pathname.slice(1)) &&
+			Object.keys(jobRegistry).length <= 32
+		);
+	} catch {
+		return false;
+	}
+}
 /** Supported cached metadata only; never start the producer/worker or create queues.
  * Connection teardown cancels the current query, while PostgreSQL statement_timeout is a second bound.
  */
