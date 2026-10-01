@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {readFile,rm,writeFile} from 'node:fs/promises';
+assert.equal(JSON.parse(await readFile('.cta.json','utf8')).projectName,'import-export-addon-clean-install');
+for(const file of ['service.server.ts','registry.server.ts','jobs.server.ts','config.server.ts','csv.server.ts','database.server.ts'])await rm(`src/integrations/import-export/${file}`,{force:true});
+await rm('src/lib/import-export.server.ts',{force:true});
+const path='src/integrations/jobs/registry.ts';await writeFile(path,(await readFile(path,'utf8')).split('\n').filter(line=>!line.includes('referenceTransferJobs')).join('\n'));
+const pkg=JSON.parse(await readFile('package.json','utf8'));delete pkg.dependencies['csv-parse'];delete pkg.dependencies['csv-stringify'];for(const key of Object.keys(pkg.scripts))if(key.startsWith('import-export:'))delete pkg.scripts[key];await writeFile('package.json',JSON.stringify(pkg,null,2)+'\n');
+for(const file of ['import-export-fixture.ts','import-export-compat.ts','import-export-operator.ts','import-export-unit.ts','import-export-claim-crash.ts','import-export-retention-fixture.ts'])await rm(`scripts/${file}`,{force:true});
+assert(pkg.dependencies['pg-boss']);assert(pkg.dependencies['@aws-sdk/client-s3']);assert(await readFile('src/integrations/import-export/schema.ts'));assert(await readFile('drizzle/0006_parched_darwin.sql'));assert(await readFile('drizzle/meta/_journal.json'));
+for(const args of [['install'],['x','tsc','--noEmit'],['run','build']])assert.equal(spawnSync(process.execPath,args,{stdio:'inherit',env:process.env}).status,0);

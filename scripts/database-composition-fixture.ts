@@ -8,6 +8,10 @@ const cta = JSON.parse(await readFile(".cta.json", "utf8"));
 assert.equal(cta.projectName, "database-composition-clean-install");
 assert.ok(resolve(".").includes("addon-"));
 assert.ok(process.env.DATABASE_URL);
+assert.ok(!cta.chosenAddOns.includes("import-export"));
+const consumerPackage = JSON.parse(await readFile("package.json", "utf8"));
+assert.equal(consumerPackage.dependencies["csv-parse"], undefined);
+assert.equal(consumerPackage.dependencies["csv-stringify"], undefined);
 const admin = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const name = `composition_${randomUUID().replaceAll("-", "")}`;
 const url = new URL(process.env.DATABASE_URL);
@@ -29,7 +33,8 @@ try {
 	const journal = JSON.parse(
 		await readFile("drizzle/meta/_journal.json", "utf8"),
 	);
-	assert.equal(journal.entries.length, 6);
+	assert.deepEqual(journal.entries.slice(0, 6).map((entry: { tag: string }) => entry.tag), ["0000_gray_the_fallen", "0001_pretty_kat_farrell", "0002_even_nighthawk", "0003_audit_log", "0004_search", "0004_tough_mindworm"]);
+	assert.equal(await readFile("src/db/schema.ts", "utf8").then(source => source.includes("integrations/import-export")), false);
 	run(["run", "db:migrate"]);
 	run(["run", "api-platform:smoke"]);
 	run(["run", "audit-log:smoke"]);

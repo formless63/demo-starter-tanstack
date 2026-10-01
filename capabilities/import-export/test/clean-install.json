@@ -1,0 +1,44 @@
+{
+  "projectName": "import-export-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [
+    "postgres-jobs",
+    "object-storage"
+  ],
+  "forbiddenOfficialAddOns": [
+    "better-auth",
+    "audit-log",
+    "notifications",
+    "realtime",
+    "observability",
+    "email",
+    "ai",
+    "search"
+  ],
+  "expectedFiles": [
+    "src/integrations/import-export/service.server.ts",
+    "src/integrations/import-export/schema.ts",
+    "src/lib/import-export.server.ts",
+    "drizzle/0006_parched_darwin.sql",
+    "capabilities/import-export/CAPABILITY.md"
+  ],
+  "addOnConfig": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "reviewedSharedFiles": {
+    "drizzle.config.ts": "capabilities/import-export/.add-on/assets/drizzle.config.ts",
+    "src/integrations/jobs/registry.ts": "capabilities/import-export/.add-on/assets/src/integrations/jobs/registry.ts"
+  },
+  "verificationCommands": [
+    [
+      "bun",
+      "scripts/import-export-clean-fixture.ts"
+    ]
+  ],
+  "build": true
+}

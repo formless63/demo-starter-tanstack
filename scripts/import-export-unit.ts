@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { z } from 'zod';
+import { parseImport,exportCsv,spreadsheetSafe } from '../src/integrations/import-export/csv.server';
+import { transferConfig } from '../src/integrations/import-export/config.server';
+const config=transferConfig({});const schema=z.object({name:z.string().trim().min(1),description:z.string()});
+assert.deepEqual(parseImport(Buffer.from('\ufeffname,description\r\n"one","line\n""two"""\r\n'),['name','description'],schema,config),[{name:'one',description:'line\n"two"'}]);
+assert.deepEqual(parseImport(Buffer.from('name,description\n'),['name','description'],schema,config),[]);
+for(const value of ['name,name\na,b','name,description\n\n','name,description\n"unterminated','name,description\na,b,c'])assert.throws(()=>parseImport(Buffer.from(value),['name','description'],schema,config));
+assert.throws(()=>parseImport(Buffer.from([0xff]),['name','description'],schema,config));
+for(const value of ['=x','+x','-x','@x','\tx','\rx','\nx','  =x','＝x','＋x','－x','＠x'])assert.equal(spreadsheetSafe(value),"'"+value);
+assert.equal(exportCsv([[-2,'-2',null]],['a','b','c'],config).toString(),"a,b,c\r\n-2,'-2,\r\n");
+console.info('Independent CSV format, UTF8, validation and formula vectors passed');

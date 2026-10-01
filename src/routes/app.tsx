@@ -64,6 +64,12 @@ function AppShell() {
 				<aside className="border-r p-4 max-md:border-b">
 					<nav className="space-y-1">
 						<Link
+							to="/app/transfers"
+							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+						>
+							Import / Export
+						</Link>
+						<Link
 							to="/app/notifications"
 							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
 							activeProps={{ className: "bg-accent" }}
