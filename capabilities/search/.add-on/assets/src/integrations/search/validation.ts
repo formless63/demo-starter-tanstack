@@ -32,7 +32,8 @@ function validCursor(value: unknown): value is SearchCursor {
 		) ||
 		!Number.isFinite(Number(rank)) ||
 		Number(rank) < 0 ||
-		Number(rank) > 1
+		Number(rank) > 1 ||
+		(rank !== "0" && Math.fround(Number(rank)) === 0)
 	)
 		return false;
 	// Keep six fractional digits from PostgreSQL, including sub-millisecond ties.
