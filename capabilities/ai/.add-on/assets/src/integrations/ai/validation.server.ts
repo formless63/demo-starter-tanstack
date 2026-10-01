@@ -4,10 +4,11 @@ export const AI_MAX_OUTPUT_BYTES = 1024 * 1024;
 const abortedGetter = Object.getOwnPropertyDescriptor(
 	AbortSignal.prototype,
 	"aborted",
-)!.get!;
+)?.get;
 function isAbortSignal(signal: unknown): signal is AbortSignal {
 	try {
 		// Invoke the intrinsic getter to check internal slots, not the prototype chain.
+		if (!abortedGetter) return false;
 		abortedGetter.call(signal);
 		return signal instanceof AbortSignal;
 	} catch {

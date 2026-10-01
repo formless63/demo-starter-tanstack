@@ -22,7 +22,9 @@ it("migrates clean and existing Projects while retaining applied history and rec
 		const journal = JSON.parse(
 			await readFile(join(folder, "meta/_journal.json"), "utf8"),
 		);
-		journal.entries = journal.entries.filter((entry: { idx: number }) => entry.idx < 4);
+		journal.entries = journal.entries.filter(
+			(entry: { idx: number }) => entry.idx < 4,
+		);
 		const { writeFile } = await import("node:fs/promises");
 		await writeFile(
 			join(folder, "meta/_journal.json"),
