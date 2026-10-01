@@ -26,7 +26,7 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 
 Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
 
-The thirteen completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination, AI, Search, Realtime, Notifications and Import / Export.
+The fourteen completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination, AI, Search, Realtime, Notifications, Import / Export and Ops / Admin.
 
 `defaultInstalled` describes only clean generated consumers. The root reference application's intentionally integrated capabilities are listed separately in `referenceApplication.enabledCapabilities`; disabling an application integration does not require deleting the reusable add-on workspace or its stable catalog identity. Removal retains database data and committed migration history unless a separate destructive change explicitly says otherwise.
 
@@ -86,3 +86,5 @@ Canonical Project mutation input limits are 120 characters for trimmed names and
 ## Import / Export
 
 `src/integrations/import-export` owns scoped durable receipts, bounded CSV, existing Jobs/Storage composition and explicit reconciliation/purge. `src/lib/import-export.server.ts` owns the personal Project registry/current user authorization/Audit composition; routes authenticate before building context. No Organizations/Authorization imports or tenant selection authority. Keep receipt+domain writes in one locked transaction, snapshot transaction closed before S3, retained data/migration history on removal. Canonical contract: `capabilities/import-export/CAPABILITY.md`. The capability is done and reference-enabled; consumers remain opt-in. Changes require the full lifecycle/production/exact-head CI gate.
+
+Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
