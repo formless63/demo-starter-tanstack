@@ -44,14 +44,14 @@ test("human cookie authorization and committed notification hint over SSE and We
     await page.getByRole("checkbox", { name: "Unread only" }).uncheck();
     await page.getByRole("button", { name: "Mark unread", exact: true }).click();
     await expect(page.getByRole("button", { name: "Mark read", exact: true })).toBeVisible();
+    // Reconnect produces no replay event; close the fixture connections before reload.
+    await page.evaluate(() => { const state = window as unknown as { fixtureSse: EventSource; fixtureWs: WebSocket }; state.fixtureSse.close(); state.fixtureWs.close(); });
     const plainTitle = "<tag>";
     await pool.query("UPDATE notification SET title=$1 WHERE id=$2 AND recipient_id=$3",[plainTitle,hint.data.notificationId,userId]);
     await page.reload();
     const escapedTitle = page.getByRole("heading",{name:plainTitle,exact:true});
     await expect(escapedTitle).toBeVisible();
     await expect(escapedTitle.locator("tag")).toHaveCount(0);
-    // Reconnect produces no replay event; the authoritative row remains available.
-    await page.evaluate(() => { const state = window as unknown as { fixtureSse: EventSource; fixtureWs: WebSocket }; state.fixtureSse.close(); state.fixtureWs.close(); });
     const ownChannel = `user:${createHash("sha256").update(userId).digest("hex")}`; expect(ownChannel).toHaveLength(69);
   } finally { await pool.query("DELETE FROM notification WHERE recipient_id=$1", [userId]); await pool.query('DELETE FROM "user" WHERE id=$1', [userId]); await pool.end(); }
 });
