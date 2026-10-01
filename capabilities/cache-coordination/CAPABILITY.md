@@ -2,93 +2,25 @@
 
 Status: done; optional (`defaultInstalled: false`). The reference application enables explicit tooling for continuous verification; normal startup makes no cache connection. Evaluation: `CACHE_COORDINATION_MODULE_EVALUATION.md`.
 
-## Requirements and boundaries
+## Observable v1 contract
 
-**Requires:** `[]`; no Realtime, Jobs, API Platform, Observability, database, Drizzle or Auth dependency. Baseline Node-compatible server runtime and TanStack Start. Official add-on `dependsOn: []`, conflicts `[]`.
+No hard capability dependency. Node production runtime is baseline; Realtime, API Platform, Jobs and Observability are optional integrations. Pins: redis/node-redis 6.3.0 and official Valkey 9.1.2. Cache is server-only and ephemeral; namespacing is not authorization. No durable queue, session store, rate-limit product or distributed-lock correctness guarantee.
 
-**Integrates with:** Realtime, API Platform and Jobs through optional application composition; Observability through the optional reference wrapper. API Platform may use shared rate-limit state; Jobs may use ephemeral coordination while remaining durable in PostgreSQL; Realtime may later use pub/sub. This capability implements none of those integrations and changes none of their requirements.
+Configuration is lazy on first operation: CACHE_URL requires redis:// or rediss:// with optional ACL credentials/numeric DB, no query/hash. CACHE_KEY_PREFIX defaults to app, 1–128 ASCII letters/digits/underscore/hyphen starting alphanumeric. CACHE_DEFAULT_TTL_SECONDS defaults to 300, range 1–86400. CACHE_MAX_VALUE_BYTES defaults to 1048576, range 1–1048576. URLs/credentials never enter errors/logs. Connection is fixed at 2 seconds, command/response at 5 seconds, each shutdown phase at most 5 seconds; queue maximum 1024. No environment timeout tuning. Normal rediss certificate/hostname verification remains enabled; private trust may use NODE_EXTRA_CA_CERTS.
 
-**External:** Valkey/Redis-compatible service on first use. Tested target is official Valkey 9.1.2. Common RESP2 command subset only; ordinary Redis-compatible services may support it, but no broad provider/cluster compatibility claim or second Redis implementation test is made.
+Logical keys/channels/leases are 1–256 ASCII bytes, start alphanumeric, permit letters/digits/: _ . / -, reject empty/traversal segments, controls, whitespace and wildcards. Physical names are `<prefix>:value:<logical>`, `<prefix>:lease:<logical>`, `<prefix>:channel:<logical>`.
 
-Ephemeral server primitives only. This is not durable storage, a session database, primary database, queue, rate-limiting product, Realtime capability, distributed workflow engine, Redlock quorum, persistent broker, or search engine. A non-expiring value is still ephemeral.
+`get(key)` returns Buffer or null, preserving arbitrary bytes. Applications explicitly decode/validate text/JSON. `set(key, stringOrUint8Array, { ttlSeconds?, ifAbsent? })` expires by default and returns whether written. `setWithoutExpiry(key, value, { ifAbsent? })` deliberately escapes expiration and returns whether written; it does not imply durability. `delete(key)` deletes exactly one value key and returns boolean, never touching leases. No KEYS/SCAN/FLUSH/prefix delete/arbitrary public EVAL/raw client.
 
-## Adds
+`increment(key, { by?, ttlSeconds? } = {})` uses safe signed JS integers, amount default 1, configured default TTL. Atomic INCRBY + initial expiry attaches TTL to new/persistent integers, preserves existing expiry, rejects invalid/noninteger/overflow before partial mutation. Timeout can mean uncertain mutation; never retry automatically.
 
-Pinned `redis` / node-redis 6.3.0; no other direct runtime dependency. No migrations, schema, auth, UI, route, readiness change or long-lived worker. Owned files: `src/integrations/cache/`, `scripts/cache-{check,smoke,unit,compat,dev,removal-fixture,removal-data-fixture}.ts`, `compose.cache.yaml`, contract/evaluation/skill. Independent add-on assets contain no application telemetry wrapper or other capability import.
+`acquireLease(key, ttlSeconds = 30)` allows 2–300 seconds, internally SET NX PX, random 256-bit token, readonly `{ key, token }` or null. `renewLease(lease, ttlSeconds = 30)` and `releaseLease(lease)` return boolean, including false for expired/replaced/wrong token. Advisory only: no heartbeat, fencing, Redlock/quorum or irreversible correctness guarantee.
 
-Reference-only `src/lib/cache.server.ts` supplies `getApplicationCache()` / `closeApplicationCache()` and optional `observeCache`; `scripts/cache-telemetry.ts` verifies safe bounded signals. It imports Observability only in application wiring. Removing it leaves the primitive identical.
+Exact-channel pub/sub uses Buffer messages bounded by configured maximum (ceiling 1 MiB), dedicated connections, at most 32 active subscriptions per instance. Publish uses an independent command connection. Callback exceptions are isolated; optional onError receives only callback-failed. No persistence/backlog/ack/replay. Automatic reconnect/resubscription is disabled and offline replay is disabled. A later explicit command may create a new connection after terminal failure; failed subscriptions must be deliberately recreated.
 
-### Server configuration
+`createCache({ env?, observe?, onError? })` is caller-owned and must be closed by that caller. `getCache()` owns only the process singleton; `closeCache()` closes/resets only it. `close()` is idempotent, rejects new operations immediately, stops subscriptions, boundedly drains/closes then destroys unresponsive sockets. Already-running callback work remains application-owned.
 
-Configuration and connection are lazy even for `createCache()`. Build/start and importing or closing an unused instance need no configuration/service. The first operation validates:
-
-| Variable | Default | Limits / semantics |
-| --- | --- | --- |
-| `CACHE_URL` | Unset | Required on use, `redis://` or `rediss://`, optional provider credentials and numeric database path; no query/hash. Never log or expose to browsers. |
-| `CACHE_KEY_PREFIX` | `app:` | 1–64 ASCII characters, starts alphanumeric; remaining alphanumeric, `:._/-`. A trailing `:` is added if absent. Use unique environment/application namespaces. |
-| `CACHE_DEFAULT_TTL_SECONDS` | `300` | Integer 1–604800 (7 days); same bound for each call. |
-| `CACHE_MAX_VALUE_BYTES` | `1048576` | Integer 1–16777216 (16 MiB ceiling), enforced before sending strings/bytes/messages. |
-| `CACHE_CONNECT_TIMEOUT_MS` | `3000` | Integer 100–10000; bounds complete initial connect including retries. |
-| `CACHE_COMMAND_TIMEOUT_MS` | `2000` | Integer 100–10000; bounds commands and subscription acknowledgements. |
-
-Two timeout settings are useful for remote service latency; no provider-specific variables. `rediss://` uses Node TLS with explicit `rejectUnauthorized: true`, normal CA verification and hostname checking. No insecure override. Secrets are absent from the frontend env contract and server-only module imports are enforced by Start.
-
-### Key/value model
-
-Logical keys/channels/lease names: 1–256 ASCII characters, starts alphanumeric; remaining alphanumeric, `:._/-`. Empty names, whitespace/controls, wildcard characters and Unicode are rejected. Physical names are prefix + `data:` / `lease:` / `channel:` + logical name. Separation prevents ordinary data deletion overwriting a lease. Prefix and physical names are never telemetry labels.
-
-Values are strings or `Uint8Array`; `get()` returns UTF-8 string or `null`; `getBytes()` returns `Buffer` or `null`. Use bytes for binary round trips. Empty values are valid. No JSON helpers, generic JSON casts, prototype reconstruction or arbitrary command/client access. Reads assume this namespace is exclusively written by bounded writers; this is not a defense against another administrator inserting oversized data directly.
-
-### API
-
-```ts
-import { getCache, closeCache } from './src/integrations/cache/cache.server'
-const cache = getCache() // still no configuration validation or network
-await cache.set('product:summary', 'summary') // default expiry 300 seconds
-await cache.set('coordination:flag', 'ready', { ttlSeconds: 60, ifAbsent: true })
-const value = await cache.get('product:summary')
-await cache.delete('product:summary')
-const count = await cache.increment('counter:batch', { by: 1, ttlSeconds: 60 })
-const lease = await cache.acquireLease('refresh:summary', { ttlMs: 5000 })
-if (lease) {
-  try { /* bounded, retry-safe work; it may outlive this lease */ }
-  finally { await cache.releaseLease(lease) }
-}
-const subscription = await cache.subscribe('invalidation', (message) => {
-  // message is Buffer; consumer owns parsing, authorization and handler errors
-})
-await cache.publish('invalidation', 'refresh')
-await subscription.unsubscribe()
-await closeCache()
-```
-
-`createCache({ env?, observe? })` creates isolated instances. `getCache()` is per-process lazy singleton; `closeCache()` resets and closes it. `checkCache()` / instance `checkCache()` is PING only. `set()` returns whether the write succeeded; NX returns false on existing data. `delete()` returns whether a single exact data key existed. `setWithoutExpiry()` is explicitly named; consumers own eventual exact-key cleanup. Omitted TTL never accidentally disables expiry. There is no broad delete/scan/KEYS/FLUSH or general EVAL API.
-
-### Atomic increment
-
-Required `ttlSeconds`, optional integer `by` default 1. A small private Lua script reads/validates integer range, runs INCRBY, then sets EXPIRE only when the counter has no expiry, atomically. Existing expiring counters retain remaining TTL rather than becoming sliding windows. Existing non-expiring integer counters receive the requested TTL. Signed safe JS integers only; overflow/invalid numeric data fails without mutation. Concurrent increments are tested. A timeout/network disconnect can leave the command's outcome unknown; never blindly retry a non-idempotent increment or publish.
-
-### Advisory leases
-
-Acquire: SET namespaced lease key cryptographically random 256-bit token NX PX. TTL integer 100–300000 ms; acquire returns `Lease` or `null`. `renewLease(lease, { ttlMs })` and `releaseLease(lease)` compare the token in atomic private Lua scripts; a stale or wrong holder receives `lease_not_owned` and cannot mutate a replacement. Renew returns updated lease metadata; this is not automatic renewal or a guaranteed local expiry clock. Tokens are sensitive server-only ownership credentials. Do not serialize/log lease objects.
-
-Single-backend advisory leases only: no Redlock/quorum, no fencing token, and process pauses/network partitions can exceed the lease. They are not universally safe distributed locks for irreversible external side effects. Use database uniqueness/transactions or real fencing for critical correctness. Cache eviction/restarts also lose leases. A timeout acquiring a lease may leave a short-lived lease whose token the caller never received; it expires normally.
-
-### Pub/sub
-
-Exact validated channels only; dedicated connection for each subscription, capped at 32, plus one lazy command connection. Subscribers receive bytes; messages above the configured bound from external writers are dropped. `unsubscribe()` is idempotent, stops local delivery immediately, removes its listener and closes its connection. Handler exceptions/rejections are contained without logging message/channel; consumers must handle/report their own failures safely. Handler work is consumer-owned and is not awaited on cache close; bound/manage it explicitly.
-
-No persistence, replay, consumer offsets, acknowledgement or durable event bus. Subscribers can miss messages while disconnected. Supported node-redis reconnect automatically resubscribes active listeners while retries remain. Once reconnect retries are exhausted, create a new subscription explicitly. Publishing's subscriber count does not promise application consumption.
-
-### Lifecycle, reconnect and errors
-
-Supported exponential reconnect: 100 ms up to 1 second, at most six retries; authentication errors stop retries. No offline command queue/replay, queued commands capped at 1024. Complete connect wait is bounded independently of per-attempt timeout. Later operations can reconnect a closed command client. Commands use the supported queue timeout plus an explicit response deadline/connection teardown; subscriptions have explicit acknowledgement timeout/forced close. Timeout outcomes are ambiguous, especially mutations. Core clients install safe error listeners and never log raw errors. Do not attach general command/diagnostics instrumentation that records command arguments.
-
-`close()` rejects new operations, drains already accepted commands for at most 2 seconds, closes each connection with a 2-second bound then destroys if necessary; repeated close is idempotent. Call it on application/worker shutdown; explicitly drain application work first. Reference wrapper registers signal cleanup only when used. Normal root startup/readiness does not instantiate a connection; Cache is not automatically added to `/api/health`.
-
-Safe `CacheError` codes: configuration, connection, timeout, authentication, unavailable, invalid_input, lease_not_owned. Static messages and safe JSON/inspection; original non-enumerable cause is available server-side for deliberate debugging only and must never be serialized/logged. No URL, key, value, channel, script or token appears in public errors.
-
-Optional observer gets only finite operation, success/failure, duration, hit/miss and numeric value size. Observer errors cannot alter core behavior. Reference instrumentation uses bounded `app.cache.*` metrics/spans and static logs; no keys/prefix/channels/URLs/tokens/value/message/user IDs as dimensions. Cache works without Observability installed.
+Safe codes: configuration, invalid-input, unavailable, timeout, authentication, closed, callback-failed. Static JSON/inspection never exposes raw backend errors, keys/values/channels/tokens/URLs. Optional observer receives only finite operation, success/error, durationSeconds and get hit/miss; exceptions cannot affect behavior. Reference application wrapper owns optional Observability signals.
 
 ## Local development and verification
 

@@ -154,6 +154,8 @@ Cache / Coordination declares `dependsOn: []`; clean installation needs no datab
 
 Run `bun run add-ons:test cache-coordination`, `bun run cache:unit`, and `bun run cache:compat` for its standalone contract; normal root startup/readiness never requires Cache.
 
+The four SMTP/Webhooks/Audit/Cache v1 contracts fix shared behavioral bounds while retaining native add-on packaging. Email uses combined 1 MiB bodies, subject200, counts-only results and socket10s; Webhooks bounds the complete attempt and reads no response body and does not suppress deliberate enqueues; Audit owns event time/ID and uses from-inclusive/until-exclusive ranges; Cache returns Buffer, expires default writes, uses advisory lease seconds and explicit reconnect/subscription recreation. See each contract for exact validation and ownership rules.
+
 ### Shared-file preflight and reviewed composition
 
 Run `bun run add-ons:preflight <id ...>` before combining custom add-ons. It exits nonzero for unreviewed shared files (including journals/config); it never merges files or applies migrations. Webhooks' `installation.json` records its reviewed Jobs registry overlay, permitted only for its hard dependency. Existing customized applications still require manual diff review even when this check passes. `bun run add-ons:test:composition` proves a reviewed API + Audit + Jobs clean consumer using this reference application's unified schema/history; it is a fixture, not an installation or upgrade command for a deployed application. Public semantic upgrade/merge support remains deferred.

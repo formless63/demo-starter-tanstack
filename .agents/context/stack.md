@@ -26,7 +26,9 @@ Webhooks implements Standard Webhooks specification 1.0.0 HMAC v1 with Node cryp
 
 Audit Log uses baseline Drizzle/node-postgres, application UUIDv4, timestamptz(3), JSONB and four bounded B-tree lookup/keyset indexes. No new runtime package or environment/service. Its optional independent add-on requires official `drizzle` only; see contract/evaluation for shared-config/migration overlays and privacy/retention boundaries.
 
-Cache / Coordination pins redis / node-redis 6.3.0 (Node >=20, production Node 24) and actual official Valkey 9.1.2 Alpine image/digest. RESP2 common subset; no second Redis/provider certification. Atomic TTL increments and token-checked advisory leases are private Lua; pub/sub is ephemeral with dedicated reconnecting clients. Lazy config, no readiness coupling or required telemetry.
+Cache / Coordination pins redis / node-redis 6.3.0 (Node >=20, production Node 24) and actual official Valkey 9.1.2 Alpine image/digest. RESP2 common subset; no second Redis/provider certification. Atomic TTL increments and token-checked advisory leases are private Lua; pub/sub is ephemeral with dedicated connections requiring explicit subscription recreation. Lazy config, no readiness coupling or required telemetry.
+
+Email/Webhooks/Audit/Cache shared v1 limits are maintained in their capability contracts: counts-only SMTP results; complete Webhook attempt deadline/status-only response; Audit-owned time/ID with half-open ranges; binary Cache reads, seconds-based leases and explicit reconnect/subscription recreation. Preserve native add-on architecture and historical migrations.
 
 Project Bootstrap/Appearance add no packages. Existing Zod 4 emits versioned portable JSON schemas and validates metadata/tokens. Native React subscriptions/localStorage/matchMedia provide TanStack mode selection; Tailwind 4 consumes generated semantic variables. The theme importer vendors reviewed shadcn registry:style data, with local TweakCN fixtures and no runtime/CI theme network dependency.
 

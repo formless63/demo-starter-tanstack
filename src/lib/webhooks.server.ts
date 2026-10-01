@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { WebhookDeliveryError } from "../integrations/webhooks/delivery.server";
 import { defineWebhookEvents } from "../integrations/webhooks/events";
 import { createWebhookJobs } from "../integrations/webhooks/jobs.server";
 
@@ -14,7 +15,7 @@ export const referenceWebhookJobs = createWebhookJobs({
 			!process.env.WEBHOOK_REFERENCE_URL ||
 			!process.env.WEBHOOK_REFERENCE_SECRET
 		)
-			throw new Error("Webhook target unavailable");
+			throw new WebhookDeliveryError("target", false);
 		return {
 			url: process.env.WEBHOOK_REFERENCE_URL,
 			signingSecret: process.env.WEBHOOK_REFERENCE_SECRET,

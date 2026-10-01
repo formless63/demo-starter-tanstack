@@ -24,9 +24,9 @@ export interface EmailMessage {
 	html?: string;
 }
 export interface EmailDelivery {
-	outcome: "accepted" | "partial";
-	accepted: string[];
-	rejected: string[];
+	outcome: "accepted" | "partial" | "rejected";
+	accepted: number;
+	rejected: number;
 	messageId: string;
 }
 export interface EmailOperation {
@@ -53,7 +53,7 @@ export function smtpOptions(
 			: {}),
 		connectionTimeout: 5000,
 		greetingTimeout: 5000,
-		socketTimeout: 15000,
+		socketTimeout: 10000,
 		dnsTimeout: 5000,
 		disableFileAccess: true,
 		disableUrlAccess: true,
@@ -90,6 +90,12 @@ export function validateMessage(message: EmailMessage, config: EmailConfig) {
 				body.includes("\0"))
 		)
 			throw new EmailError("message");
+	if (
+		Buffer.byteLength(message.text ?? "") +
+			Buffer.byteLength(message.html ?? "") >
+		1024 * 1024
+	)
+		throw new EmailError("message");
 	if (!message.text && !message.html) throw new EmailError("message");
 	return {
 		from: config.from,
@@ -158,10 +164,11 @@ export function createEmail(
 				async () => {
 					// Exactly one attempt. A connection failure after acceptance is ambiguous.
 					const result = await transport.sendMail(mail);
-					const accepted = result.accepted.map(String),
-						rejected = result.rejected.map(String);
+					const accepted = result.accepted.length,
+						rejected = result.rejected.length;
 					return {
-						outcome: rejected.length ? "partial" : "accepted",
+						outcome:
+							accepted === 0 ? "rejected" : rejected ? "partial" : "accepted",
 						accepted,
 						rejected,
 						messageId: result.messageId,

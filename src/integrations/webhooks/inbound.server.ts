@@ -22,6 +22,7 @@ export async function verifyWebhookRequest<R extends WebhookRegistry>(
 	request: Request,
 	options: VerifyWebhookOptions<R>,
 ): Promise<WebhookEvent<R>> {
+	if (request.bodyUsed) throw new WebhookVerificationError("body-read");
 	const maximum = bounded(
 		options.maxBodyBytes ?? DEFAULT_BODY_BYTES,
 		1,

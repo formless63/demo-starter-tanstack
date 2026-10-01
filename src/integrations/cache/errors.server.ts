@@ -11,20 +11,20 @@ import {
 } from "redis";
 export type CacheErrorCode =
 	| "configuration"
-	| "connection"
+	| "closed"
 	| "timeout"
 	| "authentication"
 	| "unavailable"
-	| "invalid_input"
-	| "lease_not_owned";
+	| "invalid-input"
+	| "callback-failed";
 const messages: Record<CacheErrorCode, string> = {
 	configuration: "Cache configuration is incomplete or invalid",
-	connection: "Cache connection failed",
+	closed: "Cache is closed",
 	timeout: "Cache operation timed out",
 	authentication: "Cache authentication failed",
 	unavailable: "Cache is unavailable",
-	invalid_input: "Cache input is invalid",
-	lease_not_owned: "Cache lease is no longer owned",
+	"invalid-input": "Cache input is invalid",
+	"callback-failed": "Cache callback failed",
 };
 // The original cause is deliberately non-enumerable and never public/log input.
 export class CacheError extends Error {
@@ -43,7 +43,7 @@ export class CacheError extends Error {
 	}
 }
 export function invalid(condition: unknown): asserts condition {
-	if (!condition) throw new CacheError("invalid_input");
+	if (!condition) throw new CacheError("invalid-input");
 }
 export function cacheError(error: unknown): CacheError {
 	if (error instanceof CacheError) return error;
@@ -52,7 +52,7 @@ export function cacheError(error: unknown): CacheError {
 		| undefined;
 	const message = value?.message ?? "";
 	// Inspect only to classify; none of these strings leave this server boundary.
-	let code: CacheErrorCode = "connection";
+	let code: CacheErrorCode = "unavailable";
 	if (/^(?:WRONGPASS|NOAUTH|NOPERM)\b/.test(message)) code = "authentication";
 	else if (
 		error instanceof TimeoutError ||
@@ -68,7 +68,7 @@ export function cacheError(error: unknown): CacheError {
 			message,
 		)
 	)
-		code = "invalid_input";
+		code = "invalid-input";
 	else if (
 		error instanceof ClientClosedError ||
 		error instanceof ClientOfflineError ||
