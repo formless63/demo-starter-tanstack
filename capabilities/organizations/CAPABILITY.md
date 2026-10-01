@@ -1,6 +1,6 @@
 # Organizations / Tenancy
 
-Status: **in progress**. The server primitives and independent native-dispatch fixture are available for review. The add-on compiles and an initial clean install/runtime/build passes; root UI composition and the full lifecycle/removal/production gate are not complete; this is not a delivered add-on yet. Clean consumers remain opt-in (`defaultInstalled:false`).
+Status: **in progress pending hosted CI**. Implementation and root UI composition are complete. Local protocol fixtures, independent clean installation/runtime/removal/rebuild, root checks, development and production browser coverage, production image, explicit migrations, standalone worker and health verification pass. Exact-head hosted CI is still queued; completion remains gated on its success. Clean consumers remain opt-in (`defaultInstalled:false`).
 
 ## Cross-framework v1 contract
 
