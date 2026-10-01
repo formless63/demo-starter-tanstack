@@ -12,7 +12,7 @@ export function invalidSearch(): never {
 	throw new SearchError("invalid-query");
 }
 export interface SearchCursor {
-	rank: string;
+	rank: number;
 	updatedAt: string;
 	id: string;
 }
@@ -25,45 +25,48 @@ function validCursor(value: unknown): value is SearchCursor {
 	if (!value || typeof value !== "object") return false;
 	const { rank, updatedAt, id } = value as SearchCursor;
 	if (
-		typeof rank !== "string" ||
-		rank.length > 32 ||
-		!/^(?:0|1|0\.\d*[1-9]|[1-9](?:\.\d*[1-9])?e-(?:0[1-9]|[1-9]\d{1,2}))$/.test(
-			rank,
-		) ||
-		!Number.isFinite(Number(rank)) ||
-		Number(rank) < 0 ||
-		Number(rank) > 1 ||
-		(rank !== "0" && Math.fround(Number(rank)) === 0)
+		typeof rank !== "number" ||
+		!Number.isFinite(rank) ||
+		rank < 0 ||
+		rank > 1 ||
+		Object.is(rank, -0) ||
+		Math.fround(rank) !== rank
 	)
 		return false;
-	// Keep six fractional digits from PostgreSQL, including sub-millisecond ties.
+	// Validate the calendar without Date's millisecond truncation or year coercion.
+	if (typeof updatedAt !== "string") return false;
+	const parts =
+		/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.\d{6}Z$/.exec(updatedAt);
+	if (!parts) return false;
+	const [year, month, day, hour, minute, second] = parts.slice(1).map(Number);
+	const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+	const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 	if (
-		typeof updatedAt !== "string" ||
-		!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/.test(updatedAt)
-	)
-		return false;
-	const date = new Date(updatedAt);
-	if (
-		!Number.isFinite(date.getTime()) ||
-		date.toISOString() !== `${updatedAt.slice(0, 23)}Z`
+		year < 1 ||
+		month < 1 ||
+		month > 12 ||
+		day < 1 ||
+		day > days[month - 1] ||
+		hour > 23 ||
+		minute > 59 ||
+		second > 59
 	)
 		return false;
 	return (
 		typeof id === "string" &&
 		id.length >= 1 &&
-		id.length <= 256 &&
-		id.trim() === id &&
-		!Array.from(id).some(
-			(char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127,
-		) &&
+		id.length <= 128 &&
+		!/\p{Cc}/u.test(id) &&
 		Buffer.from(id, "utf8").toString("utf8") === id
 	);
 }
 export function encodeSearchCursor(cursor: SearchCursor): string {
 	if (!validCursor(cursor)) invalidSearch();
-	return Buffer.from(
+	const encoded = Buffer.from(
 		JSON.stringify([1, cursor.rank, cursor.updatedAt, cursor.id]),
 	).toString("base64url");
+	if (encoded.length > 2048) invalidSearch();
+	return encoded;
 }
 export function decodeSearchCursor(value: unknown): SearchCursor {
 	if (
@@ -74,7 +77,9 @@ export function decodeSearchCursor(value: unknown): SearchCursor {
 		invalidSearch();
 	try {
 		const tuple: unknown = JSON.parse(
-			Buffer.from(value, "base64url").toString("utf8"),
+			new TextDecoder("utf-8", { fatal: true }).decode(
+				Buffer.from(value, "base64url"),
+			),
 		);
 		if (!Array.isArray(tuple) || tuple.length !== 4 || tuple[0] !== 1)
 			invalidSearch();

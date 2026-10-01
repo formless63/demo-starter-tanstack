@@ -501,7 +501,7 @@
 					"description": "Built-in full-text search only; no separate service."
 				}
 			],
-			"summary": "PostgreSQL-native application-owned FTS with safe query and exact keyset helpers.",
+			"summary": "PostgreSQL-native application-owned FTS with safe query and canonical numeric-float4 keysets preserving microseconds and opaque IDs.",
 			"documentationPath": "capabilities/search/CAPABILITY.md",
 			"evaluationDocument": "SEARCH_MODULE_EVALUATION.md",
 			"agentSkill": ".agents/skills/search-change/SKILL.md",

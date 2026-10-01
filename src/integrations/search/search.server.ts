@@ -34,12 +34,12 @@ export function searchPage<T>(
 	return {
 		results: selected.map(({ row, rankText }) => ({
 			row,
-			rank: Number(rankText),
+			rank: Math.fround(Number(rankText)),
 		})),
 		nextCursor:
 			rows.length > limit && last
 				? encodeSearchCursor({
-						rank: last.rankText,
+						rank: Math.fround(Number(last.rankText)),
 						updatedAt: last.updatedAtText,
 						id: last.id,
 					})
