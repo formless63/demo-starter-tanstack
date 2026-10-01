@@ -1,6 +1,8 @@
 import * as transferDatabaseSchema from "../src/db/schema";
 import { createTransferTransactions } from "../src/integrations/import-export/database.server";
 import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {transferConfig} from '../src/integrations/import-export/config.server';
 import { randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
 import pg from 'pg';
@@ -19,7 +21,7 @@ assert(process.env.DATABASE_URL);
 const admin=new pg.Pool({connectionString:process.env.DATABASE_URL});
 const name=`transfer_fixture_${randomUUID().replaceAll('-','')}`; const url=new URL(process.env.DATABASE_URL);url.pathname=`/${name}`;
 const pool=new pg.Pool({connectionString:url.toString(),connectionTimeoutMillis:5000});
-const db=drizzle(pool); const storage=createStorage(); const boss=new PgBoss({connectionString:url.toString(),migrate:true});
+const db=drizzle(pool); const storage=createStorage(); const boss=new PgBoss({connectionString:url.toString(),migrate:true,superviseIntervalSeconds:1,maintenanceIntervalSeconds:1});
 const owner:TransferContext={requesterId:'fixture-owner',scope:{kind:'user',id:'fixture-owner'}}; const foreign:TransferContext={requesterId:'fixture-other',scope:{kind:'user',id:'fixture-other'}};
 let allowed=true; let failSql=false; let failPut=false; let failRead=false; let revokeAfterPut=false; let importGate:(()=>Promise<void>)|undefined; let snapshotGate:(()=>Promise<void>)|undefined;
 const fixtureStorage={...storage,async getObject(...args:Parameters<typeof storage.getObject>){const result=await storage.getObject(...args);if(failRead){(result.body as {destroy?:()=>void})?.destroy?.();throw new StorageError('unavailable');}return result;},async putObject(...args:Parameters<typeof storage.putObject>){const result=await storage.putObject(...args);if(revokeAfterPut)allowed=false;if(failPut)throw new StorageError('unavailable');return result;}};
@@ -29,7 +31,7 @@ const registry=createTransferRegistry([{
  async importRows(tx,rows,ctx,signal) { for(const raw of rows) {signal.throwIfAborted();const row=z.object({name:z.string(),description:z.string()}).parse(raw);await tx.execute(sql`insert into fixture_project(id,owner_id,name,description) values(${randomUUID()},${ctx.requesterId},${row.name},${row.description})`);if(failSql) throw new Error('private database error');}await importGate?.(); },
  async *exportRows(tx,ctx) { const result=await tx.execute<{name:string;description:string}>(sql`select name,description from fixture_project where owner_id=${ctx.requesterId} order by id`);await snapshotGate?.();const repeat=await tx.execute<{count:string}>(sql`select count(*)::text as count from fixture_project where owner_id=${ctx.requesterId}`);assert.equal(Number(repeat.rows[0].count),result.rows.length);for(const row of result.rows)yield[row.name,row.description]; },
 }]);
-const service=createTransfers({transaction:createTransferTransactions(()=>url.toString(),transferDatabaseSchema),registry,storage:()=>fixtureStorage,jobs:async()=>boss,enqueue:async(tx,id)=> { const job=await boss.send(transferQueue,{transferId:id},{retryLimit:5,retryDelay:30,retryBackoff:true,retryDelayMax:900,expireInSeconds:90,deleteAfterSeconds:86400,db:fromDrizzle(tx,sql)});assert(job);return job;}});
+const service=createTransfers({transaction:createTransferTransactions(()=>url.toString(),transferDatabaseSchema),registry,storage:()=>fixtureStorage,jobs:async()=>boss,enqueue:async(tx,id)=> { const job=await boss.send(transferQueue,{transferId:id},{retryLimit:5,retryDelay:30,retryBackoff:true,retryDelayMax:900,expireInSeconds:transferConfig().timeoutSeconds+30,deleteAfterSeconds:86400,db:fromDrizzle(tx,sql)});assert(job);return job;}});
 const stage=(text:string)=>service.stageImport(owner,{definition:'projects',body:Readable.from(Array.from(Buffer.from(text),b=>Buffer.from([b])))});
 const rejected=(code:string)=>(e:unknown)=>e instanceof TransferError && e.code===code;
 try {
@@ -76,6 +78,16 @@ try {
  await boss.work(transferQueue,{includeMetadata:true,localConcurrency:1,pollingIntervalSeconds:0.5},async([job])=>service.run((job.data as {transferId:string}).transferId,{id:job.id,signal:job.signal,retryCount:job.retryCount,retryLimit:job.retryLimit}));
  const retryDeadline=Date.now()+10000;let retried=false;while(Date.now()<retryDeadline){const job=await boss.getJobById(transferQueue,retryRow.jobId!);if(job?.state==='retry'){retried=true;break;}await new Promise(resolve=>setTimeout(resolve,100));}assert(retried);assert.equal((await service.getTransfer(owner,retry.id)).status,'pending');failRead=false;
  const completedDeadline=Date.now()+75000;let recovered=false;while(Date.now()<completedDeadline){const job=await boss.getJobById(transferQueue,retryRow.jobId!);if(job?.state==='completed'){assert.equal(job.retryCount,1);recovered=true;break;}await new Promise(resolve=>setTimeout(resolve,250));}assert(recovered);assert.equal((await pool.query("select * from fixture_project where name='retry-recovers'")).rowCount,1);await boss.offWork(transferQueue);
+ if(process.env.IMPORT_EXPORT_HARD_CRASH==='1'){
+  const previousTimeout=process.env.IMPORT_EXPORT_TIMEOUT_SECONDS;process.env.IMPORT_EXPORT_TIMEOUT_SECONDS='5';const crash=await stage('name,description\nnever-applied,fixture\n');await service.startImport(owner,{transferId:crash.id,idempotencyKey:'hard-crash-exhausted'});if(previousTimeout===undefined)delete process.env.IMPORT_EXPORT_TIMEOUT_SECONDS;else process.env.IMPORT_EXPORT_TIMEOUT_SECONDS=previousTimeout;const [crashRow]=await db.select().from(transfers).where(eq(transfers.id,crash.id));
+  for(let attempt=0;attempt<6;attempt++){
+   const child=spawn(process.execPath,['scripts/import-export-claim-crash.ts'],{env:{...process.env,DATABASE_URL:url.toString(),IMPORT_EXPORT_FIXTURE_JOB_ID:crashRow.jobId!},stdio:['ignore','pipe','ignore']});
+   await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>{child.kill('SIGKILL');reject(new Error('Crash fixture claim deadline'));},10000);child.stdout.on('data',chunk=>{if(chunk.toString().includes('fixture.native_claim_ready')){clearTimeout(timer);resolve();}});child.once('exit',()=>{clearTimeout(timer);reject(new Error('Crash fixture claim failed'));});});
+   const claimed=await boss.getJobById(transferQueue,crashRow.jobId!);assert.equal(claimed?.state,'active');assert.equal(claimed?.retryCount,attempt);assert.equal(claimed?.retryLimit,5);assert.equal(claimed?.expireInSeconds,35);const exited=new Promise<void>(resolve=>child.once('exit',()=>resolve()));child.kill('SIGKILL');await exited;
+   assert.equal((await service.reconcileTransfer(owner,crash.id)).status,'pending');const expiryDeadline=Date.now()+55000;let nativeExpired=false;while(Date.now()<expiryDeadline){const job=await boss.getJobById(transferQueue,crashRow.jobId!);if(job?.state===(attempt===5?'failed':'retry')){nativeExpired=true;break;}await new Promise(resolve=>setTimeout(resolve,250));}assert(nativeExpired);console.info(`fixture.native_hard_crash_attempt_${attempt+1}_expired`);
+  }
+  assert.equal((await service.reconcileTransfer(owner,crash.id)).status,'failed');assert.equal((await pool.query("select * from fixture_project where name='never-applied'")).rowCount,0);console.info('Six actual killed native claims exhaust the unchanged five-retry policy; receipt-lock reconciliation records terminal failure without domain writes');
+ }
  // Invalid lazy worker configuration is a safe terminal result, not an unhandled retry loop.
  const configuration=await stage('name,description\none,two\n');await service.startImport(owner,{transferId:configuration.id,idempotencyKey:'config'});process.env.IMPORT_EXPORT_MAX_ROWS='1e4';await service.run(configuration.id);delete process.env.IMPORT_EXPORT_MAX_ROWS;assert.equal((await service.getTransfer(owner,configuration.id)).errorCode,'configuration');
  console.info('Import/export real PostgreSQL18/pg-boss/S3 contract: scope, UTF8/CSV, idempotency, atomic rollback, duplicate attempts, revocation, cancel, expiry, integrity, export publication, cursor, reconciliation, failed-upload orphan, replaced source, cancellation/commit race, concurrent snapshot, revoked publication, native retry recovery, lazy worker configuration and explicit purge passed');
