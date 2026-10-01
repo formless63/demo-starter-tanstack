@@ -10,6 +10,7 @@ import {
 	Outlet,
 	redirect,
 } from "@tanstack/react-router";
+import { ThemeSelector } from "#/components/theme-selector";
 import { getCurrentUser } from "#/features/projects/projects.functions";
 import { authClient } from "#/lib/auth-client";
 import { safeInternalRedirect } from "#/lib/safe-redirect";
@@ -40,6 +41,7 @@ function AppShell() {
 						<IconSparkles size={20} /> Launchpad
 					</Link>
 					<div className="flex items-center gap-3">
+						<ThemeSelector />
 						<span className="hidden text-sm text-muted-foreground sm:block">
 							{user.email}
 						</span>

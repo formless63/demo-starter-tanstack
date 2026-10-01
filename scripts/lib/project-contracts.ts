@@ -26,11 +26,11 @@ export function safePublicUrl(value: string): boolean {
  } catch { return false; }
 }
 const color = /^(?:#[\da-f]{3,4}|#[\da-f]{6}|#[\da-f]{8}|white|black|transparent|currentColor|(?:oklch|oklab|hsl|hsla|rgb|rgba)\([\d.,%+\- /]+\))$/i;
-const length = /^-?(?:\d+(?:\.\d+)?|\.\d+)(?:px|rem|em)?$/;
+const length = /^(?:0|-?(?:\d+(?:\.\d+)?|\.\d+)(?:px|rem|em))$/;
 export function safeToken(key: string, value: string): boolean {
  if (!value || value.length > 1024 || /[;{}@\\\x00-\x1f\x7f]|\/\*|url\(|expression\(|!important/i.test(value)) return false;
  if ((colorTokens as readonly string[]).includes(key)) return color.test(value);
- if ((fontTokens as readonly string[]).includes(key)) return /^[a-zA-Z0-9 ,"'.-]+$/.test(value) && /[a-zA-Z]/.test(value);
+ if ((fontTokens as readonly string[]).includes(key)) return value.split(',').every(part => /^(?:[a-zA-Z][a-zA-Z0-9 .-]*|"[a-zA-Z][a-zA-Z0-9 .-]*"|'[a-zA-Z][a-zA-Z0-9 .-]*')$/.test(part.trim()));
  if ((shadowTokens as readonly string[]).includes(key)) {
   if (value === 'none') return true;
   // Check each shadow after extracting the only allowed color functions/hex/named colors.
