@@ -71,22 +71,43 @@ describe("real PostgreSQL audit primitive", () => {
 			"audit_event_time_idx",
 		]);
 	});
-	it("appends nullable identities, supplied timestamps, unique application UUIDs", async () => {
-		const createdAt = new Date("2026-01-01T00:00:00.123Z");
+	it("appends nullable identities and primitive-owned timestamps/UUIDs", async () => {
+		const started = Date.now();
+		await expect(
+			appendAuditEvent(db, {
+				...event,
+				createdAt: new Date(0),
+			} as typeof event),
+		).rejects.toMatchObject({ code: "INVALID_EVENT" });
 		const rows = await Promise.all(
-			Array.from({ length: 20 }, () =>
-				appendAuditEvent(db, { ...event, createdAt }),
-			),
+			Array.from({ length: 20 }, () => appendAuditEvent(db, event)),
 		);
 		expect(new Set(rows.map((row) => row.id)).size).toBe(20);
 		expect(rows[0]).toMatchObject({
 			actorId: null,
 			subjectId: null,
 			requestId: null,
-			createdAt,
 			metadata: { count: 1 },
 		});
+		expect(rows[0].createdAt.getTime()).toBeGreaterThanOrEqual(started);
 		expect(rows[0].id).toMatch(/^[\da-f-]{14}4[\da-f-]+$/);
+	});
+	it("enforces outcome/request bounds and rejects ID overrides", async () => {
+		const row = await appendAuditEvent(db, {
+			...event,
+			outcome: "a".repeat(32),
+			requestId: "r".repeat(128),
+		});
+		expect(row.outcome).toHaveLength(32);
+		expect(row.requestId).toHaveLength(128);
+		for (const extra of [
+			{ outcome: "a".repeat(33) },
+			{ requestId: "r".repeat(129) },
+			{ id: "override" },
+		])
+			await expect(
+				appendAuditEvent(db, { ...event, ...extra }),
+			).rejects.toMatchObject({ code: "INVALID_EVENT" });
 	});
 	it("commits domain and audit together and rolls both back on caller or validation failure", async () => {
 		await db.transaction(async (tx) => {
@@ -150,10 +171,16 @@ describe("real PostgreSQL audit primitive", () => {
 					...event,
 					actor,
 					subject: createAuditSubject("fixture", "pages"),
-					createdAt: new Date(stamp.getTime() + Math.floor(i / 3)),
 					requestId: "safe-request",
 				}),
 			);
+		for (const [i, row] of rows.entries()) {
+			row.createdAt = new Date(stamp.getTime() + Math.floor(i / 3));
+			await db
+				.update(auditEvents)
+				.set({ createdAt: row.createdAt })
+				.where(eq(auditEvents.id, row.id));
+		}
 		const filters = {
 			actorType: "job",
 			actorId: "pagination",
@@ -162,15 +189,24 @@ describe("real PostgreSQL audit primitive", () => {
 			action: "test.append",
 			outcome: "success",
 			from: stamp,
-			to: new Date(stamp.getTime() + 2),
+			until: new Date(stamp.getTime() + 3),
 			limit: 2,
 		};
+		const boundary = await queryAuditEvents(db, {
+			...filters,
+			from: stamp,
+			until: new Date(stamp.getTime() + 1),
+			limit: 100,
+		});
+		expect(boundary.events).toHaveLength(3);
+		await expect(
+			queryAuditEvents(db, { from: stamp, until: stamp }),
+		).rejects.toMatchObject({ code: "INVALID_QUERY" });
 		const first = await queryAuditEvents(db, filters);
 		expect(first).toEqual(await queryAuditEvents(db, filters));
 		await appendAuditEvent(db, {
 			...event,
 			actor,
-			createdAt: new Date("2027-01-01"),
 		});
 		const collected = [...first.events];
 		let cursor = first.nextCursor;
@@ -211,7 +247,7 @@ describe("real PostgreSQL audit primitive", () => {
 		await expect(
 			queryAuditEvents(db, {
 				from: new Date("2027-01-01"),
-				to: new Date("2026-01-01"),
+				until: new Date("2026-01-01"),
 			}),
 		).rejects.toMatchObject({ code: "INVALID_QUERY" });
 		expect(

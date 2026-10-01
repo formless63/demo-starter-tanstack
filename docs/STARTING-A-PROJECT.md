@@ -200,3 +200,5 @@ Dropping deployed audit history requires a **new explicit destructive migration*
 If keeping Cache but removing Observability, delete only `src/lib/cache.server.ts` and `scripts/cache-telemetry.ts`, remove `cache:telemetry` and its CI command, and use core `getCache()` directly. Reusable Cache assets import no Observability.
 
 Authoring pruning is separate: remove `capabilities/cache-coordination/`, `CACHE_COORDINATION_MODULE_EVALUATION.md`, `.agents/skills/cache-change/`, and retain the stable catalog ID as `deferred` without implementation metadata; update ROADMAP/docs. TanStack provides no automatic uninstall transaction. The clean fixture proves runtime removal and rebuild without Redis packages or a service.
+
+Cache callers explicitly decode Buffer reads, use setWithoutExpiry only deliberately, and own close() for manual createCache instances. Lease TTLs are seconds (2–300), stale token results are false. Recreate subscriptions after failure; commands reconnect only on later explicit operations. No backend deletion is part of removal.

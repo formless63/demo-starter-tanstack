@@ -24,7 +24,7 @@ Configuration is lazy: import/build/start works without SMTP while unused. `reso
 | `EMAIL_REPLY_TO_ADDRESS`, `EMAIL_REPLY_TO_NAME` | Optional default reply-to; a name requires an address. |
 | `EMAIL_MAX_RECIPIENTS` | Defaults to 50; integer 1–100 across To/Cc/Bcc, also enforced by transport. |
 
-Certificate validation cannot be disabled through v1 config. Connection/greeting/DNS timeouts are 5 seconds; socket timeout 15 seconds. No pooling: each operation closes its SMTP session, and `close()`/`closeEmail()` releases transporter state. No automatic verification, hidden send retries or background process.
+Certificate validation cannot be disabled through v1 config. Connection/greeting/DNS timeouts are 5 seconds; socket timeout 10 seconds. No pooling: each operation closes its SMTP session, and `close()`/`closeEmail()` releases transporter state. No automatic verification, hidden send retries or background process.
 
 ## Server API and safety
 
@@ -38,19 +38,19 @@ const result = await getEmail().sendEmail({
 })
 ```
 
-Addresses are `{ address, name? }`; `to`, `cc`, `bcc` are arrays. Per-message `replyTo` is optional. From belongs to server configuration. Require at least one recipient and text or HTML. Addresses ≤254 characters, names ≤128, subject ≤200, each body ≤1 MiB UTF-8. Headers reject controls/newlines; conservative address validation deliberately does not implement all RFC 5322 syntax. HTML supplied by applications must be safely rendered there.
+Addresses are `{ address, name? }`; `to`, `cc`, `bcc` are arrays. Per-message `replyTo` is optional. From belongs to server configuration. Require at least one recipient and text or HTML. Addresses ≤254 characters, names ≤128, subject ≤200, combined text + HTML ≤1 MiB UTF-8. Headers reject controls/newlines; conservative address validation deliberately does not implement all RFC 5322 syntax. HTML supplied by applications must be safely rendered there.
 
 Only To/Cc/Bcc/replyTo/subject/text/html are accepted. File/URL access is disabled in transport and message options; no raw MIME, arbitrary headers/envelope/DKIM/plugins/attachments, path/href body objects, or data-URL attachment conversion. Literal HTML URLs are content, never fetched by the server.
 
-`verifyEmailTransport()` connects/negotiates/authenticates and sends no message. `sendEmail()` makes exactly one attempt. Result contains server-only `accepted`, `rejected`, `messageId` and `outcome: 'accepted' | 'partial'`. Partial results must not trigger blind retries of accepted recipients; the application decides next actions. SMTP acceptance does not guarantee final inbox delivery.
+`verifyEmailTransport()` connects/negotiates/authenticates and sends no message. `sendEmail()` makes exactly one attempt. Result contains numeric `accepted`/`rejected` counts and `messageId` and `outcome: 'accepted' | 'partial' | 'rejected'`. Partial results must not trigger blind retries of accepted recipients; the application decides next actions. SMTP acceptance does not guarantee final inbox delivery.
 
-Safe error codes: configuration, connection, timeout, tls, authentication, temporary_rejection, permanent_rejection, message, unknown. SMTP 4xx is transient/retryable; 5xx is permanent (auth has a dedicated code). Connection reset/timeout can be ambiguous and are not declared retryable. `toJSON()` contains only safe code/retryability/static message; original cause is server-only. Never automatically log the raw error.
+Safe error codes: configuration, connection, timeout, tls, authentication, temporary-rejection, permanent-rejection, message, unknown. SMTP 4xx is transient/retryable; 5xx is permanent (auth has a dedicated code). Connection reset/timeout can be ambiguous and are not declared retryable. `toJSON()` contains only safe code/retryability/static message; original cause is server-only. Never automatically log the raw error.
 
 ## Installation and local operation
 
 Install `capabilities/email/add-on.json` with the official TanStack CLI, or use the catalog-driven clean fixture. No other official add-on is installed. Configure ignored local/deployment environment only when sending.
 
-`bun run email:dev:mailpit` explicitly starts optional `compose.email.yaml`: Mailpit **v1.31.3**, SMTP `127.0.0.1:1025`, UI `127.0.0.1:8025`. No relay/forwarding or persistent volume; default temporary storage, cap 200, Host allowlist localhost/127.0.0.1/mailpit. Default Chaos is off. `email:dev:down` stops it and captured mail is disposable.
+`bun run email:dev:mailpit` explicitly starts optional `compose.email.yaml`: Mailpit **v1.31.3**, SMTP `127.0.0.1:1025`, UI `127.0.0.1:8025`. No relay/forwarding or persistent volume; default temporary storage, cap 100, Host allowlist localhost/127.0.0.1/mailpit. Default Chaos is off. `email:dev:down` stops it and captured mail is disposable.
 
 ```dotenv
 SMTP_HOST=127.0.0.1

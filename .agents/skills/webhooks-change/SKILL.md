@@ -14,5 +14,7 @@ Read the Webhooks contract/evaluation and capability-change/jobs-change before e
 - HTTPS is the default; explicit development policy only in fixtures. SSRF policy is an application boundary; literal checks do not prevent DNS rebinding.
 - Never silently follow redirects. Retries stay bounded and classified by status/network/timeout.
 - Event bytes and ID stay stable across attempts; attempt timestamp and primary-secret signature refresh.
-- Replay protection requires durable application-owned ID uniqueness atomically coupled to handoff. Do not overstate retained Jobs ID dedupe or timestamp tolerance.
+- Replay protection requires durable application-owned ID uniqueness atomically coupled to handoff. No scheduler duplicate suppression is promised; timestamp tolerance permits replay.
 - Keep real HTTP + actual Jobs retry tests green (`webhooks:smoke`), plus protocol tests, clean installation/removal and production startup without a receiver.
+
+- The entire resolver/policy/signing/fetch attempt shares one deadline and cancellation signal. Unexpected resolver exceptions are safe/transient; classified invalid/disabled targets permanent. Never consume response bodies or suppress deliberate enqueues using retained job IDs.

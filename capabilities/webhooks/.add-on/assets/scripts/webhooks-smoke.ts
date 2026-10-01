@@ -88,7 +88,7 @@ try {
 		}),
 		(error) =>
 			error instanceof WebhookDeliveryError &&
-			!error.retryable &&
+			error.retryable &&
 			!error.message.includes(secret),
 	);
 	// Real sender -> raw verification receiver, including unsuccessful authentication/schema/bounds.
@@ -177,7 +177,7 @@ try {
 		(
 			await deliverWebhook(delivery, {
 				...options,
-				maxResponseBytes: 32,
+
 				onResult: () => {
 					throw new Error("unsafe lifecycle failure");
 				},
@@ -230,8 +230,6 @@ try {
 		const queued = await enqueueWebhook(payload);
 		assert.ok(queued.jobId);
 		jobIds.push(queued.jobId);
-		const duplicate = await enqueueWebhook(payload);
-		assert.equal(duplicate.jobId, null);
 		const deadline = Date.now() + 20_000;
 		while (Date.now() < deadline) {
 			const [job] =
@@ -271,6 +269,9 @@ try {
 	assert.equal(permanent.retryCount, 0);
 	assert.equal((permanent.output as { outcome: string }).outcome, "permanent");
 	assert.equal(receiver.attempts.length, 1);
+	const firstEnqueue = await enqueueWebhook(delivery), secondEnqueue = await enqueueWebhook(delivery);
+ assert.ok(firstEnqueue.jobId); assert.ok(secondEnqueue.jobId); assert.notEqual(firstEnqueue.jobId, secondEnqueue.jobId);
+ jobIds.push(firstEnqueue.jobId, secondEnqueue.jobId);
 	assert.ok(!logs.join(" ").includes(secret));
 	assert.ok(!logs.join(" ").includes(prepared.body));
 	assert.ok(!logs.join(" ").includes("private-webhook-body"));
@@ -278,7 +279,7 @@ try {
 	for (const attempt of receiver.attempts)
 		assert.ok(!logs.join(" ").includes(attempt.signature));
 	originals.info(
-		"Webhooks real HTTP + Jobs: signed bytes/headers, status classification, bounds, timeout/network, retained-ID dedupe, success after 2 retries, final failure after 3 attempts, permanent failure once, stable body/ID and safe logs passed",
+		"Webhooks real HTTP + Jobs: signed bytes/headers, status classification, bounds, timeout/network, deliberate enqueues, success after 2 retries, final failure after 3 attempts, permanent failure once, stable body/ID and safe logs passed",
 	);
 } finally {
 	if (worker) {

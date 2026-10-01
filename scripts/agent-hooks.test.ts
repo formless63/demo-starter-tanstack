@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import {
 	cpSync,
+ symlinkSync,
 	existsSync,
 	mkdtempSync,
 	readFileSync,
@@ -149,7 +150,7 @@ describe.each(providers)("%s fixtures", (provider) => {
 			).toBeTruthy();
 		for (const path of [
 			".env.example",
-			".env.sample",
+			".env.sample", ".env.template", ".env.production.template",
 			".env.production.example",
 		])
 			expect(
@@ -223,6 +224,17 @@ describe.each(providers)("%s fixtures", (provider) => {
 			),
 		);
 	});
+});
+test("canonical secret writes protect aliases and outward env symlinks", () => {
+ const root = fixture(); const outside = fixture();
+ writeFileSync(resolve(root, ".env"), "fixture");
+ writeFileSync(resolve(outside, "private"), "fixture");
+ symlinkSync(resolve(root, ".env"), resolve(root, "alias"));
+ symlinkSync(resolve(outside, "private"), resolve(root, ".env.local"));
+ for (const path of ["alias", ".env.local"])
+ for (const name of ["Write", "Edit", "replace"])
+ expect(guard({ tool_name: name, tool_input: { file_path: path } }, root).deny).toBeTruthy();
+ expect(guard({ tool_name: "apply_patch", tool_input: { command: "*** Begin Patch\n*** Update File: alias\n*** End Patch" } }, root).deny).toBeTruthy();
 });
 test("Codex apply_patch protects secret paths and permits templates", () => {
 	for (const action of ["Add File", "Update File", "Delete File", "Move to"]) {

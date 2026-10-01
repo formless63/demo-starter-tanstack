@@ -1,11 +1,6 @@
 import { isIP } from "node:net";
 import { parseWebhookEvent, type WebhookRegistry } from "./events";
-import {
-	bounded,
-	DEFAULT_BODY_BYTES,
-	readBoundedBody,
-	signWebhook,
-} from "./protocol.server";
+import { bounded, DEFAULT_BODY_BYTES, signWebhook } from "./protocol.server";
 
 export type DeliveryCategory =
 	| "target"
@@ -30,7 +25,7 @@ export interface TargetPolicy {
 	/** Only trusted development/test fixtures may enable this. */
 	development?: boolean;
 	/** Application-owned DNS/network boundary; must reject by throwing. */
-	validate?: (url: URL) => void | Promise<void>;
+	validate?: (url: URL, signal?: AbortSignal) => void | Promise<void>;
 }
 export interface WebhookTarget {
 	url: string;
@@ -45,10 +40,12 @@ export interface WebhookDelivery {
 }
 export interface DeliveryOptions {
 	registry: WebhookRegistry;
-	resolveTarget: (targetRef: string) => Promise<WebhookTarget> | WebhookTarget;
+	resolveTarget: (
+		targetRef: string,
+		signal?: AbortSignal,
+	) => Promise<WebhookTarget> | WebhookTarget;
 	timeoutMs?: number;
 	maxBodyBytes?: number;
-	maxResponseBytes?: number;
 	onResult?: (facts: {
 		operation: "outbound";
 		eventType: string;
@@ -77,7 +74,10 @@ function unsafeLiteral(host: string) {
 		return !/^[23][0-9a-f]{3}:/.test(host) || /^2001:db8:/i.test(host);
 	return false;
 }
-export async function validateWebhookTarget(target: WebhookTarget) {
+export async function validateWebhookTarget(
+	target: WebhookTarget,
+	signal?: AbortSignal,
+) {
 	let url: URL;
 	try {
 		url = new URL(target.url);
@@ -110,7 +110,7 @@ export async function validateWebhookTarget(target: WebhookTarget) {
 	)
 		throw new WebhookDeliveryError("policy", false);
 	try {
-		await target.policy?.validate?.(new URL(url));
+		await target.policy?.validate?.(new URL(url), signal);
 	} catch {
 		throw new WebhookDeliveryError("policy", false);
 	}
@@ -134,94 +134,114 @@ export async function deliverWebhook(
 	let status: number | undefined;
 	let failure: WebhookDeliveryError | undefined;
 	try {
-		let maximum: number, responseMaximum: number, timeout: number;
+		let maximum: number, timeout: number;
 		try {
 			maximum = bounded(
 				options.maxBodyBytes ?? DEFAULT_BODY_BYTES,
 				1,
 				1024 * 1024,
 			);
-			responseMaximum = bounded(
-				options.maxResponseBytes ?? 16 * 1024,
-				1,
-				64 * 1024,
-			);
 			timeout = bounded(options.timeoutMs ?? 10_000, 100, 30_000);
 		} catch {
 			throw new WebhookDeliveryError("configuration", false);
 		}
-		try {
-			if (Buffer.byteLength(delivery.body) > maximum) throw new Error();
-			const event = parseWebhookEvent(
-				JSON.parse(delivery.body),
-				options.registry,
-			);
-			if (
-				Buffer.byteLength(delivery.body) > maximum ||
-				event.id !== delivery.eventId ||
-				event.type !== delivery.eventType
-			)
-				throw new Error();
-		} catch {
-			throw new WebhookDeliveryError("event", false);
-		}
-		let target: WebhookTarget;
-		try {
-			target = await options.resolveTarget(delivery.targetRef);
-		} catch (error) {
-			if (error instanceof WebhookDeliveryError) throw error;
-			throw new WebhookDeliveryError("target", false);
-		}
-		const url = await validateWebhookTarget(target);
-		const timestamp = Math.floor(Date.now() / 1000);
-		const bytes = Buffer.from(delivery.body, "utf8");
-		let signature: string;
-		try {
-			signature = signWebhook(
-				delivery.eventId,
-				timestamp,
-				bytes,
-				target.signingSecret,
-			);
-		} catch {
-			throw new WebhookDeliveryError("configuration", false);
-		}
-		const signal = AbortSignal.timeout(timeout);
-		try {
-			const response = await fetch(url, {
-				method: "POST",
-				redirect: "manual",
-				signal,
-				headers: {
-					"content-type": "application/json",
-					"webhook-id": delivery.eventId,
-					"webhook-timestamp": String(timestamp),
-					"webhook-signature": signature,
-				},
-				body: bytes,
-			});
-			status = response.status;
-			// Acknowledgement is the status; discard bounded bytes, never expose remote bodies.
-			try {
-				await readBoundedBody(response.body, responseMaximum, signal);
-			} catch {
-				void response.body?.cancel().catch(() => {});
+		const controller = new AbortController();
+		const signal = controller.signal;
+		const deadlineAt = started + timeout;
+		const assertWithinDeadline = () => {
+			if (signal.aborted || performance.now() >= deadlineAt) {
+				controller.abort();
+				throw new WebhookDeliveryError("timeout", true);
 			}
-			const error = classifyWebhookStatus(status);
-			if (error) throw error;
-		} catch (error) {
-			if (error instanceof WebhookDeliveryError) throw error;
-			throw new WebhookDeliveryError(
-				signal.aborted ? "timeout" : "network",
-				true,
-			);
+		};
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		const attempt = async () => {
+			try {
+				if (Buffer.byteLength(delivery.body) > maximum) throw new Error();
+				const event = parseWebhookEvent(
+					JSON.parse(delivery.body),
+					options.registry,
+				);
+				if (
+					Buffer.byteLength(delivery.body) > maximum ||
+					event.id !== delivery.eventId ||
+					event.type !== delivery.eventType
+				)
+					throw new Error();
+			} catch {
+				throw new WebhookDeliveryError("event", false);
+			}
+			let target: WebhookTarget;
+			try {
+				target = await options.resolveTarget(delivery.targetRef, signal);
+			} catch (error) {
+				if (error instanceof WebhookDeliveryError) throw error;
+				throw new WebhookDeliveryError("target", true);
+			}
+			assertWithinDeadline();
+			const url = await validateWebhookTarget(target, signal);
+			assertWithinDeadline();
+			const timestamp = Math.floor(Date.now() / 1000);
+			const bytes = Buffer.from(delivery.body, "utf8");
+			let signature: string;
+			try {
+				signature = signWebhook(
+					delivery.eventId,
+					timestamp,
+					bytes,
+					target.signingSecret,
+				);
+			} catch {
+				throw new WebhookDeliveryError("configuration", false);
+			}
+			assertWithinDeadline();
+			try {
+				const response = await fetch(url, {
+					method: "POST",
+					redirect: "manual",
+					signal,
+					headers: {
+						"content-type": "application/json",
+						"webhook-id": delivery.eventId,
+						"webhook-timestamp": String(timestamp),
+						"webhook-signature": signature,
+					},
+					body: bytes,
+				});
+				status = response.status;
+				// Status is the entire contract; never read remote content.
+				void response.body?.cancel().catch(() => {});
+				const error = classifyWebhookStatus(status);
+				if (error) throw error;
+			} catch (error) {
+				if (error instanceof WebhookDeliveryError) throw error;
+				throw new WebhookDeliveryError(
+					signal.aborted ? "timeout" : "network",
+					true,
+				);
+			}
+			return { outcome: "success" as const, status };
+		};
+		try {
+			const deadline = new Promise<never>((_, reject) => {
+				timer = setTimeout(
+					() => {
+						controller.abort();
+						reject(new WebhookDeliveryError("timeout", true));
+					},
+					Math.max(0, deadlineAt - performance.now()),
+				);
+			});
+			return await Promise.race([attempt(), deadline]);
+		} finally {
+			clearTimeout(timer);
+			controller.abort();
 		}
-		return { outcome: "success" as const, status };
 	} catch (error) {
 		failure =
 			error instanceof WebhookDeliveryError
 				? error
-				: new WebhookDeliveryError("target", false);
+				: new WebhookDeliveryError("target", true);
 		throw failure;
 	} finally {
 		// Optional telemetry/audit sink must never cause an acknowledged delivery to retry.
