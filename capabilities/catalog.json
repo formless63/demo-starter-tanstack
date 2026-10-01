@@ -720,6 +720,7 @@
 			"id": "organizations", "displayName": "Organizations / Tenancy", "kind": "identity-policy", "status": "in-progress", "defaultInstalled": false,
 			"requires": [], "integratesWith": ["audit-log", "notifications"], "baselineRequirements": ["authentication", "postgresql", "drizzle", "node-runtime"],
 			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Tenant membership and boundary persistence." }],
+			"evaluationDocument": "ORGANIZATIONS_MODULE_EVALUATION.md",
 			"summary": "Organization membership, tenant context, and isolation conventions on starter authentication."
 		},
 		{
