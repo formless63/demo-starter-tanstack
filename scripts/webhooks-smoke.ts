@@ -148,9 +148,11 @@ try {
 		);
 		assert.equal(receiver.attempts.length, 1);
 	}
-	receiver.configure({ delayMs: 100 });
+	for (const timeoutMs of [99, 30_001])
+		await assert.rejects(deliverWebhook(delivery, { ...options, timeoutMs }), /configuration/);
+	receiver.configure({ delayMs: 300 });
 	await assert.rejects(
-		deliverWebhook(delivery, { ...options, timeoutMs: 20 }),
+		deliverWebhook(delivery, { ...options, timeoutMs: 100 }),
 		(error) =>
 			error instanceof WebhookDeliveryError &&
 			error.category === "timeout" &&

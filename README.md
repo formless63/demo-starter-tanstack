@@ -34,11 +34,8 @@ Baseline components are not optional capability modules. Future integrations in 
 | Observability | Done | Optional | Baseline Start + Node runtime; no capability dependency | Safe JSON logs, request IDs, server traces/metrics, optional OTLP | [Observability contract](capabilities/observability/CAPABILITY.md) |
 | Object Storage | Done | Optional | No database/auth/capability dependency; S3 when used | Private streaming, signed PUT/GET, multipart and post-upload verification | [Storage contract](capabilities/object-storage/CAPABILITY.md) |
 | Email | Done | Optional | No database/auth/capability dependency; SMTP when used | Bounded SMTP delivery, safe errors and awaited magic links | [Email contract](capabilities/email/CAPABILITY.md) |
-
 | Webhooks | Done | Optional | Jobs + baseline Node 24 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
-
 | Audit Log | Done | Optional | Baseline PostgreSQL + Drizzle | Append-oriented events, bounded safe context, atomic domain writes, keyset queries | [Audit Log contract](capabilities/audit-log/CAPABILITY.md) |
-
 | Cache / Coordination | Done | Optional | No capability dependency; Valkey on use | Ephemeral cache, atomic counters, advisory leases and pub/sub | [Cache contract](capabilities/cache-coordination/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
@@ -179,9 +176,9 @@ bun run test:e2e
 
 Playwright covers the public landing page, anonymous protected-route redirect, OpenAPI endpoint, machine-auth boundary, and Scalar rendering. CI runs the static, unit, build, and browser checks, then proves the production artifact by building the image, migrating a clean Compose PostgreSQL database, starting the worker/application, and probing health, OpenAPI, and docs. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
 
-The fourth catalog-driven clean add-on job additionally proves Storage's backendless installation, both real provider suites and runtime removal. Main CI repeats both providers with optional telemetry and the actual Node production-image Storage entrypoint. Normal app health still works with no Storage configuration/service.
+The catalog-driven Storage clean add-on job additionally proves Storage's backendless installation, both real provider suites and runtime removal. Main CI repeats both providers with optional telemetry and the actual Node production-image Storage entrypoint. Normal app health still works with no Storage configuration/service.
 
-Email adds a fifth catalog-driven independent clean fixture. Main CI proves real Better Auth and production-image SMTP delivery, while normal production health also runs with Email unconfigured. Full SMTP/Docker tests remain task/CI checks, never agent-turn hooks.
+Email has a catalog-driven independent clean fixture. Main CI proves real Better Auth and production-image SMTP delivery, while normal production health also runs with Email unconfigured. Full SMTP/Docker tests remain task/CI checks, never agent-turn hooks.
 
 ## Capability/add-on development
 
@@ -258,6 +255,6 @@ Optional server-only ephemeral cache, atomic counters, advisory leases and pub/s
 
 | Capability | Requires | Optional integrations | External | Default installed |
 | --- | --- | --- | --- | --- |
-| Cache / Coordination | None | Realtime, API Platform, Jobs | Valkey 9.1.2 / common Redis protocol subset | No |
+| Cache / Coordination | None | Realtime, API Platform, Jobs, Observability | Valkey 9.1.2 / common Redis protocol subset | No |
 
 Use `bun run cache:dev:valkey` for separate loopback ephemeral Valkey, configure server-only `CACHE_URL=redis://127.0.0.1:6379`, then `bun run cache:check` (PING only), `bun run cache:smoke` (unique prefix/exact cleanup), and `bun run cache:dev:down`. `bun run cache:compat` creates and tears down disposable real Valkey; `cache:unit` and `cache:telemetry` verify backendless behavior/safe optional signals. Values expire by default; advisory leases have no fencing/Redlock guarantees; pub/sub has no persistence/replay. See [evaluation](CACHE_COORDINATION_MODULE_EVALUATION.md) and [removal](docs/STARTING-A-PROJECT.md#remove-cache--coordination).

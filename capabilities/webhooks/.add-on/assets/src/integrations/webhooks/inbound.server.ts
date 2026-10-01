@@ -43,7 +43,7 @@ export async function verifyWebhookRequest<R extends WebhookRegistry>(
 			AbortSignal.any([
 				request.signal,
 				AbortSignal.timeout(
-					bounded(options.readTimeoutMs ?? 10_000, 10, 30_000),
+					bounded(options.readTimeoutMs ?? 10_000, 100, 30_000),
 				),
 			]),
 		);

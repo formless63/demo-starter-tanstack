@@ -37,7 +37,7 @@ capabilities/<id>/
 
 The official pinned TanStack CLI compiles each `.add-on` directory; repository scripts only discover entries from `capabilities/catalog.json`, invoke that CLI, and verify clean installation. They are not an alternative generator. Each catalog entry records its stable TanStack add-on ID; add-on `dependsOn` and conflict sets use those CLI IDs, while capability `requires` uses capability IDs. The checker ensures completed hard capability dependencies are also expressed in official add-on metadata. `bun run add-ons:compile` rebuilds every declared distributable, while `bun run add-ons:test <id>` verifies that the committed output is current, installs it through normal TanStack mechanics into a clean scaffold, resolves official dependencies, and builds the result.
 
-Only implemented capabilities receive an add-on directory. Planned entries such as Webhooks remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
+Only implemented capabilities receive an add-on directory. Planned entries such as Search remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
 
 ### Done
 
@@ -48,12 +48,9 @@ Only implemented capabilities receive an add-on directory. Planned entries such 
 | Observability | None beyond baseline Start + Node runtime | Every server/runtime capability where useful, including Jobs and API Platform | Optional OTLP destination | Enabled | No | Done |
 | Object Storage | None; no database/auth dependency | Jobs, Observability | S3 when used; tested RustFS 1.0.0 preferred / Garage 2.4.1 | Enabled | No | Done |
 | Webhooks | Jobs | Audit Log, Observability, API Platform | Remote webhook endpoints when used | Enabled | No | Done |
-
 | Email | None; no database/auth dependency | Jobs, Observability; baseline Better Auth wiring | SMTP when used; optional Mailpit v1.31.3 | Enabled | No | Done |
-
 | Audit Log | None beyond baseline PostgreSQL and Drizzle | Authentication (baseline), API Platform, Organizations, Jobs, Invoice Ninja, Stripe, Medusa | PostgreSQL | Enabled | No | Done |
-
-| Cache / Coordination | None; no database/auth dependency | Realtime, API Platform, Jobs | Valkey/Redis-compatible service on use; tested Valkey 9.1.2 | Enabled | No | Done |
+| Cache / Coordination | None; no database/auth dependency | Realtime, API Platform, Jobs, Observability | Valkey/Redis-compatible service on use; tested Valkey 9.1.2 | Enabled | No | Done |
 
 ### Foundational / backend
 
@@ -67,7 +64,6 @@ Object Storage uses standard AWS SDK v3, with real private streaming/presign/mul
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Cache / Coordination | None | Realtime, API Platform, Jobs | Valkey/Redis-compatible service | Done |
 | Search | None; PostgreSQL-first | Jobs, Object Storage, Organizations | PostgreSQL initially | Planned |
 | Realtime | Authenticated starter identity | Cache / Coordination, Notifications, Observability | None initially | Planned |
 | Notifications | Jobs | Email, Realtime, Audit Log | Optional ntfy; optional SMTP through Email | Planned |

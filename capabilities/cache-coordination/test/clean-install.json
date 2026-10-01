@@ -19,7 +19,8 @@
     "scripts/cache-smoke.ts",
     "compose.cache.yaml",
     "CACHE_COORDINATION_MODULE_EVALUATION.md",
-    "capabilities/cache-coordination/CAPABILITY.md"
+    "capabilities/cache-coordination/CAPABILITY.md",
+    "scripts/cache-removal-data-fixture.ts"
   ],
   "verificationCommands": [
     [
@@ -45,7 +46,7 @@
     ],
     [
       "bun",
-      "scripts/cache-removal-fixture.ts"
+      "scripts/cache-removal-data-fixture.ts"
     ],
     [
       "bun",
