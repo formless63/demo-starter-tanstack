@@ -21,13 +21,38 @@ export const transferAction = createServerFn({ method: "POST" })
 			const ctx = await transferRequestContext();
 			if (!data || typeof data !== "object")
 				throw new TransferError("invalid-input");
-			switch (data.action) {
+			const { z } = await import("zod");
+			const receipt = z.uuid();
+			const key = z
+				.string()
+				.min(1)
+				.max(128)
+				.regex(/^[\x20-\x7e]+$/);
+			const schema = z.discriminatedUnion("action", [
+				z.strictObject({
+					action: z.literal("list"),
+					cursor: z.string().max(2048).optional(),
+				}),
+				z.strictObject({ action: z.literal("get"), transferId: receipt }),
+				z.strictObject({
+					action: z.literal("start"),
+					transferId: receipt,
+					idempotencyKey: key,
+				}),
+				z.strictObject({ action: z.literal("export"), idempotencyKey: key }),
+				z.strictObject({ action: z.literal("cancel"), transferId: receipt }),
+				z.strictObject({ action: z.literal("download"), transferId: receipt }),
+			]);
+			const parsed = schema.safeParse(data);
+			if (!parsed.success) throw new TransferError("invalid-input");
+			const input = parsed.data;
+			switch (input.action) {
 				case "list":
 					return {
 						ok: true as const,
 						kind: "list" as const,
 						value: await applicationTransfers.listTransfers(ctx, {
-							cursor: data.cursor,
+							cursor: input.cursor,
 						}),
 					};
 				case "get":
@@ -36,7 +61,7 @@ export const transferAction = createServerFn({ method: "POST" })
 						kind: "transfer" as const,
 						value: await applicationTransfers.getTransfer(
 							ctx,
-							data.transferId!,
+							input.transferId,
 							true,
 						),
 					};
@@ -45,8 +70,8 @@ export const transferAction = createServerFn({ method: "POST" })
 						ok: true as const,
 						kind: "transfer" as const,
 						value: await applicationTransfers.startImport(ctx, {
-							transferId: data.transferId!,
-							idempotencyKey: data.idempotencyKey!,
+							transferId: input.transferId,
+							idempotencyKey: input.idempotencyKey,
 						}),
 					};
 				case "export":
@@ -55,7 +80,7 @@ export const transferAction = createServerFn({ method: "POST" })
 						kind: "transfer" as const,
 						value: await applicationTransfers.requestExport(ctx, {
 							definition: "projects",
-							idempotencyKey: data.idempotencyKey!,
+							idempotencyKey: input.idempotencyKey,
 						}),
 					};
 				case "cancel":
@@ -64,7 +89,7 @@ export const transferAction = createServerFn({ method: "POST" })
 						kind: "transfer" as const,
 						value: await applicationTransfers.cancelTransfer(
 							ctx,
-							data.transferId!,
+							input.transferId,
 						),
 					};
 				case "download":
@@ -73,7 +98,7 @@ export const transferAction = createServerFn({ method: "POST" })
 						kind: "download" as const,
 						value: await applicationTransfers.getExportDownload(
 							ctx,
-							data.transferId!,
+							input.transferId,
 						),
 					};
 				default:

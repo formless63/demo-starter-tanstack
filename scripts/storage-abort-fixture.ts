@@ -42,5 +42,6 @@ try {
  controller.abort();
  assert(cancelled((await error)[0]));
  assert(stream.destroyed);
+ const idleController=new AbortController();const idle=await storage.getObject('test/key',{signal:idleController.signal});const idleBody=idle.body as Readable;idleController.abort();await new Promise(resolve=>setTimeout(resolve,10));assert(idleBody.destroyed);assert(cancelled(idleBody.errored));
  console.info('Storage cancellation: preabort, GET acquisition/body, PUT, HEAD passed');
 } finally { storage.close(); server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
