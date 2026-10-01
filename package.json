@@ -63,7 +63,10 @@
     "cache:compat": "bun scripts/cache-compat.ts",
     "cache:dev:valkey": "bun scripts/cache-dev.ts valkey",
     "cache:dev:down": "bun scripts/cache-dev.ts down",
-    "cache:telemetry": "bun scripts/cache-telemetry.ts"
+    "cache:telemetry": "bun scripts/cache-telemetry.ts",
+    "add-ons:preflight": "bun scripts/add-ons.ts preflight",
+    "add-ons:test:composition": "bun scripts/add-ons.ts test-composition fixtures/add-ons/database-composition.json",
+    "db:persistence:test": "bun scripts/postgres-persistence.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",

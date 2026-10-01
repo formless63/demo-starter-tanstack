@@ -1,0 +1,9 @@
+# PostgreSQL 18 volume preservation
+
+Fresh Compose deployments mount `postgres-data:/var/lib/postgresql`; PGDATA is `/var/lib/postgresql/18/docker`. The previous nested mount left the actual cluster in an anonymous parent volume. Restarting a container can conceal this mistake; recreating it can start an empty cluster.
+
+For an existing deployment, do not simply change the mount and redeploy. First inspect the current container mounts and query `SHOW data_directory` privately. Record the actual volume identity, stop producers/workers and take a verified logical backup (including roles as appropriate). Store backups outside Git with restricted permissions; never put connection credentials in documentation or shell output. Test restoration into a separately named PostgreSQL 18 volume/cluster and verify application/auth/audit/Jobs rows, migrations, ownership and health. Coordinate the maintenance window, stop the old cluster, restore the verified backup into the intended named-volume cluster, then explicitly run migration/doctor/release checks before restarting producers. Retain the original volume and backup until restoration is verified and retention policy permits removal.
+
+An offline physical copy is an alternative only with both clusters stopped and a matching PostgreSQL major/image layout/permissions; never copy an active PGDATA directory. Do not delete anonymous volumes or run blanket Docker prune as migration cleanup. The starter deliberately does not automate moving operator data.
+
+`bun run db:persistence:test` uses only a unique disposable Compose project and port. It writes a sentinel, removes/recreates the container while retaining its named volume, verifies the sentinel, then deletes only its own project/volume. CI executes this regression. It never targets existing application volumes.
