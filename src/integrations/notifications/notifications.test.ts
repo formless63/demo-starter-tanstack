@@ -69,6 +69,9 @@ describe("notification canonical contracts", () => {
 			{ body: "<b>html</b>" },
 			{ recipientId: "x".repeat(129) },
 			{ type: "Upper" },
+			{ type: "single" },
+			{ type: "fixture..created" },
+			{ title: "<b>Title</b>" },
 		])
 			expect(() => notificationValues({ ...input, ...extra })).toThrow();
 	});
@@ -192,6 +195,8 @@ describe("notification canonical contracts", () => {
 		expect(config.timeoutSeconds).toBe(10);
 		for (const environment of [
 			{ NTFY_BASE_URL: "http://ntfy.sh" },
+			{ NTFY_BASE_URL: "http://127.0.0.1", NODE_ENV: "production" },
+			{ NTFY_BASE_URL: "http://localhost" },
 			{ NTFY_BASE_URL: "https://user:password@ntfy.example" },
 			{ NTFY_BASE_URL: "https://ntfy.example", NTFY_TIMEOUT_SECONDS: "31" },
 		])

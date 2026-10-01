@@ -12,7 +12,10 @@ import {
 export { NotificationError } from "./validation";
 export const notificationInput = z.strictObject({
 	recipientId: z.string().min(1).max(128),
-	type: z.string().max(128).regex(/^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/),
+	type: z
+		.string()
+		.max(128)
+		.regex(/^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/),
 	title: z.string().min(1).max(200),
 	body: z.string(),
 	metadata: z.unknown().optional(),

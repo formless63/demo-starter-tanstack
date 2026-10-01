@@ -36,7 +36,10 @@ export function createNotificationJobs(options: {
 				expireInSeconds: 60,
 				deleteAfterSeconds: 86400,
 			},
-			async handler(payload: z.output<typeof notificationDeliveryPayload>, context?: { signal?: AbortSignal }) {
+			async handler(
+				payload: z.output<typeof notificationDeliveryPayload>,
+				context?: { signal?: AbortSignal },
+			) {
 				const controller = new AbortController();
 				let invoked = false;
 				let timer: ReturnType<typeof setTimeout> | undefined;
@@ -48,18 +51,25 @@ export function createNotificationJobs(options: {
 				if (context?.signal?.aborted) return terminal();
 				try {
 					const interrupted = new Promise<DeliveryResult>((resolve) => {
-						cancel = () => { controller.abort(); resolve(terminal()); };
+						cancel = () => {
+							controller.abort();
+							resolve(terminal());
+						};
 						context?.signal?.addEventListener("abort", cancel, { once: true });
 						timer = setTimeout(cancel, 55000);
 					});
 					return await Promise.race([
 						interrupted,
 						(async (): Promise<DeliveryResult> => {
-							const row = await options.load(payload.notificationId, controller.signal);
+							const row = await options.load(
+								payload.notificationId,
+								controller.signal,
+							);
 							if (controller.signal.aborted) return terminal();
 							if (!row) return { outcome: "permanent", category: "not-found" };
 							const adapter = options.adapters[payload.channel];
-							if (!adapter) return { outcome: "permanent", category: "disabled" };
+							if (!adapter)
+								return { outcome: "permanent", category: "disabled" };
 							if (controller.signal.aborted) return terminal();
 							invoked = true;
 							const result = await adapter(row, { signal: controller.signal });
@@ -70,14 +80,15 @@ export function createNotificationJobs(options: {
 				} catch (error) {
 					if (error instanceof NotificationError && error.retryable)
 						throw new NotificationError("unavailable", true);
-					if (error instanceof NotificationError) return { outcome: "permanent", category: "rejected" };
+					if (error instanceof NotificationError)
+						return { outcome: "permanent", category: "rejected" };
 					return terminal();
 				} finally {
 					clearTimeout(timer);
 					if (cancel) context?.signal?.removeEventListener("abort", cancel);
 					controller.abort();
 				}
-			}
+			},
 		} satisfies JobDefinition<typeof notificationDeliveryPayload>,
 	} as const;
 }
