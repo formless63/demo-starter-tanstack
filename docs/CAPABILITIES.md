@@ -26,9 +26,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 | `audit-log` | `audit-log` | Done | Enabled | No | `drizzle` | None | PostgreSQL | [Audit Log](../capabilities/audit-log/CAPABILITY.md) |
 | `cache-coordination` | `cache-coordination` | Done | Enabled | No | None | None | Valkey/Redis-compatible service on use | [Cache / Coordination](../capabilities/cache-coordination/CAPABILITY.md) |
 | `ai` | `ai` | Done | Enabled | No | None | None | Model endpoint only on use | [AI](../capabilities/ai/CAPABILITY.md) |
-
 | `search` | `search` | Done | Enabled | No | `drizzle` | None | PostgreSQL only | [Search](../capabilities/search/CAPABILITY.md) |
-
 | `realtime` | `realtime` | Done | Enabled | No | None | None | Optional Cache backplane | [Realtime](../capabilities/realtime/CAPABILITY.md) |
 | `notifications` | `notifications` | Done | Enabled | No | `postgres-jobs` | Jobs | Optional ntfy; optional Email adapter | [Notifications](../capabilities/notifications/CAPABILITY.md) |
 
@@ -182,3 +180,5 @@ The reusable Realtime consumer includes reviewed provider-neutral Nitro Vite con
 Notifications owns durable records/read state and uses caller DB/transaction executors. Its independent adapter registry starts empty. The reference's Project creation couples domain write, Audit and notification row in one transaction, then emits only `{notificationId}` after commit; Realtime failure cannot undo persistence. The `/app/notifications` view refetches on connection/reconnection and uses recipient-authorized server functions; rendering escapes plain text. Optional Email delegates to existing Email; optional ntfy is resolved at execution. Jobs stores only notification ID/channel. Delivery completion includes a business outcome and is not an external-delivery guarantee.
 
 `0004_tough_mindworm.sql` is the new additive reviewed root migration; previously applied files remain unchanged. Notifications removal retains schema/validation types, table/data, migrations and Jobs; Realtime removal has no database/external-data effect. See the two contracts and the starting guide for exact limits and removal edits. Generic completed-add-on discovery covers both clean fixtures; root verification additionally tests real cookie auth, optional two-process Valkey fanout and Node-worker SMTP/ntfy delivery.
+
+The integrated migration journal retains both original additive SQL files and timestamps: Search is entry 4 (`0004_search`) and Notifications entry 5 (`0004_tough_mindworm`). Snapshot 0004 remains Search; snapshot 0005 combines both schemas and links to snapshot 0004. Applied baseline migrations are unchanged. Branch-specific deployed databases must be reviewed against their recorded migration history before upgrade.

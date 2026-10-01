@@ -24,6 +24,10 @@ export async function runAiFixture(factory: typeof createAi = createAi) {
    res.writeHead(({ auth: 401, rate: 429, unavailable: 503, "bad-request": 400 } as Record<string, number>)[mode], { "content-type": "application/json" });
    res.end(JSON.stringify({ error: { message: "fixture-private-key PROMPT PRIVATE OUTPUT", type: "fixture", code: "fixture" } })); return;
   }
+  if (mode === "oversized-error-envelope") {
+   res.writeHead(503, { "content-type": "application/json" });
+   res.write(JSON.stringify({ error: { message: "fixture-private-key PROMPT PRIVATE OUTPUT", padding: "x".repeat(32 * 1024 * 1024) } })); return;
+  }
   if (mode === "stall") { res.writeHead(200, { "content-type": "application/json" }); res.flushHeaders(); return; }
   if (mode === "malformed-envelope") { res.writeHead(200, { "content-type": "application/json" }); res.end('{broken'); return; }
   if (["oversized-envelope", "oversized-unterminated-envelope"].includes(mode)) {
@@ -102,6 +106,9 @@ export async function runAiFixture(factory: typeof createAi = createAi) {
  };
  try {
   assert.equal(requests.length, 0);
+  await fails(ai.generateText(input("ordinary", Object.create(AbortSignal.prototype))), "invalid-request");
+  for (const apiKey of [" key", "key "]) await fails(factory({ ...config, apiKey }).generateText(input("ordinary")), "configuration");
+  assert.equal(requests.length, 0);
   const ordinary = await ai.generateText({ ...input("ordinary"), temperature: 0, maxOutputTokens: 1 });
   assert.deepEqual(ordinary, { text: "hello world", finishReason: "stop", usage: { inputTokens: 3, outputTokens: 2, totalTokens: 5 } });
   assert.equal(requests[0].authorization, undefined);
@@ -160,7 +167,7 @@ export async function runAiFixture(factory: typeof createAi = createAi) {
   }
   for (const mode of ["split-surrogate-oversized", "dangling-surrogate", "lone-low-surrogate", "interrupted-surrogate", "missing-finish", "duplicate-finish", "text-after-finish"])
    await fails(drain(mode), "invalid-output");
-  for (const work of [() => ai.generateText(input("oversized-envelope")), () => ai.generateStructured(input("oversized-envelope"), z.unknown()), () => drain("oversized-envelope"), () => drain("oversized-unterminated-envelope")]) {
+  for (const work of [() => ai.generateText(input("oversized-error-envelope")), () => ai.generateStructured(input("oversized-error-envelope"), z.unknown()), () => drain("oversized-error-envelope"), () => ai.generateText(input("oversized-envelope")), () => ai.generateStructured(input("oversized-envelope"), z.unknown()), () => drain("oversized-envelope"), () => drain("oversized-unterminated-envelope")]) {
    const before = disconnected, count: number = requests.length;
    await fails(work(), "invalid-output"); await closed(before);
    assert.equal(requests.length, count + 1, "oversized envelopes must not retry");

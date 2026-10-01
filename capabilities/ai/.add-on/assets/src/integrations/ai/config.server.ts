@@ -26,6 +26,7 @@ export function validateAiConfig(
 			config.timeoutSeconds > 300 ||
 			(config.apiKey !== undefined &&
 				(typeof config.apiKey !== "string" ||
+					config.apiKey.trim() !== config.apiKey ||
 					Buffer.from(config.apiKey).toString() !== config.apiKey ||
 					Array.from(config.apiKey).some((char) => {
 						const code = char.charCodeAt(0);
@@ -33,9 +34,21 @@ export function validateAiConfig(
 					})))
 		)
 			throw new Error();
+		if (config.apiKey) {
+			const authorization = `Bearer ${config.apiKey}`;
+			if (
+				new Headers({ Authorization: authorization }).get("Authorization") !==
+				authorization
+			)
+				throw new Error();
+		}
 		if (config.baseUrl !== undefined) {
 			const url = new URL(config.baseUrl);
-			const local = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+			// Check the original authority: URL normalizes abbreviated/integer/hex IPv4.
+			const local =
+				/^http:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::[0-9]+)?(?:[/?#]|$)/i.test(
+					config.baseUrl,
+				);
 			if (
 				url.username ||
 				url.password ||

@@ -22,7 +22,7 @@ it("migrates clean and existing Projects while retaining applied history and rec
 		const journal = JSON.parse(
 			await readFile(join(folder, "meta/_journal.json"), "utf8"),
 		);
-		journal.entries.pop();
+		journal.entries = journal.entries.filter((entry: { idx: number }) => entry.idx < 4);
 		const { writeFile } = await import("node:fs/promises");
 		await writeFile(
 			join(folder, "meta/_journal.json"),
@@ -39,8 +39,8 @@ it("migrates clean and existing Projects while retaining applied history and rec
 		const after = await pool.query(
 			"SELECT hash FROM drizzle.__drizzle_migrations ORDER BY id",
 		);
-		expect(after.rows.slice(0, -1)).toEqual(history.rows);
-		expect(after.rows).toHaveLength(5);
+		expect(after.rows.slice(0, history.rows.length)).toEqual(history.rows);
+		expect(after.rows).toHaveLength(6);
 		expect(
 			(
 				await pool.query(

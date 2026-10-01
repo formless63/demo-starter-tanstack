@@ -1,6 +1,19 @@
 import { AiError } from "./errors.server";
 import type { AiFinishReason, AiInput, AiUsage } from "./types";
 export const AI_MAX_OUTPUT_BYTES = 1024 * 1024;
+const abortedGetter = Object.getOwnPropertyDescriptor(
+	AbortSignal.prototype,
+	"aborted",
+)!.get!;
+function isAbortSignal(signal: unknown): signal is AbortSignal {
+	try {
+		// Invoke the intrinsic getter to check internal slots, not the prototype chain.
+		abortedGetter.call(signal);
+		return signal instanceof AbortSignal;
+	} catch {
+		return false;
+	}
+}
 export function validateAiInput(input: AiInput): AiInput {
 	if (
 		!input ||
@@ -47,7 +60,7 @@ export function validateAiInput(input: AiInput): AiInput {
 			(!Number.isInteger(input.maxOutputTokens) ||
 				input.maxOutputTokens < 1 ||
 				input.maxOutputTokens > 65536)) ||
-		(input.signal !== undefined && !(input.signal instanceof AbortSignal))
+		(input.signal !== undefined && !isAbortSignal(input.signal))
 	)
 		throw new AiError("invalid-request");
 	// Snapshot caller data before asynchronous work, preventing mutation after validation.
