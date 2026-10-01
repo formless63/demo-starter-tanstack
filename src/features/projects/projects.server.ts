@@ -27,6 +27,7 @@ import {
 	recipientChannel,
 } from "../../lib/realtime-hub.server";
 import type { ProjectData } from "./project-schema";
+import { insertProjectInTransaction } from "./project-write.server";
 
 const projectFields = {
 	id: projects.id,
@@ -67,22 +68,7 @@ export async function insertProjectForOwner(
 	actor: AuditIdentity = createAuditActor("user", ownerId),
 ) {
 	const result = await db.transaction(async (tx) => {
-		const [project] = await tx
-			.insert(projects)
-			.values({
-				id: crypto.randomUUID(),
-				ownerId,
-				name: data.name.trim(),
-				description: data.description?.trim() || null,
-			})
-			.returning(projectFields);
-		await appendAuditEvent(tx, {
-			actor,
-			action: "projects.create",
-			subject: createAuditSubject("project", project.id),
-			outcome: "success",
-			metadata: { source: actor.type === "machine" ? "api" : "application" },
-		});
+		const project = await insertProjectInTransaction(tx, ownerId, data, actor);
 		const { notification } = await createNotificationInTransaction(tx, {
 			recipientId: ownerId,
 			type: "projects.created",

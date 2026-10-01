@@ -13,9 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiOpenapiDotjsonRouteImport } from './routes/api/openapi[.]json'
+import { Route as ApiTransfersStageRouteImport } from './routes/api/transfers-stage'
 import { Route as AppApiKeysRouteImport } from './routes/app.api-keys'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppProjectsRouteImport } from './routes/app.projects'
+import { Route as AppTransfersRouteImport } from './routes/app.transfers'
 import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiV1ProjectsRouteImport } from './routes/api/v1/projects'
@@ -40,6 +42,11 @@ const ApiOpenapiDotjsonRoute = ApiOpenapiDotjsonRouteImport.update({
   path: '/api/openapi.json',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTransfersStageRoute = ApiTransfersStageRouteImport.update({
+  id: '/api/transfers-stage',
+  path: '/api/transfers-stage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppApiKeysRoute = AppApiKeysRouteImport.update({
   id: '/api-keys',
   path: '/api-keys',
@@ -53,6 +60,11 @@ const AppNotificationsRoute = AppNotificationsRouteImport.update({
 const AppProjectsRoute = AppProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTransfersRoute = AppTransfersRouteImport.update({
+  id: '/transfers',
+  path: '/transfers',
   getParentRoute: () => AppRoute,
 } as any)
 const DocsApiRoute = DocsApiRouteImport.update({
@@ -76,9 +88,11 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
+  '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
@@ -88,9 +102,11 @@ export interface FileRoutesByTo {
   '/app': typeof AppRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
+  '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
@@ -101,9 +117,11 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
+  '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
@@ -115,9 +133,11 @@ export interface FileRouteTypes {
     | '/app'
     | '/api/health'
     | '/api/openapi.json'
+    | '/api/transfers-stage'
     | '/app/api-keys'
     | '/app/notifications'
     | '/app/projects'
+    | '/app/transfers'
     | '/docs/api'
     | '/api/auth/$'
     | '/api/v1/projects'
@@ -127,9 +147,11 @@ export interface FileRouteTypes {
     | '/app'
     | '/api/health'
     | '/api/openapi.json'
+    | '/api/transfers-stage'
     | '/app/api-keys'
     | '/app/notifications'
     | '/app/projects'
+    | '/app/transfers'
     | '/docs/api'
     | '/api/auth/$'
     | '/api/v1/projects'
@@ -139,9 +161,11 @@ export interface FileRouteTypes {
     | '/app'
     | '/api/health'
     | '/api/openapi.json'
+    | '/api/transfers-stage'
     | '/app/api-keys'
     | '/app/notifications'
     | '/app/projects'
+    | '/app/transfers'
     | '/docs/api'
     | '/api/auth/$'
     | '/api/v1/projects'
@@ -152,6 +176,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   ApiHealthRoute: typeof ApiHealthRoute
   ApiOpenapiDotjsonRoute: typeof ApiOpenapiDotjsonRoute
+  ApiTransfersStageRoute: typeof ApiTransfersStageRoute
   DocsApiRoute: typeof DocsApiRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiV1ProjectsRoute: typeof ApiV1ProjectsRoute
@@ -187,6 +212,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOpenapiDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/transfers-stage': {
+      id: '/api/transfers-stage'
+      path: '/api/transfers-stage'
+      fullPath: '/api/transfers-stage'
+      preLoaderRoute: typeof ApiTransfersStageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/api-keys': {
       id: '/app/api-keys'
       path: '/api-keys'
@@ -206,6 +238,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/app/projects'
       preLoaderRoute: typeof AppProjectsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/transfers': {
+      id: '/app/transfers'
+      path: '/transfers'
+      fullPath: '/app/transfers'
+      preLoaderRoute: typeof AppTransfersRouteImport
       parentRoute: typeof AppRoute
     }
     '/docs/api': {
@@ -236,12 +275,14 @@ interface AppRouteChildren {
   AppApiKeysRoute: typeof AppApiKeysRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppProjectsRoute: typeof AppProjectsRoute
+  AppTransfersRoute: typeof AppTransfersRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppApiKeysRoute: AppApiKeysRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppProjectsRoute: AppProjectsRoute,
+  AppTransfersRoute: AppTransfersRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -251,6 +292,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   ApiHealthRoute: ApiHealthRoute,
   ApiOpenapiDotjsonRoute: ApiOpenapiDotjsonRoute,
+  ApiTransfersStageRoute: ApiTransfersStageRoute,
   DocsApiRoute: DocsApiRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiV1ProjectsRoute: ApiV1ProjectsRoute,
