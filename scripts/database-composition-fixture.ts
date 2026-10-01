@@ -29,7 +29,7 @@ try {
 	const journal = JSON.parse(
 		await readFile("drizzle/meta/_journal.json", "utf8"),
 	);
-	assert.equal(journal.entries.length, 6);
+	assert.equal(journal.entries.length, 9);
 	run(["run", "db:migrate"]);
 	run(["run", "api-platform:smoke"]);
 	run(["run", "audit-log:smoke"]);

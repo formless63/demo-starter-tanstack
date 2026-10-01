@@ -40,6 +40,9 @@ function OrganizationsPage() {
 	});
 	const summary = useQuery({
 		queryKey: ["organization-summary", selected],
+		gcTime: 0,
+		staleTime: 0,
+		retry: false,
 		enabled: Boolean(selected),
 		queryFn: ({ signal }) =>
 			getOrganizationSummary({ data: { organizationId: selected }, signal }),

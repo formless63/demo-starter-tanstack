@@ -24,4 +24,4 @@ Remove application policy imports/adapters and schema export, then this capabili
 
 ## Verification
 
-Real disposable PostgreSQL18 fixture exercises default denial, union, orphan roles, exact scopes, tenant revocation, credential intersection, concurrent deduplication, rollback, next-request revocation, protected-write locking, timeout and outage. Final clean lifecycle/reference/browser/production/CI gates remain pending; this is not done.
+Real disposable PostgreSQL18 fixture exercises default denial, union, orphan roles, exact scopes, tenant revocation, credential intersection, concurrent deduplication, rollback, next-request revocation, protected-write locking, timeout and outage. Independent clean installation, Bun/Node24 protocol runtime, retained-data removal and rebuild pass. Root checks and development/production browser coverage pass locally. Exact-head hosted CI remains queued; status is in-progress.
