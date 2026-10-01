@@ -82,3 +82,22 @@ export function transferId(value: unknown): asserts value is string {
 			),
 	);
 }
+
+export const transferErrorStatus: Record<TransferErrorCode, number> = {
+	configuration: 503,
+	"invalid-input": 400,
+	unauthenticated: 401,
+	forbidden: 403,
+	"not-found": 404,
+	conflict: 409,
+	"limit-exceeded": 413,
+	"invalid-format": 400,
+	"validation-failed": 400,
+	expired: 409,
+	cancelled: 409,
+	timeout: 504,
+	unavailable: 503,
+	"execution-lost": 503,
+	unsupported: 422,
+	unknown: 500,
+};

@@ -10,5 +10,5 @@ try {
  const port=docker(['port',name,'5432/tcp']).split(':').at(-1);
  const databaseUrl=`postgresql://fixture:fixture-only@127.0.0.1:${port}/fixture`;pool=new pg.Pool({connectionString:databaseUrl,connectionTimeoutMillis:1000});
  let ready=false;for(let i=0;i<60;i++){try{await pool.query('select 1');ready=true;break;}catch{await setTimeout(500);}}if(!ready)throw new Error('Fixture PostgreSQL unavailable');
- const result=spawnSync(process.execPath,['scripts/storage-compat.ts'],{stdio:'inherit',env:{...process.env,DATABASE_URL:databaseUrl,STORAGE_SMOKE_SCRIPT:'scripts/import-export-fixture.ts'}});if(result.status!==0)throw new Error('Import/export two-provider contract failed');
+ const result=spawnSync(process.execPath,['scripts/storage-compat.ts'],{stdio:'inherit',env:{...process.env,DATABASE_URL:databaseUrl,STORAGE_SMOKE_SCRIPT:process.env.IMPORT_EXPORT_FIXTURE_SCRIPT??'scripts/import-export-fixture.ts'}});if(result.status!==0)throw new Error('Import/export two-provider contract failed');
 } finally {await pool?.end();docker(['rm','-f','-v',name]);}
