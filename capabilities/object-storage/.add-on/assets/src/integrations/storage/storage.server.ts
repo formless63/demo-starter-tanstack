@@ -142,6 +142,7 @@ function bindBodyAbort(body: unknown, signal: AbortSignal) {
 	signal.addEventListener("abort", abort, { once: true });
 	stream.once?.("end", cleanup);
 	stream.once?.("close", cleanup);
+	stream.once?.("error", cleanup);
 	if (signal.aborted) abort();
 }
 export function createStorage(config = storageConfig(), hook?: OperationHook) {

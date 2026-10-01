@@ -77,6 +77,58 @@ describe("CSV fixed v1 contract", () => {
 			),
 		).toThrow("limit");
 	});
+	test("exact fixed boundaries and normalized budgets", () => {
+		const passthrough = z.record(z.string(), z.string());
+		const parse = (text: string, columns: string[], settings = config) =>
+			parseImport(Buffer.from(text), columns, passthrough, settings);
+		const longHeader = "h".repeat(64);
+		expect(parse(`${longHeader}\nx\n`, [longHeader])).toHaveLength(1);
+		expect(() => parse("h\nx", ["h".repeat(65)])).toThrow(TransferError);
+		const columns = Array.from({ length: 64 }, (_, i) => `c${i}`);
+		expect(
+			parse(
+				columns.join(",") + "\n" + columns.map(() => "x").join(","),
+				columns,
+			),
+		).toHaveLength(1);
+		expect(
+			parse("name\n" + "x".repeat(1018) + "\n", ["name"], {
+				...config,
+				maxBytes: 1024,
+			}),
+		).toHaveLength(1);
+		expect(() =>
+			parse("name\n" + "x".repeat(1019) + "\n", ["name"], {
+				...config,
+				maxBytes: 1024,
+			}),
+		).toThrow("limit");
+		expect(
+			parse("name\nx\n", ["name"], { ...config, maxRows: 1 }),
+		).toHaveLength(1);
+		expect(() =>
+			parse("name\nx\ny\n", ["name"], { ...config, maxRows: 1 }),
+		).toThrow("limit");
+		const field = "x".repeat(65536);
+		expect(parse('name\n"' + field + '"\n', ["name"])).toHaveLength(1);
+		expect(
+			parse("a,b,c,d\n" + Array(4).fill(field).join(","), ["a", "b", "c", "d"]),
+		).toHaveLength(1);
+		expect(() =>
+			parse(`${longHeader}\n` + Array(30).fill("x").join("\n"), [longHeader], {
+				...config,
+				maxBytes: 1024,
+			}),
+		).toThrow("limit");
+		expect(() =>
+			parseImport(
+				Buffer.from("name\nx"),
+				["name"],
+				z.object({ name: z.string().transform(() => "x".repeat(2049)) }),
+				{ ...config, maxBytes: 1024 },
+			),
+		).toThrow("limit");
+	});
 	test("validation issues never contain cells and truncate at100", () => {
 		try {
 			csv("name,description\n" + Array(101).fill(",private-cell").join("\n"));
