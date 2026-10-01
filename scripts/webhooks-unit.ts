@@ -127,9 +127,21 @@ export async function webhooksUnit() {
 		signWebhook(event.id, now, Buffer.from(body), secret),
 	);
 	await assert.rejects(verifyWebhookRequest(tampered, options), /signature/);
-	for (const timestamp of [now - 301, now + 301])
+	// Exact tolerance boundaries use a fixed clock, independent of earlier async reads.
+	for (const offset of [-300, 300])
+		assert.equal(
+			verifyWebhookSignature(Buffer.from(body), request(body, secret, now + offset).headers, { ...options, now }),
+			event.id,
+		);
+	for (const offset of [-301, 301])
+		assert.throws(
+			() => verifyWebhookSignature(Buffer.from(body), request(body, secret, now + offset).headers, { ...options, now }),
+			/timestamp/,
+		);
+	// Actual request verification retains generous clock margin across scheduling delays.
+	for (const offset of [-600, 600])
 		await assert.rejects(
-			verifyWebhookRequest(request(body, secret, timestamp), options),
+			verifyWebhookRequest(request(body, secret, Math.floor(Date.now() / 1000) + offset), options),
 			/timestamp/,
 		);
 	await assert.rejects(
