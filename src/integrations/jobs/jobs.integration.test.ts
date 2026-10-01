@@ -3,6 +3,8 @@ import type { PgBoss } from "pg-boss";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "#/db";
 import { projects, user } from "#/db/schema";
+import { createNotificationJobs } from "../notifications/jobs.server";
+import { notificationValues } from "../notifications/notifications.server";
 import { observeJob } from "../observability/http.server";
 import {
 	getJobsClient,
@@ -18,11 +20,15 @@ const committedProjectId = crypto.randomUUID();
 const rolledBackProjectId = crypto.randomUUID();
 let worker: PgBoss;
 
-async function waitForJob(id: string, state: string) {
+async function waitForJob(
+	id: string,
+	state: string,
+	queue: "starter.echo" | "notifications.deliver" = "starter.echo",
+) {
 	const boss = await getJobsClient();
 	const deadline = Date.now() + 10_000;
 	while (Date.now() < deadline) {
-		const [job] = await boss.findJobs("starter.echo", { id });
+		const [job] = await boss.findJobs(queue, { id });
 		if (job?.state === state) return job;
 		await new Promise((resolve) => setTimeout(resolve, 50));
 	}
@@ -30,6 +36,66 @@ async function waitForJob(id: string, state: string) {
 }
 
 describe("transactional jobs", () => {
+	it("composes native Jobs expiration and worker-close signals into Notifications without late delivery", async () => {
+		for (const phase of ["expiration", "close"] as const) {
+			const row = notificationValues({
+				recipientId: ownerId,
+				type: "fixture.cancellation",
+				title: "Signal",
+				body: "Fixture",
+			});
+			let release!: (value: typeof row) => void;
+			const pending = new Promise<typeof row>((resolve) => {
+				release = resolve;
+			});
+			let started!: () => void, cancelled!: () => void;
+			const running = new Promise<void>((resolve) => {
+				started = resolve;
+			});
+			const aborted = new Promise<void>((resolve) => {
+				cancelled = resolve;
+			});
+			const adapter = vi.fn(async () => ({ outcome: "delivered" as const }));
+			const composed = createNotificationJobs({
+				load: async (_id, signal) => {
+					signal.addEventListener("abort", cancelled, { once: true });
+					started();
+					return pending;
+				},
+				adapters: { email: adapter },
+			})["notifications.deliver"].handler;
+			const spy = vi
+				.spyOn(jobRegistry["notifications.deliver"], "handler")
+				.mockImplementation(composed);
+			const boss = await getJobsClient();
+			let id: string | null = null;
+			try {
+				id = await boss.send(
+					"notifications.deliver",
+					{ notificationId: row.id, channel: "email" },
+					{ retryLimit: 0, expireInSeconds: phase === "expiration" ? 1 : 60 },
+				);
+				expect(id).toBeTruthy();
+				await running;
+				if (phase === "close")
+					await worker.stop({ graceful: false, close: true });
+				await aborted;
+				release(row);
+				await Promise.resolve();
+				await Promise.resolve();
+				expect(adapter).not.toHaveBeenCalled();
+				expect(
+					(await waitForJob(id!, "failed", "notifications.deliver")).retryCount,
+				).toBe(0);
+			} finally {
+				release(row);
+				spy.mockRestore();
+				if (id) await boss.deleteJob("notifications.deliver", id);
+				if (phase === "close") worker = await startJobsWorker();
+			}
+		}
+	}, 30000);
+
 	beforeAll(async () => {
 		await db.insert(user).values({
 			id: ownerId,

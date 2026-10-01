@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { JobDefinition } from "../jobs/types";
+import type { JobDefinition, JobHandlerContext } from "../jobs/types";
 import type { Notification } from "./schema";
 import { NotificationError } from "./validation";
 export const notificationDeliveryPayload = z.strictObject({
@@ -38,7 +38,7 @@ export function createNotificationJobs(options: {
 			},
 			async handler(
 				payload: z.output<typeof notificationDeliveryPayload>,
-				context?: { signal?: AbortSignal },
+				context?: Pick<JobHandlerContext, "signal">,
 			) {
 				const controller = new AbortController();
 				let invoked = false;
