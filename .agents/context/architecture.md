@@ -26,7 +26,7 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 
 Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
 
-The eight completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log and Cache / Coordination.
+The twelve completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination, AI, Search, Realtime and Notifications.
 
 `defaultInstalled` describes only clean generated consumers. The root reference application's intentionally integrated capabilities are listed separately in `referenceApplication.enabledCapabilities`; disabling an application integration does not require deleting the reusable add-on workspace or its stable catalog identity. Removal retains database data and committed migration history unless a separate destructive change explicitly says otherwise.
 
@@ -66,3 +66,19 @@ Webhooks owns server-only raw signing/verification and Jobs-backed delivery unde
 Baseline authoring workflows live in project-onboarding/appearance-change skills and docs/PROJECT-ONBOARDING.md / docs/APPEARANCE.md. Version-1 `.project` JSON contracts are framework-neutral; catalog remains authoritative for capability status/dependencies and application enablement. The reference has no downstream profile. Existing material and approved proposals govern customization and reviewed canonical skill imports. Checks/status do not install capabilities.
 
 `appearance/default-theme.json` is the reference normalized source; downstream `.project/theme.json` is vendored data. Explicit tooling generates dedicated `src/theme.css` and `src/appearance-policy.ts`, never registry installers, arbitrary CSS, assets or font downloads. React external-store subscriptions plus a trusted early head script own persisted/system-aware mode; no backend startup work. Nuxt's companion should retain native color-mode using the same conceptual contract, not this React store.
+
+Canonical Project mutation input limits are 120 characters for trimmed names and 1000 for optional trimmed descriptions, shared by browser/server/API validation and OpenAPI. Existing PostgreSQL text columns and migrations remain unchanged. Jobs roles are explicit and handlers may consume native optional attempt context; doctor remains a separate structural-drift release gate.
+
+## AI boundary
+
+`src/integrations/ai` owns lazy server-only bounded generation/stream/structured primitives; sole SDK adapter is provider.server.ts. No Jobs/Storage/Observability/Audit dependency or provider startup/readiness network. `src/lib/ai.server.ts` owns optional safe metadata-only telemetry; reference CLI smoke is explicit and local. Caller/timeout/consumer cancellation abort transport; no automatic retries.
+
+## Search boundary
+
+`src/integrations/search` owns PostgreSQL FTS SQL/schema helpers, bounded query/cursor parsing, exact rank/time keysets and safe errors. Domain tables own searchable rows and authorization; no universal search_documents table. Projects weights name A/description B with explicit simple, STORED generated tsvector and GIN in new migration0004. The session-bound POST server function always applies owner equality. Explicit domain projections exclude vector internals from all Projects returns. No raw query logging/spans/labels, telemetry dependency, external service, extraction or vector search. Retain schema-only helpers, generated declarations and applied history on removal; index/column removal needs a new reviewed migration.
+
+## Realtime and Notifications boundaries
+
+`src/integrations/realtime/` provides bounded process-local publication, SSE and supported Nitro/H3 WebSocket adapters without Cache/auth/DB imports. Application-owned `src/lib/realtime-hub.server.ts` shares the process hub between Nitro and Start module runners; `src/lib/realtime.server.ts` owns human-cookie/exact-channel authorization and `server/routes/api/realtime/` owns adapters. Restart after event-registry edits. Optional `src/lib/realtime-cache.server.ts` uses one non-durable Cache fanout path with explicit subscriptions/recovery. No SSE id/replay; WS has no application commands/RPC.
+
+`src/integrations/notifications/` owns application PostgreSQL schema, strict metadata/plain-text creation, recipient-scoped keyset/read-state queries and Jobs delivery composition. Jobs is its only hard capability edge; Email/Realtime/Audit/Observability/ntfy remain optional. The reference’s Project domain/Audit/notification writes share one transaction, followed by a best-effort ID-only hint after commit. Application Email adapter resolves current address and delegates exactly once to Email; ntfy/current topic configuration are resolved at execution. Payloads contain only notificationId/channel. Browser notification view refetches on connection/reconnection. Worker registry excludes auth/browser routing imports; root HTTP authorization stays in its separate server-only wrapper. Removal retains notification history/schema/migrations and Jobs.

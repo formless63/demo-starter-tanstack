@@ -1,6 +1,11 @@
 import { useForm } from "@tanstack/react-form";
 import { useEffect } from "react";
-import type { ProjectInput } from "./project-schema";
+import {
+	PROJECT_DESCRIPTION_MAX_LENGTH,
+	PROJECT_NAME_MAX_LENGTH,
+	type ProjectInput,
+	projectInputSchema,
+} from "./project-schema";
 
 export function ProjectForm({
 	initial,
@@ -15,6 +20,7 @@ export function ProjectForm({
 }) {
 	const form = useForm({
 		defaultValues: initial ?? { name: "", description: "" },
+		validators: { onSubmit: projectInputSchema },
 		onSubmit: async ({ value }) => onSubmit(value),
 	});
 	useEffect(
@@ -35,8 +41,8 @@ export function ProjectForm({
 					onBlur: ({ value }) =>
 						!value.trim()
 							? "Name is required"
-							: value.length > 100
-								? "Use 100 characters or fewer"
+							: value.trim().length > PROJECT_NAME_MAX_LENGTH
+								? `Use ${PROJECT_NAME_MAX_LENGTH} characters or fewer`
 								: undefined,
 				}}
 			>
@@ -44,6 +50,7 @@ export function ProjectForm({
 					<label className="block text-sm font-medium">
 						Name
 						<input
+							maxLength={PROJECT_NAME_MAX_LENGTH}
 							className="mt-1 w-full rounded-lg border bg-background px-3 py-2"
 							value={field.state.value}
 							onBlur={field.handleBlur}
@@ -51,7 +58,9 @@ export function ProjectForm({
 						/>
 						{field.state.meta.errors[0] && (
 							<span className="mt-1 block text-sm text-destructive">
-								{field.state.meta.errors[0]}
+								{typeof field.state.meta.errors[0] === "string"
+									? field.state.meta.errors[0]
+									: field.state.meta.errors[0].message}
 							</span>
 						)}
 					</label>
@@ -65,10 +74,16 @@ export function ProjectForm({
 							(optional)
 						</span>
 						<textarea
+							maxLength={PROJECT_DESCRIPTION_MAX_LENGTH}
 							className="mt-1 min-h-24 w-full rounded-lg border bg-background px-3 py-2"
 							value={field.state.value ?? ""}
 							onChange={(e) => field.handleChange(e.target.value)}
 						/>
+						{field.state.meta.errors[0] && (
+							<span className="mt-1 block text-sm text-destructive">
+								{field.state.meta.errors[0].message}
+							</span>
+						)}
 					</label>
 				)}
 			</form.Field>

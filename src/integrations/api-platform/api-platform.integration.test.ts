@@ -192,6 +192,30 @@ describe("API Platform machine authentication and Projects routes", () => {
 			error: { code: "validation_error", details: expect.any(Array) },
 		});
 	});
+	it("persists 120/1000-character Project inputs and rejects either overflow", async () => {
+		const writer = await createKey("bounded writer", { projects: ["write"] });
+		const input = { name: "n".repeat(120), description: "d".repeat(1000) };
+		const accepted = await createProjectApi(
+			apiRequest("POST", writer.key, input),
+		);
+		expect(accepted.status).toBe(201);
+		const body = await accepted.json();
+		expect(body.data).toMatchObject(input);
+		const [persisted] = await db
+			.select()
+			.from(projects)
+			.where(eq(projects.id, body.data.id));
+		expect(persisted).toMatchObject({ ...input, ownerId: userAId });
+		for (const invalid of [
+			{ ...input, name: "n".repeat(121) },
+			{ ...input, description: "d".repeat(1001) },
+		]) {
+			expect(
+				(await createProjectApi(apiRequest("POST", writer.key, invalid)))
+					.status,
+			).toBe(422);
+		}
+	});
 
 	it("never turns an API key into a browser session", async () => {
 		const created = await createKey("no session", { projects: ["read"] });

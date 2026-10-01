@@ -13,6 +13,13 @@ x-database-environment: &database-environment
 
 x-jobs-environment: &jobs-environment
   NODE_ENV: production
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+  APP_BASE_URL: ${APP_BASE_URL:-}
+  NTFY_BASE_URL: ${NTFY_BASE_URL:-}
+  NTFY_TOKEN: ${NTFY_TOKEN:-}
+  NTFY_TIMEOUT_SECONDS: ${NTFY_TIMEOUT_SECONDS:-10}
+  NTFY_REFERENCE_RECIPIENT_ID: ${NTFY_REFERENCE_RECIPIENT_ID:-}
+  NTFY_REFERENCE_TOPIC: ${NTFY_REFERENCE_TOPIC:-}
   DATABASE_URL: postgresql://${POSTGRES_USER:-starter}:${POSTGRES_PASSWORD:-starter}@postgres:5432/${POSTGRES_DB:-starter}
   PGBOSS_DATABASE_URL: ${PGBOSS_DATABASE_URL:-postgresql://${POSTGRES_USER:-starter}:${POSTGRES_PASSWORD:-starter}@postgres:5432/${POSTGRES_DB:-starter}}
   WEBHOOK_REFERENCE_URL: ${WEBHOOK_REFERENCE_URL:-}
@@ -78,6 +85,14 @@ services:
     environment:
       <<: [*jobs-environment, *observability-environment]
       JOBS_CONCURRENCY: ${JOBS_CONCURRENCY:-4}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_SECURITY: ${SMTP_SECURITY:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-}
+      EMAIL_MAX_RECIPIENTS: ${EMAIL_MAX_RECIPIENTS:-50}
     depends_on:
       postgres:
         condition: service_healthy
@@ -90,6 +105,7 @@ services:
     environment:
       <<: [*jobs-environment, *observability-environment]
       NODE_ENV: production
+      REALTIME_TRANSPORTS: ${REALTIME_TRANSPORTS:-sse}
       DATABASE_URL: postgresql://${POSTGRES_USER:-starter}:${POSTGRES_PASSWORD:-starter}@postgres:5432/${POSTGRES_DB:-starter}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
       APP_BASE_URL: ${APP_BASE_URL:-}

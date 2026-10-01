@@ -1,0 +1,68 @@
+{
+  "id": "ai",
+  "name": "ai",
+  "displayName": "AI",
+  "description": "Lazy bounded server-side OpenAI-compatible generation, streaming and authoritative Zod structured validation.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "openai": "7.25.0",
+      "zod": "^4.3.6"
+    },
+    "devDependencies": {
+      "vitest": "^3.2.4"
+    },
+    "scripts": {
+      "ai:unit": "bun scripts/ai-unit.ts",
+      "ai:compat": "bun scripts/ai-compat.ts"
+    }
+  },
+  "envVars": [
+    {
+      "name": "AI_PROVIDER",
+      "required": false,
+      "default": "openai-compatible",
+      "description": "Sole accepted v1 provider ID.",
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "AI_MODEL",
+      "required": false,
+      "description": "Required lazily on operation; 1\u2013128 printable characters, never inferred.",
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "AI_API_KEY",
+      "required": false,
+      "description": "Optional server-only authentication; never log.",
+      "secret": true,
+      "file": ".env.local"
+    },
+    {
+      "name": "AI_BASE_URL",
+      "required": false,
+      "description": "Optional HTTPS compatible endpoint; loopback HTTP only explicit development/test.",
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "AI_TIMEOUT_SECONDS",
+      "required": false,
+      "default": "60",
+      "description": "Complete request deadline; integer seconds 1\u2013300.",
+      "secret": false,
+      "file": ".env.local"
+    }
+  ]
+}

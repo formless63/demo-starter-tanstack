@@ -1,0 +1,76 @@
+{
+  "projectName": "ai-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [],
+  "forbiddenOfficialAddOns": [
+    "drizzle",
+    "better-auth",
+    "postgres-jobs",
+    "api-platform",
+    "observability",
+    "object-storage",
+    "audit-log"
+  ],
+  "expectedFiles": [
+    "src/integrations/ai/ai.server.ts",
+    "scripts/ai-fixture.ts",
+    "scripts/ai-removal-fixture.ts",
+    "AI_MODULE_EVALUATION.md",
+    "capabilities/ai/CAPABILITY.md",
+    ".agents/skills/ai-change/SKILL.md"
+  ],
+  "verificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "run",
+      "ai:unit"
+    ],
+    [
+      "bun",
+      "test",
+      "src/integrations/ai"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ],
+    [
+      "bun",
+      "run",
+      "ai:compat"
+    ],
+    [
+      "bun",
+      "build",
+      "scripts/ai-compat.ts",
+      "--target=node",
+      "--outfile=ai-compat.mjs"
+    ],
+    [
+      "node",
+      "--unhandled-rejections=strict",
+      "ai-compat.mjs"
+    ],
+    [
+      "bun",
+      "scripts/ai-removal-fixture.ts"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ]
+  ],
+  "build": true
+}

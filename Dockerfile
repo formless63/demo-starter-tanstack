@@ -11,10 +11,12 @@ RUN bun run build \
   && bun build scripts/jobs-smoke.ts --target=node --outfile=.output/jobs-smoke.mjs \
   && bun build scripts/jobs-worker.ts --target=node --outfile=.output/jobs-worker.mjs \
   && bun build scripts/webhooks-smoke.ts --target=node --outfile=.output/webhooks-smoke.mjs \
+  && bun build scripts/notifications-smoke.ts --target=node --outfile=.output/notifications-smoke.mjs \
   && bun build scripts/storage-check.ts --target=node --outfile=.output/storage-check.mjs \
   && bun build scripts/storage-smoke.ts --target=node --outfile=.output/storage-smoke.mjs \
   && bun build scripts/email-check.ts --target=node --outfile=.output/email-check.mjs \
-  && bun build scripts/email-smoke.ts --target=node --outfile=.output/email-smoke.mjs
+  && bun build scripts/email-smoke.ts --target=node --outfile=.output/email-smoke.mjs \
+  && bun build scripts/ai-reference-smoke.ts --target=node --outfile=.output/ai-reference-smoke.mjs
 
 FROM node:24.21.0-alpine AS runtime
 WORKDIR /app

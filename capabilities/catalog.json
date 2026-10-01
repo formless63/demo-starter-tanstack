@@ -24,12 +24,12 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "ai", "search", "realtime", "notifications"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
 			{ "id": "tanstack-db", "displayName": "TanStack DB", "status": "evaluate", "summary": "Evaluate for local-first collections and synchronized client data; do not install solely for roadmap coverage." },
-			{ "id": "tanstack-ai", "displayName": "TanStack AI", "status": "evaluate", "summary": "Evaluate as an implementation option for the AI capability without making it a baseline dependency." },
+			{ "id": "tanstack-ai", "displayName": "TanStack AI", "status": "deferred", "summary": "Evaluated 0.63.0 for AI v1; selected stable OpenAI-compatible SDK boundary. Re-evaluate for future needs without making it baseline." },
 			{ "id": "tanstack-hotkeys", "displayName": "TanStack Hotkeys", "status": "evaluate", "summary": "Evaluate for the Command System when its API and accessibility fit are proven." },
 			{ "id": "tanstack-pacer", "displayName": "TanStack Pacer", "status": "evaluate", "summary": "Evaluate for reusable throttling, debouncing, and rate control needs." },
 			{ "id": "tanstack-virtual", "displayName": "TanStack Virtual", "status": "evaluate", "summary": "Evaluate for large Data Table and list surfaces." },
@@ -55,13 +55,13 @@
 			"integratesWith": ["observability", "ops-admin"],
 			"baselineRequirements": ["postgresql", "drizzle"],
 			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Durable queue storage and advisory-lock coordination." }],
-			"summary": "Typed PostgreSQL-backed background jobs using pg-boss, explicit schema migration, and a standalone worker.",
+			"summary": "Typed PostgreSQL-backed jobs with routing-safe transactional enqueue, native attempt context, explicit process roles/schema migration, and a standalone worker.",
 			"scripts": ["jobs:worker", "jobs:migrate", "jobs:doctor", "jobs:smoke"],
 			"environmentVariables": [
 				{ "name": "PGBOSS_DATABASE_URL", "required": false, "description": "Optional jobs-specific PostgreSQL URL; falls back to DATABASE_URL." },
 				{ "name": "PGBOSS_SCHEMA", "required": false, "default": "pgboss", "description": "Dedicated pg-boss schema." },
 				{ "name": "PGBOSS_USE_LISTEN_NOTIFY", "required": false, "default": "false", "description": "Opt-in LISTEN/NOTIFY wakeups with polling fallback." },
-				{ "name": "JOBS_CONCURRENCY", "required": false, "default": "4", "description": "Per-queue local worker concurrency." }
+				{ "name": "JOBS_CONCURRENCY", "required": false, "default": "4", "description": "Per-queue local worker concurrency; integer 1–100." }
 			],
 			"migrations": ["bun run jobs:migrate"],
 			"runtimeServices": [
@@ -394,10 +394,76 @@
 			}
 		},
 		{
-			"id": "ai", "displayName": "AI", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["jobs", "object-storage", "observability", "audit-log"], "baselineRequirements": [],
-			"externalRequirements": [{ "name": "Model provider", "required": true, "description": "A model endpoint and credentials selected by the consuming application." }],
-			"summary": "Provider-configurable model invocation, streaming, tools, and durable workload patterns."
+			"id": "ai",
+			"displayName": "AI",
+			"kind": "foundational-backend",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"jobs",
+				"object-storage",
+				"observability",
+				"audit-log"
+			],
+			"baselineRequirements": [
+				"node-runtime"
+			],
+			"externalRequirements": [
+				{
+					"name": "Configured model provider",
+					"required": true,
+					"description": "Required only on an explicit AI operation; no build/start/readiness network access."
+				}
+			],
+			"summary": "Lazy bounded server-side OpenAI-compatible generation with stop-only structured Zod validation, whole-operation cancellation and safe errors; Bun/Node and production-image fixtures.",
+			"scripts": [
+				"ai:unit",
+				"ai:compat"
+			],
+			"environmentVariables": [
+				{
+					"name": "AI_PROVIDER",
+					"required": false,
+					"default": "openai-compatible",
+					"description": "Sole accepted v1 provider ID."
+				},
+				{
+					"name": "AI_MODEL",
+					"required": false,
+					"description": "Required lazily on operation; 1\u2013128 printable characters, never inferred."
+				},
+				{
+					"name": "AI_API_KEY",
+					"required": false,
+					"description": "Optional server-only authentication; never log."
+				},
+				{
+					"name": "AI_BASE_URL",
+					"required": false,
+					"description": "Optional HTTPS compatible endpoint; loopback HTTP only explicit development/test."
+				},
+				{
+					"name": "AI_TIMEOUT_SECONDS",
+					"required": false,
+					"default": "60",
+					"description": "Complete request deadline; integer seconds 1\u2013300."
+				}
+			],
+			"migrations": [],
+			"runtimeServices": [],
+			"documentationPath": "capabilities/ai/CAPABILITY.md",
+			"agentSkill": ".agents/skills/ai-change/SKILL.md",
+			"evaluationDocument": "AI_MODULE_EVALUATION.md",
+			"tanstackAddOn": {
+				"addOnId": "ai",
+				"sourceDirectory": "capabilities/ai/.add-on",
+				"manifestPath": "capabilities/ai/.add-on/info.json",
+				"distributablePath": "capabilities/ai/add-on.json",
+				"cleanInstallFixture": "capabilities/ai/test/clean-install.json",
+				"dependsOn": [],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "cache-coordination",
@@ -479,24 +545,171 @@
 			}
 		},
 		{
-			"id": "search", "displayName": "Search", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["jobs", "object-storage", "organizations"], "baselineRequirements": ["postgresql"],
-			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "PostgreSQL-first indexing and query implementation." }],
-			"summary": "PostgreSQL-first application search with room for explicit future adapters."
-		},
-		{
-			"id": "realtime", "displayName": "Realtime", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["cache-coordination", "notifications", "observability"], "baselineRequirements": ["authentication"], "externalRequirements": [],
-			"summary": "Authenticated server-to-client updates with no external service initially."
-		},
-		{
-			"id": "notifications", "displayName": "Notifications", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": ["jobs"], "integratesWith": ["email", "realtime", "audit-log"], "baselineRequirements": [],
-			"externalRequirements": [
-				{ "name": "ntfy", "required": false, "description": "Optional push notification integration." },
-				{ "name": "SMTP through Email", "required": false, "description": "Optional email notification channel supplied by the Email capability." }
+			"id": "search",
+			"displayName": "Search",
+			"kind": "application-infrastructure",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"jobs",
+				"object-storage",
+				"organizations"
 			],
-			"summary": "Durable multi-channel notification orchestration with optional delivery integrations."
+			"baselineRequirements": [
+				"postgresql",
+				"drizzle"
+			],
+			"externalRequirements": [
+				{
+					"name": "PostgreSQL",
+					"required": true,
+					"description": "Built-in full-text search only; no separate service."
+				}
+			],
+			"summary": "PostgreSQL-native application-owned FTS with safe query and canonical numeric-float4 keysets preserving microseconds and opaque IDs.",
+			"documentationPath": "capabilities/search/CAPABILITY.md",
+			"evaluationDocument": "SEARCH_MODULE_EVALUATION.md",
+			"agentSkill": ".agents/skills/search-change/SKILL.md",
+			"scripts": [
+				"search:smoke"
+			],
+			"environmentVariables": [],
+			"runtimeServices": [],
+			"migrations": [
+				"bun run db:migrate"
+			],
+			"tanstackAddOn": {
+				"addOnId": "search",
+				"sourceDirectory": "capabilities/search/.add-on",
+				"manifestPath": "capabilities/search/.add-on/info.json",
+				"distributablePath": "capabilities/search/add-on.json",
+				"cleanInstallFixture": "capabilities/search/test/clean-install.json",
+				"dependsOn": [
+					"drizzle"
+				],
+				"conflictsWith": []
+			}
+		},
+		{
+			"id": "realtime",
+			"displayName": "Realtime",
+			"kind": "application-infrastructure",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"cache-coordination",
+				"notifications",
+				"observability"
+			],
+			"baselineRequirements": [
+				"node-runtime"
+			],
+			"externalRequirements": [],
+			"summary": "Authenticated server-to-client updates with no external service initially.",
+			"baselineIntegrations": [
+				"authentication"
+			],
+			"documentationPath": "capabilities/realtime/CAPABILITY.md",
+			"evaluationDocument": "REALTIME_MODULE_EVALUATION.md",
+			"agentSkill": ".agents/skills/realtime-change/SKILL.md",
+			"scripts": [
+				"realtime:unit",
+				"realtime:transport"
+			],
+			"environmentVariables": [
+				{
+					"name": "REALTIME_TRANSPORTS",
+					"default": "sse",
+					"description": "Server-only sse/websocket/sse,websocket; no duplicates.",
+					"required": false
+				}
+			],
+			"runtimeServices": [],
+			"migrations": [],
+			"tanstackAddOn": {
+				"addOnId": "realtime",
+				"sourceDirectory": "capabilities/realtime/.add-on",
+				"manifestPath": "capabilities/realtime/.add-on/info.json",
+				"distributablePath": "capabilities/realtime/add-on.json",
+				"cleanInstallFixture": "capabilities/realtime/test/clean-install.json",
+				"dependsOn": [],
+				"conflictsWith": []
+			}
+		},
+		{
+			"id": "notifications",
+			"displayName": "Notifications",
+			"kind": "application-infrastructure",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [
+				"jobs"
+			],
+			"integratesWith": [
+				"email",
+				"realtime",
+				"audit-log",
+				"observability"
+			],
+			"baselineRequirements": [
+				"postgresql",
+				"drizzle"
+			],
+			"externalRequirements": [
+				{
+					"name": "ntfy",
+					"required": false,
+					"description": "Optional application-resolved HTTP delivery."
+				}
+			],
+			"summary": "Durable multi-channel notification orchestration with optional delivery integrations.",
+			"baselineIntegrations": [
+				"authentication"
+			],
+			"documentationPath": "capabilities/notifications/CAPABILITY.md",
+			"evaluationDocument": "NOTIFICATIONS_MODULE_EVALUATION.md",
+			"agentSkill": ".agents/skills/notifications-change/SKILL.md",
+			"scripts": [
+				"notifications:unit",
+				"notifications:smoke",
+				"notifications:compat"
+			],
+			"environmentVariables": [
+				{
+					"name": "NTFY_BASE_URL",
+					"description": "Optional lazy ntfy server HTTPS URL; no public default.",
+					"required": false
+				},
+				{
+					"name": "NTFY_TOKEN",
+					"description": "Optional private ntfy token resolved at execution.",
+					"required": false
+				},
+				{
+					"name": "NTFY_TIMEOUT_SECONDS",
+					"default": "10",
+					"description": "Integer 1–30 seconds.",
+					"required": false
+				}
+			],
+			"runtimeServices": [],
+			"migrations": [
+				"bun run db:migrate",
+				"bun run jobs:migrate"
+			],
+			"tanstackAddOn": {
+				"addOnId": "notifications",
+				"sourceDirectory": "capabilities/notifications/.add-on",
+				"manifestPath": "capabilities/notifications/.add-on/info.json",
+				"distributablePath": "capabilities/notifications/add-on.json",
+				"cleanInstallFixture": "capabilities/notifications/test/clean-install.json",
+				"dependsOn": [
+					"postgres-jobs"
+				],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "import-export", "displayName": "Import / Export", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,

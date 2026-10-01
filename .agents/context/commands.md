@@ -44,6 +44,7 @@
 - `docker compose run --rm jobs-migrate`: explicitly apply pg-boss migrations with the same image revision.
 - `docker compose run --rm worker node .output/jobs-doctor.mjs`: diagnose the containerized jobs schema.
 - `docker compose run --rm worker node .output/jobs-smoke.mjs`: exercise containerized enqueue and consumption.
+- `bun run production:smoke`: execute shared Jobs diagnostics/smoke, Webhooks and AI reference bundles in the final production Node image with strict rejection handling, after both migrations.
 - `docker compose up -d worker`: start the separately restartable production worker after both migrations succeed.
 - `docker compose up -d --wait app`: start or update the production application after migrations succeed.
 - `docker compose logs -f app`: follow application logs.
@@ -76,3 +77,19 @@ For a downstream lean application, follow `docs/STARTING-A-PROJECT.md`. Its Jobs
 - `bun run add-ons:test:composition`: reviewed API/Audit/Jobs combined clean migrate/runtime/type/build proof; owned disposable database.
 - `bun run db:persistence:test`: own Compose project/volume, container recreation and retained marker; destroys only its fixture volume.
 - `NODE_ENV=production NITRO_PRESET=node-server bun run build`: production artifact when the shell otherwise has NODE_ENV=test. `E2E_BASE_URL=http://127.0.0.1:<port> bun run test:e2e` targets an already running production artifact rather than starting Vite.
+
+Hosted root verification and every catalog-derived lifecycle matrix job explicitly install Node 24.21.0, assert Node major 24, and log Node/Bun versions before runtime fixtures. Bun remains independently pinned through package.json.
+
+- `bun run ai:unit`: backendless configuration/input/output checks.
+- `bun run ai:compat`: actual SDK/local HTTP completion, incremental streaming, structured validation, errors, cancellation/timeouts/limits; no external provider.
+- `bun run ai:reference:smoke`: explicit safe optional reference wrapper/local fixture.
+- `bun run add-ons:test ai`: independent clean install/build and runtime removal/rebuild.
+- `docker compose run --rm worker node .output/ai-reference-smoke.mjs`: explicit local fixture in production Node image; no production credentials/model request.
+
+- `bun run search:smoke`: real PostgreSQL18 FTS safety/weight/websearch/keyset contract against a temporary fixture table, no shipped domain model.
+- `bun test src/integrations/search src/features/projects/search.integration.test.ts`: real clean/upgrade migration, Projects owner isolation, STORED/GIN and safe error/privacy proof; disposable admin DB permissions required for migration tests.
+- `bun run add-ons:test search`: official clean installation/build/removal with retained fixture data and migration history; PostgreSQL18 required.
+
+## Realtime and Notifications
+
+`bun run realtime:unit` and `bun run notifications:unit` require no optional backends. `bun run realtime:transport` bundles the protocol fixture for Node24 and verifies both authenticated adapters/native heartbeat/stalled output. `bun run realtime:cache` exercises the optional application Cache backplane across two Node processes and disposable Valkey. `bun run notifications:smoke` needs explicit migrated fixture PostgreSQL/Jobs; `bun run notifications:compat` uses pinned disposable localhost ntfy. `bun run notifications:delivery` runs the actual bundled production Node worker with private Jobs payload/current record/target resolution and disposable Email/Mailpit+ntfy; never production data. Generic `add-ons:test realtime` / `notifications` prove install/build/start or migration/removal; all completed lifecycles and production artifact checks remain required. Root browser suite exercises both real cookie-authenticated transports and recipient read/unread UI in development and production.

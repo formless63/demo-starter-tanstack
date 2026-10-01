@@ -6,13 +6,13 @@ Implement API Platform as the second reusable capability, optional for generated
 
 ## Versions evaluated
 
-- Better Auth and `@better-auth/api-key`: 1.7.6.
+- Better Auth and `@better-auth/api-key`: 1.7.7.
 - `zod-openapi`: 6.0.2 with Zod 4, generating OpenAPI 3.1.1.
 - Scalar React reference: `@scalar/api-reference-react` 0.9.75.
 - Scalar validation: `@scalar/openapi-parser` 0.29.8, development-only.
 - TanStack CLI: pinned 0.71.0.
 
-These were the current stable registry releases during implementation. Better Auth core was aligned from the manifest's older `^1.5.3` declaration to `^1.7.6`; the lockfile had already resolved core 1.7.6. Core and plugin versions remain compatible.
+The October 1 baseline maintenance pins root Better Auth core and API Key at 1.7.7, upgraded coherently from resolved 1.7.6. The lockfile also resolves the matching 1.7.7 internal core and Drizzle adapter. Official release/advisory evidence and clean-consumer resolution are documented below.
 
 ## Why these libraries
 
@@ -96,3 +96,11 @@ Audit Log can record lifecycle/use events; Observability can add safe traces and
 Jobs was mostly additive: it could import the baseline Drizzle boundary without modifying it. API Platform extends shared Better Auth and Drizzle schema, so its clean package must prove framework-native dependencies plus overlay behavior and document the current custom add-on format's merge limitation. Database-backed fixture commands are now data-driven and reusable by later add-ons rather than creating an API-specific CI job.
 
 The principal and contract boundaries are intentionally small. That keeps plugin/framework glue local while leaving native routes and application domain behavior visible.
+
+## Better Auth 1.7.7 maintenance and Project input limits
+
+Better Auth core, its bundled Drizzle adapter, and the API-key plugin resolve to 1.7.7 together. The [official release](https://github.com/better-auth/better-auth/releases/tag/v1.7.7) and [GHSA-965c-763c-88jm](https://github.com/better-auth/better-auth/security/advisories/GHSA-965c-763c-88jm) describe purpose-isolated verification identifiers. Existing hashed Magic Link tokens with global `verification.storeIdentifier` unset match the advisory mitigation; this maintenance upgrade does not establish prior exposure. Preserve those settings, providers, cookies, human sessions and key grants. Upgrade nodes sharing verification storage together, request new Magic Links and restart pending OAuth/SAML flows. No auth database migration is required.
+
+Canonical Project create/update inputs accept trimmed names of 1–120 characters and optional trimmed descriptions up to 1000 characters. Browser/server/API validation and generated OpenAPI request bounds use the same constants. This widens the former 100-character name limit. PostgreSQL columns are already `text`; existing rows and applied migration history remain unchanged, so no new migration is needed. Response schemas retain their historical-data compatibility.
+
+The root manifest pins core and API Key at 1.7.7. Clean scaffolds use the official Better Auth foundation declaration (CLI 0.71.0 currently declares `^1.5.3`) and the API Platform add-on pins API Key at 1.7.7, whose peer contract requires core `^1.7.7`. The lifecycle fixture checks the actual installed core, internal core, Drizzle adapter and API Key versions are all 1.7.7 before migration/runtime checks. No package-rewrite install hook is used.
