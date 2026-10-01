@@ -1,7 +1,7 @@
-import vectors from "../../../fixtures/notifications-contract.json";
-import type { EmailErrorCode } from "../email/errors.server";
 import { expect, it, vi } from "vitest";
+import vectors from "../../../fixtures/notifications-contract.json";
 import { notificationEmailAdapter } from "../../lib/notification-email.server";
+import type { EmailErrorCode } from "../email/errors.server";
 import { EmailError } from "../email/errors.server";
 import {
 	createNotificationJobs,
