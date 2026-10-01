@@ -70,9 +70,9 @@ Object Storage uses standard AWS SDK v3, with real private streaming/presign/mul
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Organizations / Tenancy | Starter authentication | Audit Log, Notifications | PostgreSQL | Planned |
-| Authorization | Starter authentication | Organizations, API Platform, Audit Log | PostgreSQL | Planned |
-| Feature Flags | None | Organizations, Authorization, Audit Log | PostgreSQL | Planned |
+| Organizations / Tenancy | Starter authentication | Audit Log, Notifications | PostgreSQL | In progress |
+| Authorization | Starter authentication | Organizations, API Platform, Audit Log | PostgreSQL | In progress |
+| Feature Flags | None | Organizations, Authorization, Audit Log | PostgreSQL | In progress |
 
 Starter authentication is a baseline requirement, not a capability edge.
 

@@ -717,20 +717,20 @@
 			"summary": "Asynchronous bulk data ingestion and export backed by durable jobs and objects."
 		},
 		{
-			"id": "organizations", "displayName": "Organizations / Tenancy", "kind": "identity-policy", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["audit-log", "notifications"], "baselineRequirements": ["authentication", "postgresql"],
+			"id": "organizations", "displayName": "Organizations / Tenancy", "kind": "identity-policy", "status": "in-progress", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["audit-log", "notifications"], "baselineRequirements": ["authentication", "postgresql", "drizzle", "node-runtime"],
 			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Tenant membership and boundary persistence." }],
 			"summary": "Organization membership, tenant context, and isolation conventions on starter authentication."
 		},
 		{
-			"id": "authorization", "displayName": "Authorization", "kind": "identity-policy", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["organizations", "api-platform", "audit-log"], "baselineRequirements": ["authentication", "postgresql"],
+			"id": "authorization", "displayName": "Authorization", "kind": "identity-policy", "status": "in-progress", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["organizations", "api-platform", "audit-log"], "baselineRequirements": ["authentication", "postgresql", "drizzle", "node-runtime"],
 			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Policy assignments and application authorization data." }],
 			"summary": "Application policy and permission primitives layered on authenticated identity."
 		},
 		{
-			"id": "feature-flags", "displayName": "Feature Flags", "kind": "identity-policy", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["organizations", "authorization", "audit-log"], "baselineRequirements": ["postgresql"],
+			"id": "feature-flags", "displayName": "Feature Flags", "kind": "identity-policy", "status": "in-progress", "defaultInstalled": false,
+			"requires": [], "integratesWith": ["organizations", "authorization", "audit-log"], "baselineRequirements": ["postgresql", "drizzle", "node-runtime"], "baselineIntegrations": ["authentication"],
 			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Flag definitions, targeting, and evaluation state." }],
 			"summary": "Database-backed release and targeting controls without a required SaaS provider."
 		},
