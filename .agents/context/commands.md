@@ -76,3 +76,9 @@ For a downstream lean application, follow `docs/STARTING-A-PROJECT.md`. Its Jobs
 - `bun run add-ons:test:composition`: reviewed API/Audit/Jobs combined clean migrate/runtime/type/build proof; owned disposable database.
 - `bun run db:persistence:test`: own Compose project/volume, container recreation and retained marker; destroys only its fixture volume.
 - `NODE_ENV=production NITRO_PRESET=node-server bun run build`: production artifact when the shell otherwise has NODE_ENV=test. `E2E_BASE_URL=http://127.0.0.1:<port> bun run test:e2e` targets an already running production artifact rather than starting Vite.
+
+- `bun run ai:unit`: backendless configuration/input/output checks.
+- `bun run ai:compat`: actual SDK/local HTTP completion, incremental streaming, structured validation, errors, cancellation/timeouts/limits; no external provider.
+- `bun run ai:reference:smoke`: explicit safe optional reference wrapper/local fixture.
+- `bun run add-ons:test ai`: independent clean install/build and runtime removal/rebuild.
+- `docker compose run --rm worker node .output/ai-reference-smoke.mjs`: explicit local fixture in production Node image; no production credentials/model request.

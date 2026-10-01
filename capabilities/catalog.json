@@ -24,12 +24,12 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "ai"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
 			{ "id": "tanstack-db", "displayName": "TanStack DB", "status": "evaluate", "summary": "Evaluate for local-first collections and synchronized client data; do not install solely for roadmap coverage." },
-			{ "id": "tanstack-ai", "displayName": "TanStack AI", "status": "evaluate", "summary": "Evaluate as an implementation option for the AI capability without making it a baseline dependency." },
+			{ "id": "tanstack-ai", "displayName": "TanStack AI", "status": "deferred", "summary": "Evaluated 0.63.0 for AI v1; selected stable OpenAI-compatible SDK boundary. Re-evaluate for future needs without making it baseline." },
 			{ "id": "tanstack-hotkeys", "displayName": "TanStack Hotkeys", "status": "evaluate", "summary": "Evaluate for the Command System when its API and accessibility fit are proven." },
 			{ "id": "tanstack-pacer", "displayName": "TanStack Pacer", "status": "evaluate", "summary": "Evaluate for reusable throttling, debouncing, and rate control needs." },
 			{ "id": "tanstack-virtual", "displayName": "TanStack Virtual", "status": "evaluate", "summary": "Evaluate for large Data Table and list surfaces." },
@@ -394,10 +394,76 @@
 			}
 		},
 		{
-			"id": "ai", "displayName": "AI", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["jobs", "object-storage", "observability", "audit-log"], "baselineRequirements": [],
-			"externalRequirements": [{ "name": "Model provider", "required": true, "description": "A model endpoint and credentials selected by the consuming application." }],
-			"summary": "Provider-configurable model invocation, streaming, tools, and durable workload patterns."
+			"id": "ai",
+			"displayName": "AI",
+			"kind": "foundational-backend",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"jobs",
+				"object-storage",
+				"observability",
+				"audit-log"
+			],
+			"baselineRequirements": [
+				"node-runtime"
+			],
+			"externalRequirements": [
+				{
+					"name": "Configured model provider",
+					"required": true,
+					"description": "Required only on an explicit AI operation; no build/start/readiness network access."
+				}
+			],
+			"summary": "Lazy bounded server-side OpenAI-compatible text/stream/structured generation with Zod, cancellation and safe errors.",
+			"scripts": [
+				"ai:unit",
+				"ai:compat"
+			],
+			"environmentVariables": [
+				{
+					"name": "AI_PROVIDER",
+					"required": false,
+					"default": "openai-compatible",
+					"description": "Sole accepted v1 provider ID."
+				},
+				{
+					"name": "AI_MODEL",
+					"required": false,
+					"description": "Required lazily on operation; 1\u2013128 printable characters, never inferred."
+				},
+				{
+					"name": "AI_API_KEY",
+					"required": false,
+					"description": "Optional server-only authentication; never log."
+				},
+				{
+					"name": "AI_BASE_URL",
+					"required": false,
+					"description": "Optional HTTPS compatible endpoint; loopback HTTP only explicit development/test."
+				},
+				{
+					"name": "AI_TIMEOUT_SECONDS",
+					"required": false,
+					"default": "60",
+					"description": "Complete request deadline; integer seconds 1\u2013300."
+				}
+			],
+			"migrations": [],
+			"runtimeServices": [],
+			"documentationPath": "capabilities/ai/CAPABILITY.md",
+			"agentSkill": ".agents/skills/ai-change/SKILL.md",
+			"evaluationDocument": "AI_MODULE_EVALUATION.md",
+			"tanstackAddOn": {
+				"addOnId": "ai",
+				"sourceDirectory": "capabilities/ai/.add-on",
+				"manifestPath": "capabilities/ai/.add-on/info.json",
+				"distributablePath": "capabilities/ai/add-on.json",
+				"cleanInstallFixture": "capabilities/ai/test/clean-install.json",
+				"dependsOn": [],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "cache-coordination",

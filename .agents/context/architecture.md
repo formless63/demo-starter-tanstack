@@ -26,7 +26,7 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 
 Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
 
-The eight completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log and Cache / Coordination.
+The nine completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination and AI.
 
 `defaultInstalled` describes only clean generated consumers. The root reference application's intentionally integrated capabilities are listed separately in `referenceApplication.enabledCapabilities`; disabling an application integration does not require deleting the reusable add-on workspace or its stable catalog identity. Removal retains database data and committed migration history unless a separate destructive change explicitly says otherwise.
 
@@ -66,3 +66,7 @@ Webhooks owns server-only raw signing/verification and Jobs-backed delivery unde
 Baseline authoring workflows live in project-onboarding/appearance-change skills and docs/PROJECT-ONBOARDING.md / docs/APPEARANCE.md. Version-1 `.project` JSON contracts are framework-neutral; catalog remains authoritative for capability status/dependencies and application enablement. The reference has no downstream profile. Existing material and approved proposals govern customization and reviewed canonical skill imports. Checks/status do not install capabilities.
 
 `appearance/default-theme.json` is the reference normalized source; downstream `.project/theme.json` is vendored data. Explicit tooling generates dedicated `src/theme.css` and `src/appearance-policy.ts`, never registry installers, arbitrary CSS, assets or font downloads. React external-store subscriptions plus a trusted early head script own persisted/system-aware mode; no backend startup work. Nuxt's companion should retain native color-mode using the same conceptual contract, not this React store.
+
+## AI boundary
+
+`src/integrations/ai` owns lazy server-only bounded generation/stream/structured primitives; sole SDK adapter is provider.server.ts. No Jobs/Storage/Observability/Audit dependency or provider startup/readiness network. `src/lib/ai.server.ts` owns optional safe metadata-only telemetry; reference CLI smoke is explicit and local. Caller/timeout/consumer cancellation abort transport; no automatic retries.

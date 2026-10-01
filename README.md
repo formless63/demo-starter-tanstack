@@ -43,6 +43,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | Webhooks | Done | Optional | Jobs + baseline Node 24 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
 | Audit Log | Done | Optional | Baseline PostgreSQL + Drizzle | Append-oriented events, bounded safe context, atomic domain writes, keyset queries | [Audit Log contract](capabilities/audit-log/CAPABILITY.md) |
 | Cache / Coordination | Done | Optional | No capability dependency; Valkey on use | Ephemeral cache, atomic counters, advisory leases and pub/sub | [Cache contract](capabilities/cache-coordination/CAPABILITY.md) |
+| AI | Done | Optional | Baseline Node runtime; model provider only on use | Bounded text, streaming and Zod structured generation | [AI contract](capabilities/ai/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -266,3 +267,7 @@ Optional server-only ephemeral cache, atomic counters, advisory leases and pub/s
 Use `bun run cache:dev:valkey` for separate loopback ephemeral Valkey, configure server-only `CACHE_URL=redis://127.0.0.1:6379`, then `bun run cache:check` (PING only), `bun run cache:smoke` (unique prefix/exact cleanup), and `bun run cache:dev:down`. `bun run cache:compat` creates and tears down disposable real Valkey; `cache:unit` and `cache:telemetry` verify backendless behavior/safe optional signals. Values expire by default; advisory leases have no fencing/Redlock guarantees; pub/sub has no persistence/replay. See [evaluation](CACHE_COORDINATION_MODULE_EVALUATION.md) and [removal](docs/STARTING-A-PROJECT.md#remove-cache--coordination).
 
 PostgreSQL 18 stores PGDATA under `/var/lib/postgresql/18/docker`; Compose mounts its named volume at `/var/lib/postgresql`. Existing installations using the previous `/var/lib/postgresql/data` mount must preserve/restore their actual anonymous-volume cluster before changing mounts. See [database volume migration](docs/POSTGRES-VOLUME-MIGRATION.md). `bun run db:persistence:test` verifies fresh named-volume data survives container recreation.
+
+## AI
+
+Optional lazy server-side OpenAI-compatible model access with text, real streaming, authoritative Zod structured output, 1 MiB output bounds and composed cancellation. No hard capability dependencies or model/configuration required at build/start/health/worker. Configure `AI_MODEL` only when calling an operation; optional `AI_BASE_URL`/`AI_API_KEY`, provider default `openai-compatible`, timeout default 60 seconds (1–300). No automatic retries or content telemetry. `bun run ai:compat` and `ai:reference:smoke` use only a disposable local HTTP fixture. See [contract](capabilities/ai/CAPABILITY.md), [evaluation](AI_MODULE_EVALUATION.md) and [removal](docs/STARTING-A-PROJECT.md#remove-ai).
