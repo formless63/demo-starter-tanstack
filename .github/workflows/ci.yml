@@ -40,6 +40,8 @@ jobs:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with: { bun-version-file: package.json }
+      - uses: actions/setup-node@v5
+        with: { node-version: "24.21.0" }
       - run: bun install --frozen-lockfile
       - run: bun run add-ons:test ${{ matrix.capability }}
 
@@ -54,6 +56,8 @@ jobs:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with: { bun-version-file: package.json }
+      - uses: actions/setup-node@v5
+        with: { node-version: "24.21.0" }
       - run: bun install --frozen-lockfile
       - run: bun run agents:check
       - run: bun run agents:test
@@ -67,9 +71,7 @@ jobs:
       - run: docker compose up -d --wait postgres
       - run: docker compose run --rm migrate
       - run: docker compose run --rm jobs-migrate
-      - run: docker compose run --rm worker node .output/jobs-doctor.mjs
-      - run: docker compose run --rm worker node .output/jobs-smoke.mjs
-      - run: docker compose run --rm worker node .output/webhooks-smoke.mjs
+      - run: bun run production:smoke
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run add-ons:test:composition

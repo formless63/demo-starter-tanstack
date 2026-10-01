@@ -51,6 +51,18 @@
     ],
     [
       "bun",
+      "build",
+      "scripts/ai-compat.ts",
+      "--target=node",
+      "--outfile=ai-compat.mjs"
+    ],
+    [
+      "node",
+      "--unhandled-rejections=strict",
+      "ai-compat.mjs"
+    ],
+    [
+      "bun",
       "scripts/ai-removal-fixture.ts"
     ],
     [

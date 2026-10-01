@@ -36,7 +36,7 @@ export function observeAi(signal: AiSignal) {
 }
 export function createApplicationAi(
 	config?: AiConfig,
-	observe: (signal: AiSignal) => void = observeAi,
+	observe: (signal: AiSignal) => void | Promise<void> = observeAi,
 ) {
 	const ai = createAi(config);
 	const emit = (
@@ -46,12 +46,16 @@ export function createApplicationAi(
 		result?: Pick<AiSignal, "finishReason" | "usage">,
 	) => {
 		try {
-			observe({
-				operation,
-				provider: "openai-compatible",
-				outcome,
-				durationSeconds: (performance.now() - started) / 1000,
-				...result,
+			void Promise.resolve(
+				observe({
+					operation,
+					provider: "openai-compatible",
+					outcome,
+					durationSeconds: (performance.now() - started) / 1000,
+					...result,
+				}),
+			).catch(() => {
+				/* Async telemetry failure is isolated without awaiting it. */
 			});
 		} catch {
 			/* Telemetry never changes generation behavior. */

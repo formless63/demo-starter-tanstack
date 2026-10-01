@@ -416,7 +416,7 @@
 					"description": "Required only on an explicit AI operation; no build/start/readiness network access."
 				}
 			],
-			"summary": "Lazy bounded server-side OpenAI-compatible text/stream/structured generation with Zod, cancellation and safe errors.",
+			"summary": "Lazy bounded server-side OpenAI-compatible generation with stop-only structured Zod validation, whole-operation cancellation and safe errors; Bun/Node and production-image fixtures.",
 			"scripts": [
 				"ai:unit",
 				"ai:compat"
