@@ -26,5 +26,8 @@ try {
   assert.equal((await pool.query("SELECT id FROM notification WHERE id=$1",[retainedId])).rowCount,1);
   assert.ok(await readFile("drizzle/0000_notifications.sql","utf8")); assert.ok(await readFile("src/integrations/notifications/schema.ts","utf8"));
   run(["x","tsc","--noEmit"]); run(["run","jobs:doctor"]); run(["run","jobs:smoke"]); run(["run","build"]);
+  assert.equal((await pool.query("SELECT id FROM notification WHERE id=$1",[retainedId])).rowCount,1);
+  assert.equal((await pool.query("SELECT indexname FROM pg_indexes WHERE tablename='notification'")).rowCount,4);
+  assert.ok((await pool.query("SELECT * FROM drizzle.__drizzle_migrations")).rowCount);
   console.info("Notifications clean migration/removal retained history, schema/migrations and Jobs; no remote ntfy account/topic deletion");
 } finally { await pool.end(); await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`); await admin.end(); }

@@ -5,6 +5,8 @@ import { db } from "../src/db";
 import { getJobsClient, stopJobsClient } from "../src/integrations/jobs/client.server";
 import { createNotificationInTransaction } from "../src/integrations/notifications/transaction.server";
 import { createNotification, queryNotifications, markRead, markUnread } from "../src/integrations/notifications/notifications.server";
+import { createNotificationJobs } from "../src/integrations/notifications/jobs.server";
+import { NotificationError } from "../src/integrations/notifications/validation";
 import { notifications } from "../src/integrations/notifications/schema";
 const recipientId = `notification-fixture-${randomUUID()}`;
 const input = { recipientId, type: "fixture.created", title: "Fixture", body: "Private body stays out of Jobs", metadata: { source: "fixture" } };
@@ -43,6 +45,23 @@ try {
   assert.equal(await markUnread(db, recipientId, ids[0]), true); assert.equal(await markUnread(db, recipientId, ids[0]), true);
   assert.equal((await queryNotifications(db, recipientId, { type: "fixture.other" })).notifications.length, 3);
   for (const id of jobIds) { const [job] = await boss.findJobs("notifications.deliver", { id }); assert.deepEqual(Object.keys(job.data as object).sort(), ["channel", "notificationId"]); assert.equal(job.retryLimit, 5); }
+  let attempts = 0;
+  const composed = createNotificationJobs({ load: async () => committed.notification, adapters: {
+    email: async () => { if (++attempts === 1) throw new NotificationError("unavailable", true); return { outcome: "delivered", recipient: "private@example.test", body: "private", topic: "private", providerResponse: "private" }; },
+    ntfy: async () => { throw new Error("accepted then lost private response"); },
+  } });
+  await boss.work("notifications.deliver", { pollingIntervalSeconds: 0.5 }, async ([job]) => composed["notifications.deliver"].handler(job.data as { notificationId: string; channel: "email" | "ntfy" }));
+  const deadline = Date.now() + 90000;
+  for (;;) {
+    const jobs = await Promise.all(jobIds.map(async id => (await boss.findJobs("notifications.deliver", { id }))[0]));
+    if (jobs.every(job => job.state === "completed")) {
+      assert.deepEqual(jobs[0].output, { outcome: "delivered" }); assert.equal(jobs[0].retryCount, 1);
+      assert.deepEqual(jobs[1].output, { outcome: "ambiguous", category: "rejected" }); assert.equal(jobs[1].retryCount, 0);
+      assert.equal(attempts, 2); break;
+    }
+    assert.ok(Date.now() < deadline, "Safe typed failure must retry; ambiguous failure must complete terminally");
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
   console.info("Notifications migration, atomic commit/rollback, private Jobs payload, recipient isolation, idempotent read/unread and tied keyset pagination verified");
 } finally {
   await db.delete(notifications).where(and(eq(notifications.recipientId, recipientId)));

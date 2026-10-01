@@ -12,8 +12,11 @@ import {
 export { NotificationError } from "./validation";
 export const notificationInput = z.strictObject({
 	recipientId: z.string().min(1).max(128),
-	type: z.string().regex(/^[a-z][a-z0-9._-]{0,127}$/),
-	title: z.string().max(200),
+	type: z
+		.string()
+		.max(128)
+		.regex(/^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/),
+	title: z.string().min(1).max(200),
 	body: z.string(),
 	metadata: z.unknown().optional(),
 });
@@ -25,6 +28,7 @@ export function notificationValues(input: NotificationInput) {
 		boundedString(parsed.recipientId, 128);
 		if (
 			/\p{Cc}/u.test(parsed.title) ||
+			/<\/?[a-z!][^>]*>/i.test(parsed.title) ||
 			/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/u.test(
 				parsed.title,
 			)

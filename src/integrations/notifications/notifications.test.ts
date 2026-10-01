@@ -22,8 +22,8 @@ describe("notification canonical contracts", () => {
 		expect(
 			notificationValues({ ...input, title: "  plain text  " }).title,
 		).toBe("  plain text  ");
-		expect(notificationValues({ ...input, title: "" }).title).toBe("");
-		expect(validateNotificationMetadata({ "": 1 })).toEqual({ "": 1 });
+		expect(() => notificationValues({ ...input, title: "" })).toThrow();
+		expect(() => validateNotificationMetadata({ "": 1 })).toThrow();
 		const exact = Object.fromEntries(
 			Array.from({ length: 8 }, (_, i) => [
 				`k${i}`,
@@ -69,6 +69,9 @@ describe("notification canonical contracts", () => {
 			{ body: "<b>html</b>" },
 			{ recipientId: "x".repeat(129) },
 			{ type: "Upper" },
+			{ type: "single" },
+			{ type: "fixture..created" },
+			{ title: "<b>Title</b>" },
 		])
 			expect(() => notificationValues({ ...input, ...extra })).toThrow();
 	});
@@ -184,11 +187,7 @@ describe("notification canonical contracts", () => {
 				notificationId: row.id,
 				channel: "email",
 			}),
-		).rejects.toMatchObject({
-			code: "unavailable",
-			retryable: true,
-			message: "Notifications unavailable",
-		});
+		).resolves.toEqual({ outcome: "ambiguous", category: "rejected" });
 	});
 	it("ntfy defaults are lazy/private, redirects permanent, retry statuses bounded and response body never read", async () => {
 		expect(() => ntfyConfig({})).toThrow();
@@ -196,6 +195,8 @@ describe("notification canonical contracts", () => {
 		expect(config.timeoutSeconds).toBe(10);
 		for (const environment of [
 			{ NTFY_BASE_URL: "http://ntfy.sh" },
+			{ NTFY_BASE_URL: "http://127.0.0.1", NODE_ENV: "production" },
+			{ NTFY_BASE_URL: "http://localhost" },
 			{ NTFY_BASE_URL: "https://user:password@ntfy.example" },
 			{ NTFY_BASE_URL: "https://ntfy.example", NTFY_TIMEOUT_SECONDS: "31" },
 		])
