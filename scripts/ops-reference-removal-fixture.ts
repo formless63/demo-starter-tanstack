@@ -8,9 +8,12 @@ const root=process.cwd();const workspace=await mkdtemp(join(tmpdir(),'ops-refere
 const adapters=await readFile(join(root,'src/lib/ops-adapters.server.ts'),'utf8');
 const imports:Record<string,string[]>={jobs:['./ops-jobs.server'],storage:['#/integrations/storage/config.server','./ops-storage.server'],cache:['#/integrations/cache/config.server','#/integrations/cache/cache.server'],audit:[],webhooks:[],observability:[]};
 try{
- for(const name of ['src','public','appearance','package.json','bun.lock','tsconfig.json','vite.config.ts','components.json','biome.json','.cta.json']){try{await cp(join(root,name),join(workspace,name),{recursive:true});}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}
+ for(const name of ['src','public','appearance','fixtures','scripts','capabilities','.agents','drizzle','drizzle.config.ts','package.json','bun.lock','tsconfig.json','vite.config.ts','components.json','biome.json','.cta.json']){try{await cp(join(root,name),join(workspace,name),{recursive:true});}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}
  await symlink(join(root,'node_modules'),join(workspace,'node_modules'),'dir');
+ const helperFiles:Record<string,string[]>={jobs:['src/lib/ops-jobs.server.ts','scripts/ops-jobs-fixture.ts'],storage:['src/lib/ops-storage.server.ts','scripts/ops-storage-fixture.ts','scripts/ops-storage-failure-fixture.ts']};
  for(const [removed,modules] of Object.entries(imports)){
+  for(const file of Object.values(helperFiles).flat())await cp(join(root,file),join(workspace,file));
+  for(const file of helperFiles[removed] ?? [])await rm(join(workspace,file));
   const source=ts.createSourceFile('ops-adapters.server.ts',adapters,ts.ScriptTarget.Latest,true);
   const transformed=ts.transform(source,[(context)=>{
    const visit:ts.Visitor=node=>{

@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { loadOps } from "#/integrations/ops-admin/ops.functions";
 import type { OpsSummary } from "#/integrations/ops-admin/ops.server";
@@ -53,9 +53,9 @@ function OpsPage() {
 	return (
 		<main className="mx-auto max-w-5xl space-y-6 p-6">
 			<h1 className="text-2xl font-semibold">Operational overview</h1>
-			<a href="/" className="underline">
+			<Link to="/" className="underline">
 				Home
-			</a>
+			</Link>
 			<button
 				type="button"
 				className="rounded border px-4 py-2"

@@ -12,7 +12,7 @@ A static application registry has at most 16 adapters with unique machine IDs (6
 
 ## Bounds and cancellation
 
-No inspection on import, build, startup or health. Initial authorized request and manual Refresh only; duplicate refresh is disabled. Individual deadline 3000 ms, total 5000 ms, maximum three actual inspections per inspector/process. One pending inspection per adapter is reused across requests until settled, including rejected/hung optional work. Signal reaches adapters. Unsupported older Storage/Cache checks stop awaiting at the card deadline but do not pretend to cancel their I/O; hung work retains its slot and cannot multiply across refreshes. Rejection handlers are attached. No retries. Jobs connection teardown cancels its query; a read-only PostgreSQL session also limits statements to two seconds. Optional failures remain individual cards and never affect readiness.
+No inspection on import, build, startup or health. Initial authorized request and manual Refresh only; duplicate refresh is disabled. Individual deadline 3000 ms, total 5000 ms, maximum three actual inspections per inspector/process. One pending inspection per adapter is reused across requests until settled, including rejected/hung optional work. Signal reaches adapters. Unsupported older Storage/Cache checks stop awaiting at the card deadline but do not pretend to cancel their I/O; hung work retains its slot and cannot multiply across refreshes. Rejection handlers are attached. No retries. Jobs abort closes its PostgreSQL socket; server-side statements remain independently bounded to two seconds. Optional failures remain individual cards and never affect readiness.
 
 ## Composition and privacy
 
