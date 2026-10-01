@@ -17,7 +17,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 | ID | TanStack add-on ID | Status | Reference app | Default installed | Official add-on dependencies | Reusable capability requirements | External | Contract |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ops-admin` | `ops-admin` | In progress | Wired; release gate pending | No | `better-auth`, `drizzle` | None | None additional | [Ops / Admin](../capabilities/ops-admin/CAPABILITY.md) |
+| `ops-admin` | `ops-admin` | Done | Yes | No | `better-auth`, `drizzle` | None | None additional | [Ops / Admin](../capabilities/ops-admin/CAPABILITY.md) |
 | `jobs` | `postgres-jobs` | Done | Enabled | No | `drizzle` | None | PostgreSQL | [Jobs](../capabilities/jobs/CAPABILITY.md) |
 | `api-platform` | `api-platform` | Done | Enabled | No | `better-auth`, `drizzle` | None | None beyond baseline PostgreSQL | [API Platform](../capabilities/api-platform/CAPABILITY.md) |
 | `observability` | `observability` | Done | Enabled | No | None | None | Optional OTLP | [Observability](../capabilities/observability/CAPABILITY.md) |
@@ -184,4 +184,4 @@ Notifications owns durable records/read state and uses caller DB/transaction exe
 
 The integrated migration journal retains both original additive SQL files and timestamps: Search is entry 4 (`0004_search`) and Notifications entry 5 (`0004_tough_mindworm`). Snapshot 0004 remains Search; snapshot 0005 combines both schemas and links to snapshot 0004. Applied baseline migrations are unchanged. Branch-specific deployed databases must be reviewed against their recorded migration history before upgrade.
 
-Ops / Admin is in progress: guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
+Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
