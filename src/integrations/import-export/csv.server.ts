@@ -58,11 +58,13 @@ export async function boundedBody(
 	}
 }
 // Enforce allocation bounds before invoking the parser; CSV syntax itself remains the pinned parser's responsibility.
-function lexicalBounds(text: string) {
+function lexicalBounds(text: string, maxRows: number) {
 	let quoted = false;
 	let field = 0;
 	let row = 0;
 	let columns = 1;
+	let records = 0;
+	let recordStart = 0;
 	for (let i = 0; i < text.length; ) {
 		const c = String.fromCodePoint(text.codePointAt(i)!);
 		i += c.length;
@@ -77,6 +79,8 @@ function lexicalBounds(text: string) {
 			columns++;
 		} else if ((c === "\n" || c === "\r") && !quoted) {
 			if (c === "\r" && text[i] === "\n") i++;
+			if (++records > maxRows + 1) throw new TransferError("limit-exceeded");
+			recordStart = i;
 			field = 0;
 			row = 0;
 			columns = 1;
@@ -88,6 +92,8 @@ function lexicalBounds(text: string) {
 		if (field > 65536 || row > 262144 || columns > 64)
 			throw new TransferError("limit-exceeded");
 	}
+	if (recordStart < text.length && records + 1 > maxRows + 1)
+		throw new TransferError("limit-exceeded");
 }
 export function parseImport<T>(
 	bytes: Uint8Array,
@@ -104,7 +110,7 @@ export function parseImport<T>(
 	} catch {
 		throw new TransferError("invalid-format");
 	}
-	lexicalBounds(text);
+	lexicalBounds(text, config.maxRows);
 	let records: string[][];
 	try {
 		records = parse(text, {

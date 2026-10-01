@@ -602,7 +602,14 @@ export function createTransfers(deps: TransferDependencies) {
 	async function run(id: string, attempt?: JobHandlerContext) {
 		transferId(id);
 		const started = Date.now();
-		const config = transferConfig();
+		let config: ReturnType<typeof transferConfig>;
+		try {
+			config = transferConfig();
+		} catch (error) {
+			const safe = classify(error);
+			await failure(id, safe);
+			return { outcome: "failed", code: safe.code };
+		}
 		const deadline = started + config.timeoutSeconds * 1000;
 		const controller = new AbortController();
 		const claimAbort = () => controller.abort();
