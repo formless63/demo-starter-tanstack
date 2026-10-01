@@ -169,3 +169,26 @@ it("keeps known recipient-loading failures separate from invoked SMTP failures",
 		run(new NotificationError("unavailable", true)),
 	).rejects.toMatchObject({ retryable: true });
 });
+
+it("handles a late adapter rejection after cancellation without redispatch", async () => {
+	let reject!: (error: Error) => void;
+	const pending = new Promise<never>((_, fail) => {
+		reject = fail;
+	});
+	const adapter = vi.fn(() => pending);
+	const controller = new AbortController();
+	const result = createNotificationJobs({
+		load: async () => row,
+		adapters: { email: adapter },
+	})["notifications.deliver"].handler(payload, { signal: controller.signal });
+	await Promise.resolve();
+	await Promise.resolve();
+	controller.abort();
+	await expect(result).resolves.toEqual({
+		outcome: "ambiguous",
+		category: "rejected",
+	});
+	reject(new Error("private late response"));
+	await new Promise((resolve) => setTimeout(resolve, 0));
+	expect(adapter).toHaveBeenCalledTimes(1);
+});
