@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "ai", "search", "realtime", "notifications"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "ai", "search", "realtime", "notifications", "import-export"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -715,7 +715,7 @@
 			"id": "import-export",
 			"displayName": "Import / Export",
 			"kind": "application-infrastructure",
-			"status": "in-progress",
+			"status": "done",
 			"defaultInstalled": false,
 			"requires": [
 				"jobs",
