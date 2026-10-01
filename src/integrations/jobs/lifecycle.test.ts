@@ -3,6 +3,7 @@ import {
 	assertTransactionalJobsDatabase,
 	jobsDatabaseUrl,
 	jobsListenNotify,
+	jobsRoleOptions,
 	jobsSchema,
 	workerConcurrency,
 } from "./boss.server";
@@ -85,12 +86,20 @@ it("uses empty optional fallback and rejects malformed Jobs settings before netw
 	setEnv("DATABASE_URL", "postgresql://one:secret@localhost/db");
 	setEnv("PGBOSS_DATABASE_URL", "");
 	expect(jobsDatabaseUrl()).toContain("/db");
-	for (const value of ["4garbage", "4.5", "0", "101"]) {
+	for (const value of ["4garbage", "4.5", "0", "101", "-1", " 4", "1e1"]) {
 		setEnv("JOBS_CONCURRENCY", value);
 		expect(workerConcurrency).toThrow();
 	}
 	setEnv("JOBS_CONCURRENCY", "4");
 	expect(workerConcurrency()).toBe(4);
+	for (const [raw, value] of [
+		["", 4],
+		["1", 1],
+		["100", 100],
+	] as const) {
+		setEnv("JOBS_CONCURRENCY", raw);
+		expect(workerConcurrency()).toBe(value);
+	}
 	setEnv("PGBOSS_USE_LISTEN_NOTIFY", "yes");
 	expect(jobsListenNotify).toThrow();
 	setEnv("PGBOSS_SCHEMA", "x".repeat(64));
@@ -105,4 +114,24 @@ it("uses empty optional fallback and rejects malformed Jobs settings before netw
 		"postgres://different:credential@localhost/isolated",
 	);
 	expect(assertTransactionalJobsDatabase).toThrow(/same canonical/);
+});
+
+it("assigns migration, supervision and scheduling to explicit process roles", () => {
+	for (const role of ["producer", "admin"] as const) {
+		expect(jobsRoleOptions(role)).toEqual({
+			migrate: false,
+			schedule: false,
+			supervise: false,
+		});
+	}
+	expect(jobsRoleOptions("worker")).toEqual({
+		migrate: false,
+		schedule: true,
+		supervise: true,
+	});
+	expect(jobsRoleOptions("migration")).toEqual({
+		migrate: true,
+		schedule: false,
+		supervise: false,
+	});
 });

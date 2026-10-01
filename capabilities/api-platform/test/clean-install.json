@@ -43,6 +43,13 @@
     "src/db/schema.ts": [
       "rateLimitTimeWindow: integer('rate_limit_time_window').default(60_000)",
       "rateLimitMax: integer('rate_limit_max').default(1_000)"
+    ],
+    "src/features/projects/project-schema.ts": [
+      "PROJECT_NAME_MAX_LENGTH = 120",
+      "PROJECT_DESCRIPTION_MAX_LENGTH = 1000"
+    ],
+    "package.json": [
+      "\"@better-auth/api-key\": \"1.7.7\""
     ]
   },
   "verificationCommands": [

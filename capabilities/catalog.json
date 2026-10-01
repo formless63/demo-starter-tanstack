@@ -55,13 +55,13 @@
 			"integratesWith": ["observability", "ops-admin"],
 			"baselineRequirements": ["postgresql", "drizzle"],
 			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Durable queue storage and advisory-lock coordination." }],
-			"summary": "Typed PostgreSQL-backed background jobs using pg-boss, explicit schema migration, and a standalone worker.",
+			"summary": "Typed PostgreSQL-backed jobs with native attempt context, explicit process roles/schema migration, and a standalone worker.",
 			"scripts": ["jobs:worker", "jobs:migrate", "jobs:doctor", "jobs:smoke"],
 			"environmentVariables": [
 				{ "name": "PGBOSS_DATABASE_URL", "required": false, "description": "Optional jobs-specific PostgreSQL URL; falls back to DATABASE_URL." },
 				{ "name": "PGBOSS_SCHEMA", "required": false, "default": "pgboss", "description": "Dedicated pg-boss schema." },
 				{ "name": "PGBOSS_USE_LISTEN_NOTIFY", "required": false, "default": "false", "description": "Opt-in LISTEN/NOTIFY wakeups with polling fallback." },
-				{ "name": "JOBS_CONCURRENCY", "required": false, "default": "4", "description": "Per-queue local worker concurrency." }
+				{ "name": "JOBS_CONCURRENCY", "required": false, "default": "4", "description": "Per-queue local worker concurrency; integer 1–100." }
 			],
 			"migrations": ["bun run jobs:migrate"],
 			"runtimeServices": [

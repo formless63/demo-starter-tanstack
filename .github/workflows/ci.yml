@@ -38,8 +38,15 @@ jobs:
         capability: ${{ fromJSON(needs.add-on-matrix.outputs.capabilities) }}
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 24.21.0 }
       - uses: oven-sh/setup-bun@v2
         with: { bun-version-file: package.json }
+      - name: Verify lifecycle runtime versions
+        run: |
+          node -e "if (process.versions.node.split('.')[0] !== '24') throw new Error('Lifecycle fixtures require Node 24'); console.log('Node ' + process.version)"
+          bun --version
+          bun --revision
       - run: bun install --frozen-lockfile
       - run: bun run add-ons:test ${{ matrix.capability }}
 
@@ -52,8 +59,15 @@ jobs:
       NODE_ENV: test
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 24.21.0 }
       - uses: oven-sh/setup-bun@v2
         with: { bun-version-file: package.json }
+      - name: Verify baseline runtime versions
+        run: |
+          node -e "if (process.versions.node.split('.')[0] !== '24') throw new Error('Baseline checks require Node 24'); console.log('Node ' + process.version)"
+          bun --version
+          bun --revision
       - run: bun install --frozen-lockfile
       - run: bun run agents:check
       - run: bun run agents:test

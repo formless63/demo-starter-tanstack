@@ -39,5 +39,19 @@
       "bun",
       "scripts/jobs-lifecycle-fixture.ts"
     ]
-  ]
+  ],
+  "expectedFileText": {
+    "src/integrations/jobs/boss.server.ts": [
+      "role === 'migration'",
+      "role === 'worker'"
+    ],
+    "src/integrations/jobs/worker.server.ts": [
+      "includeMetadata: true",
+      "retryLimit: job.retryLimit",
+      "signal: job.signal"
+    ],
+    "src/integrations/jobs/types.ts": [
+      "context?: JobHandlerContext"
+    ]
+  }
 }

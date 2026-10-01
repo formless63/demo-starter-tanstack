@@ -76,3 +76,5 @@ For a downstream lean application, follow `docs/STARTING-A-PROJECT.md`. Its Jobs
 - `bun run add-ons:test:composition`: reviewed API/Audit/Jobs combined clean migrate/runtime/type/build proof; owned disposable database.
 - `bun run db:persistence:test`: own Compose project/volume, container recreation and retained marker; destroys only its fixture volume.
 - `NODE_ENV=production NITRO_PRESET=node-server bun run build`: production artifact when the shell otherwise has NODE_ENV=test. `E2E_BASE_URL=http://127.0.0.1:<port> bun run test:e2e` targets an already running production artifact rather than starting Vite.
+
+Hosted root verification and every catalog-derived lifecycle matrix job explicitly install Node 24.21.0, assert Node major 24, and log Node/Bun versions before runtime fixtures. Bun remains independently pinned through package.json.

@@ -156,3 +156,5 @@ Architecture pre-wave remediation keeps the sparse dependency graph unchanged: b
 ## Starter authoring / project bootstrap — not capabilities
 
 Agent-led existing-material onboarding, portable `.project` profiles/provenance/skill reviews, semantic theme import/generation and Light/Dark/System policy are baseline starter tooling. See `docs/PROJECT-ONBOARDING.md` and `docs/APPEARANCE.md`. They introduce no capability IDs or hard dependency edges and do not advance a planned runtime capability. Deferred profile selections remain unavailable until implemented through capability governance.
+
+Bounded baseline maintenance aligns Better Auth/API Key and the bundled Drizzle adapter at 1.7.7, canonical Jobs process roles/native attempt context, and Project input limits (name 120, description 1000). All eight completed capabilities remain opt-in for clean consumers and enabled in the root reference; relationships and planned capability status are unchanged.
