@@ -1,5 +1,5 @@
-import vectors from "../../../fixtures/notifications-contract.json";
 import { describe, expect, it } from "vitest";
+import vectors from "../../../fixtures/notifications-contract.json";
 import {
 	createNotificationJobs,
 	notificationDeliveryPayload,
