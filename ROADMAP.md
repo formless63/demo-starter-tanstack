@@ -18,7 +18,7 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, and `Cache / Coordination` are eight completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
+`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, and `Search` are nine completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
 
 `defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
@@ -37,7 +37,7 @@ capabilities/<id>/
 
 The official pinned TanStack CLI compiles each `.add-on` directory; repository scripts only discover entries from `capabilities/catalog.json`, invoke that CLI, and verify clean installation. They are not an alternative generator. Each catalog entry records its stable TanStack add-on ID; add-on `dependsOn` and conflict sets use those CLI IDs, while capability `requires` uses capability IDs. The checker ensures completed hard capability dependencies are also expressed in official add-on metadata. `bun run add-ons:compile` rebuilds every declared distributable, while `bun run add-ons:test <id>` verifies that the committed output is current, installs it through normal TanStack mechanics into a clean scaffold, resolves official dependencies, and builds the result.
 
-Only implemented capabilities receive an add-on directory. Planned entries such as Search remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
+Only implemented capabilities receive an add-on directory. Planned entries such as Realtime remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
 
 ### Done
 
@@ -51,6 +51,7 @@ Only implemented capabilities receive an add-on directory. Planned entries such 
 | Email | None; no database/auth dependency | Jobs, Observability; baseline Better Auth wiring | SMTP when used; optional Mailpit v1.31.3 | Enabled | No | Done |
 | Audit Log | None beyond baseline PostgreSQL and Drizzle | API Platform, Organizations, Jobs, Invoice Ninja, Stripe, Medusa | PostgreSQL | Enabled | No | Done |
 | Cache / Coordination | None; no database/auth dependency | Realtime, API Platform, Jobs, Observability | Valkey/Redis-compatible service on use; tested Valkey 9.1.2 | Enabled | No | Done |
+| Search | None beyond baseline PostgreSQL and Drizzle | Jobs, Object Storage, Organizations | PostgreSQL only | Enabled | No | Done |
 
 ### Foundational / backend
 
@@ -64,7 +65,6 @@ Object Storage uses standard AWS SDK v3, with real private streaming/presign/mul
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Search | None; PostgreSQL-first | Jobs, Object Storage, Organizations | PostgreSQL initially | Planned |
 | Realtime | Authenticated starter identity | Cache / Coordination, Notifications, Observability | None initially | Planned |
 | Notifications | Jobs | Email, Realtime, Audit Log | Optional ntfy; optional SMTP through Email | Planned |
 | Import / Export | Jobs, Object Storage | Notifications, Audit Log | None | Planned |
@@ -156,3 +156,5 @@ Architecture pre-wave remediation keeps the sparse dependency graph unchanged: b
 ## Starter authoring / project bootstrap — not capabilities
 
 Agent-led existing-material onboarding, portable `.project` profiles/provenance/skill reviews, semantic theme import/generation and Light/Dark/System policy are baseline starter tooling. See `docs/PROJECT-ONBOARDING.md` and `docs/APPEARANCE.md`. They introduce no capability IDs or hard dependency edges and do not advance a planned runtime capability. Deferred profile selections remain unavailable until implemented through capability governance.
+
+Search v1 uses explicit simple PostgreSQL18 full-text search, weighted A/B STORED vectors and GIN in application-owned tables, ts_rank_cd normalization32 and bounded exact keysets. The root Projects POST integration enforces existing owners. Add-on assets install no universal search table or production domain migration. Realtime/Notifications remain planned.

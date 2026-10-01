@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "search"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -479,10 +479,51 @@
 			}
 		},
 		{
-			"id": "search", "displayName": "Search", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["jobs", "object-storage", "organizations"], "baselineRequirements": ["postgresql"],
-			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "PostgreSQL-first indexing and query implementation." }],
-			"summary": "PostgreSQL-first application search with room for explicit future adapters."
+			"id": "search",
+			"displayName": "Search",
+			"kind": "application-infrastructure",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"jobs",
+				"object-storage",
+				"organizations"
+			],
+			"baselineRequirements": [
+				"postgresql",
+				"drizzle"
+			],
+			"externalRequirements": [
+				{
+					"name": "PostgreSQL",
+					"required": true,
+					"description": "Built-in full-text search only; no separate service."
+				}
+			],
+			"summary": "PostgreSQL-native application-owned FTS with safe query and exact keyset helpers.",
+			"documentationPath": "capabilities/search/CAPABILITY.md",
+			"evaluationDocument": "SEARCH_MODULE_EVALUATION.md",
+			"agentSkill": ".agents/skills/search-change/SKILL.md",
+			"scripts": [
+				"search:smoke"
+			],
+			"environmentVariables": [],
+			"runtimeServices": [],
+			"migrations": [
+				"bun run db:migrate"
+			],
+			"tanstackAddOn": {
+				"addOnId": "search",
+				"sourceDirectory": "capabilities/search/.add-on",
+				"manifestPath": "capabilities/search/.add-on/info.json",
+				"distributablePath": "capabilities/search/add-on.json",
+				"cleanInstallFixture": "capabilities/search/test/clean-install.json",
+				"dependsOn": [
+					"drizzle"
+				],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "realtime", "displayName": "Realtime", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,

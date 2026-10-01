@@ -56,6 +56,7 @@
     "email:dev:down": "bun scripts/email-dev.ts down",
     "webhooks:unit": "bun scripts/webhooks-unit.ts",
     "webhooks:smoke": "bun scripts/webhooks-smoke.ts",
+    "search:smoke": "bun scripts/search-smoke.ts",
     "audit-log:smoke": "bun scripts/audit-log-smoke.ts",
     "cache:check": "bun scripts/cache-check.ts",
     "cache:smoke": "bun scripts/cache-smoke.ts",

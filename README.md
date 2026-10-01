@@ -43,6 +43,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | Webhooks | Done | Optional | Jobs + baseline Node 24 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
 | Audit Log | Done | Optional | Baseline PostgreSQL + Drizzle | Append-oriented events, bounded safe context, atomic domain writes, keyset queries | [Audit Log contract](capabilities/audit-log/CAPABILITY.md) |
 | Cache / Coordination | Done | Optional | No capability dependency; Valkey on use | Ephemeral cache, atomic counters, advisory leases and pub/sub | [Cache contract](capabilities/cache-coordination/CAPABILITY.md) |
+| Search | Done | Optional | Baseline PostgreSQL + Drizzle | Application-owned FTS, weighted generated vectors, safe queries and keyset pages | [Search contract](capabilities/search/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -266,3 +267,9 @@ Optional server-only ephemeral cache, atomic counters, advisory leases and pub/s
 Use `bun run cache:dev:valkey` for separate loopback ephemeral Valkey, configure server-only `CACHE_URL=redis://127.0.0.1:6379`, then `bun run cache:check` (PING only), `bun run cache:smoke` (unique prefix/exact cleanup), and `bun run cache:dev:down`. `bun run cache:compat` creates and tears down disposable real Valkey; `cache:unit` and `cache:telemetry` verify backendless behavior/safe optional signals. Values expire by default; advisory leases have no fencing/Redlock guarantees; pub/sub has no persistence/replay. See [evaluation](CACHE_COORDINATION_MODULE_EVALUATION.md) and [removal](docs/STARTING-A-PROJECT.md#remove-cache--coordination).
 
 PostgreSQL 18 stores PGDATA under `/var/lib/postgresql/18/docker`; Compose mounts its named volume at `/var/lib/postgresql`. Existing installations using the previous `/var/lib/postgresql/data` mount must preserve/restore their actual anonymous-volume cluster before changing mounts. See [database volume migration](docs/POSTGRES-VOLUME-MIGRATION.md). `bun run db:persistence:test` verifies fresh named-volume data survives container recreation.
+
+## Search
+
+[Search](capabilities/search/CAPABILITY.md) uses PostgreSQL 18 native FTS with explicit `simple`, weighted A name/B description, a stored generated Projects vector and GIN index. `searchProjects` is a session-scoped POST server function; every page enforces the existing owner predicate. Query 2–256 after trim, page25/max100, `ts_rank_cd(..., 32)` and descending rank/updatedAt/id keysets. Numeric result ranks are separate from exact database rank text retained in canonical cursors. No external service, universal search table, snippets, vector/semantic search or raw query telemetry.
+
+Apply the new reviewed `drizzle/0004_search.sql` through the existing explicit migration path. `bun run search:smoke` verifies real PostgreSQL 18 with a disposable temporary table. The catalog fixture proves clean installation/removal and retained domain data/migration history. [Evaluation](SEARCH_MODULE_EVALUATION.md) and [removal guide](docs/STARTING-A-PROJECT.md) document the contract; removing code never deletes Projects or applied migrations.
