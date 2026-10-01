@@ -18,7 +18,7 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, and `Cache / Coordination` are eight completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
+`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, `Realtime`, and `Notifications` are ten completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
 
 `defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
@@ -51,6 +51,8 @@ Only implemented capabilities receive an add-on directory. Planned entries such 
 | Email | None; no database/auth dependency | Jobs, Observability; baseline Better Auth wiring | SMTP when used; optional Mailpit v1.31.3 | Enabled | No | Done |
 | Audit Log | None beyond baseline PostgreSQL and Drizzle | API Platform, Organizations, Jobs, Invoice Ninja, Stripe, Medusa | PostgreSQL | Enabled | No | Done |
 | Cache / Coordination | None; no database/auth dependency | Realtime, API Platform, Jobs, Observability | Valkey/Redis-compatible service on use; tested Valkey 9.1.2 | Enabled | No | Done |
+| Realtime | None; baseline Node runtime / human authentication | Cache / Coordination, Notifications, Observability | None | Enabled | No | Done |
+| Notifications | Jobs; baseline PostgreSQL/Drizzle | Email, Realtime, Audit Log, Observability | Optional ntfy; optional SMTP through Email | Enabled | No | Done |
 
 ### Foundational / backend
 
@@ -65,8 +67,6 @@ Object Storage uses standard AWS SDK v3, with real private streaming/presign/mul
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
 | Search | None; PostgreSQL-first | Jobs, Object Storage, Organizations | PostgreSQL initially | Planned |
-| Realtime | Authenticated starter identity | Cache / Coordination, Notifications, Observability | None initially | Planned |
-| Notifications | Jobs | Email, Realtime, Audit Log | Optional ntfy; optional SMTP through Email | Planned |
 | Import / Export | Jobs, Object Storage | Notifications, Audit Log | None | Planned |
 
 ### Identity / policy
