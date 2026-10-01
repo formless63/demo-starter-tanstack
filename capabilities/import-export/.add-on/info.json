@@ -1,0 +1,31 @@
+{
+  "id": "import-export",
+  "name": "import-export",
+  "displayName": "Import / Export",
+  "description": "Durable scoped bounded CSV transfers using Jobs and Object Storage.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [
+    "postgres-jobs",
+    "object-storage"
+  ],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "csv-parse": "7.0.3",
+      "csv-stringify": "6.9.0",
+      "zod": "^4.3.6"
+    },
+    "scripts": {
+      "import-export:compat": "bun scripts/import-export-compat.ts",
+      "import-export:operator": "bun scripts/import-export-operator.ts",
+      "import-export:unit": "bun scripts/import-export-unit.ts"
+    }
+  }
+}

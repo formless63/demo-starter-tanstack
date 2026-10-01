@@ -84,7 +84,11 @@
     "notifications:smoke": "bun scripts/notifications-smoke.ts",
     "notifications:compat": "bun scripts/notifications-compat.ts",
     "realtime:cache": "bun build scripts/realtime-cache-fixture.ts --target=node --outfile=/tmp/realtime-cache-fixture.mjs && node /tmp/realtime-cache-fixture.mjs",
-    "notifications:delivery": "bun build scripts/jobs-worker.ts --target=node --outfile=/tmp/notification-worker-fixture.mjs && NOTIFICATION_WORKER_SCRIPT=/tmp/notification-worker-fixture.mjs bun scripts/notifications-delivery-fixture.ts"
+    "notifications:delivery": "bun build scripts/jobs-worker.ts --target=node --outfile=/tmp/notification-worker-fixture.mjs && NOTIFICATION_WORKER_SCRIPT=/tmp/notification-worker-fixture.mjs bun scripts/notifications-delivery-fixture.ts",
+    "import-export:unit": "bun scripts/import-export-unit.ts",
+    "import-export:compat": "bun scripts/import-export-compat.ts",
+    "import-export:operator": "bun scripts/import-export-operator.ts",
+    "storage:abort": "bun scripts/storage-abort-fixture.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",
@@ -114,6 +118,8 @@
     "better-auth": "1.7.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "csv-parse": "7.0.3",
+    "csv-stringify": "6.9.0",
     "drizzle-kit": "^0.31.9",
     "drizzle-orm": "^0.45.1",
     "nitro": "3.0.260610-beta",

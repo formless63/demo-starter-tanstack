@@ -42,7 +42,10 @@ it("migrates clean and existing Projects while retaining applied history and rec
 			"SELECT hash FROM drizzle.__drizzle_migrations ORDER BY id",
 		);
 		expect(after.rows.slice(0, history.rows.length)).toEqual(history.rows);
-		expect(after.rows).toHaveLength(6);
+		const currentJournal = JSON.parse(
+			await readFile("drizzle/meta/_journal.json", "utf8"),
+		);
+		expect(after.rows).toHaveLength(currentJournal.entries.length);
 		expect(
 			(
 				await pool.query(
