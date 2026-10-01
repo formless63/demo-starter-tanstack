@@ -50,7 +50,7 @@
 		},
 		{
 			"name": "JOBS_CONCURRENCY",
-			"description": "Per-queue worker concurrency.",
+			"description": "Per-queue local worker concurrency; integer 1–100, default 4.",
 			"required": false,
 			"default": "4",
 			"secret": false,

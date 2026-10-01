@@ -60,13 +60,28 @@ export function assertTransactionalJobsDatabase() {
 			"Transactional Jobs requires the same canonical database host, port and database as DATABASE_URL",
 		);
 }
-export function createJobsBoss(overrides: Partial<ConstructorOptions> = {}) {
+export type JobsRole = "producer" | "admin" | "worker" | "migration";
+
+export function jobsRoleOptions(role: JobsRole) {
+	return {
+		migrate: role === "migration",
+		schedule: role === "worker",
+		supervise: role === "worker",
+	};
+}
+
+export function createJobsBoss(
+	role: JobsRole = "producer",
+	overrides: Partial<
+		Omit<ConstructorOptions, "migrate" | "schedule" | "supervise">
+	> = {},
+) {
 	const boss = new PgBoss({
 		connectionString: jobsDatabaseUrl(),
-		migrate: false,
 		schema: jobsSchema(),
 		useListenNotify: jobsListenNotify(),
 		...overrides,
+		...jobsRoleOptions(role),
 	});
 	boss.on("error", (error) => {
 		console.error(

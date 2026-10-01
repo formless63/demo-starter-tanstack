@@ -1,6 +1,6 @@
 import { createJobsBoss, jobsSchema } from "../src/integrations/jobs/boss.server";
 
-const boss = createJobsBoss({ migrate: true, schedule: false, supervise: false });
+const boss = createJobsBoss("migration");
 
 try {
 	await boss.start();

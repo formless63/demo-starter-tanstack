@@ -1,9 +1,17 @@
 import assert from 'node:assert/strict';
 import {readFile,rm,writeFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
-import {resolve} from 'node:path';
+import {dirname,resolve} from 'node:path';
+import {createRequire} from 'node:module';
 const cta=JSON.parse(await readFile('.cta.json','utf8'));assert.equal(cta.projectName,'api-platform-addon-clean-install');assert.ok(resolve('.').includes('api-platform-addon-'));
 function run(args:string[]){assert.equal(spawnSync(process.execPath,args,{stdio:'inherit'}).status,0)}
+const require=createRequire(import.meta.url), authRequire=createRequire(require.resolve('better-auth'));
+for(const name of ['better-auth','@better-auth/core','@better-auth/drizzle-adapter','@better-auth/api-key']){
+ const entry=(name==='@better-auth/api-key'?require:authRequire).resolve(name);
+ const resolved=JSON.parse(await readFile(resolve(dirname(entry),'../package.json'),'utf8'));
+ assert.equal(resolved.version,'1.7.7',`${name} release must align`);
+ console.info(`${name} ${resolved.version}`);
+}
 run(['run','db:migrate']);run(['run','api-platform:smoke']);run(['run','build']);
 await rm('src/integrations/api-platform',{recursive:true});
 for(const path of ['src/routes/api/v1/projects.ts','src/routes/api/openapi[.]json.ts','src/routes/docs.api.tsx','src/routes/app.api-keys.tsx','scripts/api-platform-smoke.ts'])await rm(path);

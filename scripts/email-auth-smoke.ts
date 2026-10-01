@@ -20,6 +20,7 @@ try {
 	assert.equal(process.env.MAGIC_LINK_ENABLED, "true");
 	assert.ok(process.env.MAILPIT_API_URL);
 	const { auth } = await import("../src/lib/auth");
+	assert.equal((auth.options as import("better-auth").BetterAuthOptions).verification?.storeIdentifier, undefined);
 	const { db } = await import("../src/db");
 	const { user, verification } = await import("../src/db/schema");
 	const { shutdownObservability } = await import("../src/integrations/observability/runtime.server");
@@ -37,6 +38,7 @@ try {
 	// The persisted verification key must not be the plaintext bearer token.
 	const stored = await db.select().from(verification);
 	assert.ok(stored.some(row => row.value.includes(address)));
+	assert.ok(stored.filter(row => row.value.includes(address)).every(row => row.identifier.startsWith("magic-link:")));
 	assert.ok(stored.every(row => row.identifier !== token && !row.value.includes(token)));
 	const verified = await auth.handler(new Request(link, { headers: { Origin: base } }));
 	assert.ok([302, 303].includes(verified.status));
@@ -44,6 +46,9 @@ try {
 	assert.equal(new URL(verified.headers.get("location")!, base).pathname, "/app");
 	const [account] = await db.select().from(user).where(eq(user.email, address));
 	assert.equal(account?.emailVerified, true);
+	const replay = await auth.handler(new Request(link, { headers: { Origin: base } }));
+	assert.ok(!replay.headers.get("set-cookie")?.includes("session_token"));
+	assert.ok(replay.headers.get("location")?.includes("error="));
 	await api(process.env.MAILPIT_API_URL!, "chaos", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Sender: { ErrorCode: 550, Probability: 100 } }) });
 	try {
 		const failure = await auth.handler(new Request(`${base}/api/auth/sign-in/magic-link`, { method: "POST", headers: { "Content-Type": "application/json", Origin: base }, body: JSON.stringify({ email: address, callbackURL: "/app" }) }));

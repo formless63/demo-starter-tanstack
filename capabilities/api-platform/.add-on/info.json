@@ -11,7 +11,7 @@
 	"dependsOn": ["better-auth", "drizzle"],
 	"packageAdditions": {
 		"dependencies": {
-			"@better-auth/api-key": "^1.7.6",
+			"@better-auth/api-key": "1.7.7",
 			"@scalar/api-reference-react": "^0.9.75",
 			"@t3-oss/env-core": "^0.13.10",
 			"@tabler/icons-react": "^3.35.0",

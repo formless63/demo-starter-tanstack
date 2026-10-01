@@ -16,7 +16,7 @@ export async function ensureJobQueues(boss: PgBoss) {
 	);
 }
 const lifecycle = createJobsLifecycle(
-	() => createJobsBoss({ schedule: false, supervise: false }),
+	() => createJobsBoss("producer"),
 	ensureJobQueues,
 );
 export const getJobsClient = lifecycle.get;
