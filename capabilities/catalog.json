@@ -409,7 +409,8 @@
 			"integratesWith": [
 				"realtime",
 				"api-platform",
-				"jobs"
+				"jobs",
+				"observability"
 			],
 			"baselineRequirements": [
 				"node-runtime"

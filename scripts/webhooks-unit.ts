@@ -101,15 +101,19 @@ export async function webhooksUnit() {
 		}),
 		duplex: "half",
 	} as RequestInit);
-	const keepAlive = setTimeout(() => {}, 100);
+	const keepAlive = setTimeout(() => {}, 1000);
 	try {
 		await assert.rejects(
-			verifyWebhookRequest(hanging, { ...options, readTimeoutMs: 10 }),
+			verifyWebhookRequest(hanging, { ...options, readTimeoutMs: 100 }),
 			/body-read/,
 		);
 	} finally {
 		clearTimeout(keepAlive);
 	}
+
+	for (const readTimeoutMs of [99, 30_001])
+		await assert.rejects(verifyWebhookRequest(request(), { ...options, readTimeoutMs }), /configuration/);
+	assert.throws(() => verifyWebhookSignature(Buffer.from(body), request().headers, { ...options, toleranceSeconds: 901 }), /configuration/);
 
 	const wrong = request();
 	wrong.headers.set(

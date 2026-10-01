@@ -146,7 +146,7 @@ export async function deliverWebhook(
 				1,
 				64 * 1024,
 			);
-			timeout = bounded(options.timeoutMs ?? 10_000, 10, 30_000);
+			timeout = bounded(options.timeoutMs ?? 10_000, 100, 30_000);
 		} catch {
 			throw new WebhookDeliveryError("configuration", false);
 		}

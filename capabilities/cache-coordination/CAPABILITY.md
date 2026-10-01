@@ -6,7 +6,7 @@ Status: done; optional (`defaultInstalled: false`). The reference application en
 
 **Requires:** `[]`; no Realtime, Jobs, API Platform, Observability, database, Drizzle or Auth dependency. Baseline Node-compatible server runtime and TanStack Start. Official add-on `dependsOn: []`, conflicts `[]`.
 
-**Integrates with:** Realtime, API Platform, Jobs, all optional future application composition. API Platform may use shared rate-limit state; Jobs may use ephemeral coordination while remaining durable in PostgreSQL; Realtime may later use pub/sub. This capability implements none of those integrations and changes none of their requirements.
+**Integrates with:** Realtime, API Platform and Jobs through optional application composition; Observability through the optional reference wrapper. API Platform may use shared rate-limit state; Jobs may use ephemeral coordination while remaining durable in PostgreSQL; Realtime may later use pub/sub. This capability implements none of those integrations and changes none of their requirements.
 
 **External:** Valkey/Redis-compatible service on first use. Tested target is official Valkey 9.1.2. Common RESP2 command subset only; ordinary Redis-compatible services may support it, but no broad provider/cluster compatibility claim or second Redis implementation test is made.
 
@@ -14,7 +14,7 @@ Ephemeral server primitives only. This is not durable storage, a session databas
 
 ## Adds
 
-Pinned `redis` / node-redis 6.3.0; no other direct runtime dependency. No migrations, schema, auth, UI, route, readiness change or long-lived worker. Owned files: `src/integrations/cache/`, `scripts/cache-{check,smoke,unit,compat,dev,removal-fixture}.ts`, `compose.cache.yaml`, contract/evaluation/skill. Independent add-on assets contain no application telemetry wrapper or other capability import.
+Pinned `redis` / node-redis 6.3.0; no other direct runtime dependency. No migrations, schema, auth, UI, route, readiness change or long-lived worker. Owned files: `src/integrations/cache/`, `scripts/cache-{check,smoke,unit,compat,dev,removal-fixture,removal-data-fixture}.ts`, `compose.cache.yaml`, contract/evaluation/skill. Independent add-on assets contain no application telemetry wrapper or other capability import.
 
 Reference-only `src/lib/cache.server.ts` supplies `getApplicationCache()` / `closeApplicationCache()` and optional `observeCache`; `scripts/cache-telemetry.ts` verifies safe bounded signals. It imports Observability only in application wiring. Removing it leaves the primitive identical.
 
@@ -112,7 +112,7 @@ Contract coverage: ping, string/byte get/set/delete, default/explicit TTL expira
 
 Install retained `capabilities/cache-coordination/add-on.json` by official TanStack CLI URL mechanics in a clean scaffold or existing `.cta.json` app. No official add-on dependency; review existing files with the same paths before asset overlay. Configure only when using Cache; consumer supplies authorization, serialization and shutdown ownership. Recompile via `bun run add-ons:compile cache-coordination`; verify `bun run add-ons:test cache-coordination`.
 
-Application removal: close producers/subscriptions/clients; delete owned integration/scripts/local Compose, root-only wrapper/telemetry tests; remove `redis` if otherwise unused and `cache:*` scripts/env entries/CI step; remove reference enablement and update lockfile. No database/data migration or remote deletion. Reusable authoring source is a separate choice; standard pruning retains the catalog ID as deferred. TanStack CLI has no uninstall transaction. Clean removal fixture deletes runtime/package/env additions without contacting the backend, then typechecks/builds again.
+Application removal: close producers/subscriptions/clients; delete owned integration/scripts/local Compose, root-only wrapper/telemetry tests; remove `redis` if otherwise unused and `cache:*` scripts/env entries/CI step; remove reference enablement and update lockfile. No database/data migration or remote deletion. Reusable authoring source is a separate choice; standard pruning retains the catalog ID as deferred. TanStack CLI has no uninstall transaction. Clean removal fixture deletes runtime/package/env additions without contacting the backend. A disposable Valkey sentinel proves the backend and its existing data survive removal, then the consumer typechecks/builds again.
 
 Upgrade node-redis and Valkey deliberately, rerun real atomic/TLS/lifecycle/subscription tests and backendless builds, retain protocol subset, and recompile assets. Before publication, establish versioned distribution URLs, licensing/release policy and supported runtime/service matrix; validate target authentication/TLS separately. Nothing is published externally by this change.
 

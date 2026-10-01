@@ -14,6 +14,7 @@
 - `bun run capabilities:status`: read-only summary of completed add-on availability, reference-app enablement, generated-consumer defaults, relationships, and external requirements.
 - `bun run add-ons:compile [id ...]`: compile declared custom add-ons with the pinned official TanStack CLI; outputs stay at `capabilities/<id>/add-on.json`.
 - `bun run add-ons:test [id ...]`: reject stale compiled output, install each selected add-on into a clean disposable Start scaffold, verify official dependencies/assets/package additions, and build it.
+- `bun scripts/add-ons.ts serve <id>`: serve one custom add-on and its catalog dependency closure using CLI-compatible URL identities; required for Webhooks until upstream custom identity/publication is resolved.
 - `bun run add-ons:matrix`: print the completed custom add-on IDs used by CI's data-driven matrix.
 - `bun run api-platform:smoke`: verify hashed machine credentials, read/write permission enforcement, protected Projects operations, and OpenAPI validation against a migrated PostgreSQL database.
 - `bun run observability:smoke`: isolated safe logs/context/span/metric proof plus real trace/metric OTLP export to a temporary local receiver; requires no database or external backend.
