@@ -9,12 +9,20 @@ const config = defineConfig({
 	resolve: { tsconfigPaths: true },
 	environments: {
 		client: {
-			// Prevent late auth/docs discovery from replacing shared chunks during hydration.
+			// Keep the client dependency set stable while the first page hydrates.
 			optimizeDeps: {
+				noDiscovery: true,
 				include: [
 					"better-auth/react",
 					"better-auth/client/plugins",
 					"@scalar/api-reference-react",
+					"@tabler/icons-react",
+					"@tanstack/react-devtools",
+					"@tanstack/react-form",
+					"@tanstack/react-query",
+					"@tanstack/react-query-devtools",
+					"@tanstack/react-router-ssr-query",
+					"sonner",
 					"zod",
 				],
 			},
