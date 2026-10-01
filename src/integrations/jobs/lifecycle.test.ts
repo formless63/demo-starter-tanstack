@@ -1,3 +1,4 @@
+import { Client } from "pg";
 import { afterEach, expect, it, vi } from "vitest";
 import {
 	assertTransactionalJobsDatabase,
@@ -134,4 +135,110 @@ it("assigns migration, supervision and scheduling to explicit process roles", ()
 		schedule: false,
 		supervise: false,
 	});
+});
+
+it("refuses routing query overrides on either side before transactional enqueue", () => {
+	const canonical = "postgres://app:private-domain@db.example/app";
+	for (const [key, value] of [
+		["host", "other.example"],
+		["hostaddr", "127.0.0.2"],
+		["port", "5433"],
+		["dbname", "other"],
+		["service", "other"],
+		["h%6Fst", "other.example"],
+		["HOST", "other.example"],
+		["host", ""],
+		["port", "5432"],
+	]) {
+		for (const side of ["DATABASE_URL", "PGBOSS_DATABASE_URL"]) {
+			setEnv("DATABASE_URL", canonical);
+			setEnv(
+				"PGBOSS_DATABASE_URL",
+				"postgres://jobs:private-jobs@db.example/app",
+			);
+			setEnv(side, `${process.env[side]}?${key}=${value}`);
+			expect(assertTransactionalJobsDatabase).toThrow(
+				"Jobs database configuration is invalid",
+			);
+			try {
+				assertTransactionalJobsDatabase();
+			} catch (error) {
+				expect(String(error)).not.toMatch(
+					/private-domain|private-jobs|db\.example|other\.example/,
+				);
+			}
+		}
+	}
+});
+
+it("requires explicit host/database and compares canonical host, port and driver-decoded database", () => {
+	for (const missing of [
+		"postgres:///app",
+		"postgres://db.example",
+		"postgres://db.example/",
+		"postgres://app@/app",
+	])
+		for (const side of ["DATABASE_URL", "PGBOSS_DATABASE_URL"]) {
+			setEnv("DATABASE_URL", "postgres://app@db.example/app");
+			setEnv("PGBOSS_DATABASE_URL", "postgres://jobs@db.example/app");
+			setEnv(side, missing);
+			expect(assertTransactionalJobsDatabase).toThrow(
+				"Jobs database configuration is invalid",
+			);
+		}
+	for (const missing of [
+		"postgres:///app",
+		"postgres://db.example",
+		"postgres://db.example/",
+	]) {
+		setEnv("DATABASE_URL", missing);
+		setEnv("PGBOSS_DATABASE_URL", missing);
+		expect(assertTransactionalJobsDatabase).toThrow(
+			"Jobs database configuration is invalid",
+		);
+	}
+	for (const jobs of [
+		"postgres://jobs@alias.example/app",
+		"postgres://jobs@db.example:5433/app",
+		"postgres://jobs@db.example/other",
+	]) {
+		setEnv("DATABASE_URL", "postgres://app@db.example/app");
+		setEnv("PGBOSS_DATABASE_URL", jobs);
+		expect(assertTransactionalJobsDatabase).toThrow(/same canonical/);
+	}
+	setEnv(
+		"DATABASE_URL",
+		"postgresql://app:one@DB.EXAMPLE/app%20space?sslmode=disable&application_name=domain",
+	);
+	setEnv(
+		"PGBOSS_DATABASE_URL",
+		"postgres://jobs:two@db.example:5432/app%20space?sslmode=verify-full&application_name=jobs",
+	);
+	expect(assertTransactionalJobsDatabase).not.toThrow();
+	setEnv("PGBOSS_DATABASE_URL", "");
+	expect(assertTransactionalJobsDatabase).not.toThrow();
+	setEnv("DATABASE_URL", "postgres://app@db.example/app%2Fother");
+	setEnv("PGBOSS_DATABASE_URL", "postgres://jobs@db.example/app/other");
+	expect(assertTransactionalJobsDatabase).toThrow(/same canonical/);
+});
+
+it("confirms locked pg routing and decoding without opening a connection", () => {
+	const parameters = (connectionString: string) => {
+		const client = new Client({ connectionString });
+		return (
+			client as unknown as {
+				connectionParameters: { host: string; port: number; database: string };
+			}
+		).connectionParameters;
+	};
+	expect(
+		parameters("postgres://app@db.example/app?host=other.example").host,
+	).toBe("other.example");
+	expect(parameters("postgres://app@db.example/app?port=5433").port).toBe(5433);
+	expect(parameters("postgres://app@db.example/app%2Fother").database).toBe(
+		"app%2Fother",
+	);
+	expect(parameters("postgres://app@db.example/app%20space").database).toBe(
+		"app space",
+	);
 });

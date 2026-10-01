@@ -94,6 +94,45 @@ describe("transactional jobs", () => {
 		expect(job).toBeUndefined();
 	});
 
+	it("refuses mismatched routing before enqueue and rolls back the real transaction", async () => {
+		const domain = process.env.DATABASE_URL;
+		if (!domain)
+			throw new Error("DATABASE_URL is required for Jobs integration tests");
+		const previous = process.env.PGBOSS_DATABASE_URL;
+		const boss = await getJobsClient();
+		try {
+			for (const [key, value] of [
+				["host", "other.invalid"],
+				["port", "1"],
+			]) {
+				const projectId = crypto.randomUUID(),
+					message = `routing-refusal-${projectId}`;
+				const routed = new URL(domain);
+				routed.searchParams.set(key, value);
+				process.env.PGBOSS_DATABASE_URL = routed.toString();
+				await expect(
+					db.transaction(async (tx) => {
+						await tx
+							.insert(projects)
+							.values({ id: projectId, ownerId, name: "Routing refusal" });
+						await sendJobInTransaction(tx, "starter.echo", { message });
+					}),
+				).rejects.toThrow("Jobs database configuration is invalid");
+				expect(
+					await db.select().from(projects).where(eq(projects.id, projectId)),
+				).toEqual([]);
+				expect(
+					(await boss.findJobs("starter.echo")).some(
+						(job) => (job.data as { message?: string }).message === message,
+					),
+				).toBe(false);
+			}
+		} finally {
+			if (previous === undefined) delete process.env.PGBOSS_DATABASE_URL;
+			else process.env.PGBOSS_DATABASE_URL = previous;
+		}
+	});
+
 	it("fails payloads that bypass the typed enqueue boundary", async () => {
 		const boss = await getJobsClient();
 		const id = await boss.send("starter.echo", { message: "" });

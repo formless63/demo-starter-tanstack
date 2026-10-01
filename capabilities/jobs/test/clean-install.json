@@ -25,7 +25,8 @@
     "scripts/jobs-smoke.ts",
     "scripts/jobs-worker.ts",
     "capabilities/jobs/CAPABILITY.md",
-    "scripts/jobs-lifecycle-fixture.ts"
+    "scripts/jobs-lifecycle-fixture.ts",
+    "scripts/jobs-transaction-fixture.ts"
   ],
   "build": true,
   "verificationCommands": [
@@ -43,7 +44,9 @@
   "expectedFileText": {
     "src/integrations/jobs/boss.server.ts": [
       "role === 'migration'",
-      "role === 'worker'"
+      "role === 'worker'",
+      "ROUTING_QUERY_OPTIONS",
+      "decodeURI(url.pathname)"
     ],
     "src/integrations/jobs/worker.server.ts": [
       "includeMetadata: true",
