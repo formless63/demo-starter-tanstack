@@ -72,7 +72,14 @@
     "theme:check": "bun scripts/theme.ts check",
     "theme:import": "bun scripts/theme.ts import",
     "theme:apply": "bun scripts/theme.ts apply",
-    "project:test": "bun test scripts/project.test.ts scripts/theme.test.ts src/lib/color-mode.test.ts"
+    "project:test": "bun test scripts/project.test.ts scripts/theme.test.ts src/lib/color-mode.test.ts",
+    "realtime:unit": "bun scripts/realtime-unit.ts",
+    "realtime:transport": "bun build scripts/realtime-transport-fixture.ts --target=node --outfile=/tmp/realtime-transport-fixture.mjs && node /tmp/realtime-transport-fixture.mjs",
+    "notifications:unit": "bun scripts/notifications-unit.ts",
+    "notifications:smoke": "bun scripts/notifications-smoke.ts",
+    "notifications:compat": "bun scripts/notifications-compat.ts",
+    "realtime:cache": "bun build scripts/realtime-cache-fixture.ts --target=node --outfile=/tmp/realtime-cache-fixture.mjs && node /tmp/realtime-cache-fixture.mjs",
+    "notifications:delivery": "bun build scripts/jobs-worker.ts --target=node --outfile=/tmp/notification-worker-fixture.mjs && NOTIFICATION_WORKER_SCRIPT=/tmp/notification-worker-fixture.mjs bun scripts/notifications-delivery-fixture.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",
@@ -133,6 +140,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
+    "crossws": "0.4.12",
     "dotenv": "^17.3.1",
     "typescript": "^6.0.2",
     "vite": "^8.0.0",

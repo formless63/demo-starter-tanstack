@@ -25,6 +25,8 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 | `webhooks` | `webhooks` | Done | Enabled | No | `postgres-jobs` | Jobs | Remote endpoints when used | [Webhooks](../capabilities/webhooks/CAPABILITY.md) |
 | `audit-log` | `audit-log` | Done | Enabled | No | `drizzle` | None | PostgreSQL | [Audit Log](../capabilities/audit-log/CAPABILITY.md) |
 | `cache-coordination` | `cache-coordination` | Done | Enabled | No | None | None | Valkey/Redis-compatible service on use | [Cache / Coordination](../capabilities/cache-coordination/CAPABILITY.md) |
+| `realtime` | `realtime` | Done | Enabled | No | None | None | Optional Cache backplane | [Realtime](../capabilities/realtime/CAPABILITY.md) |
+| `notifications` | `notifications` | Done | Enabled | No | `postgres-jobs` | Jobs | Optional ntfy; optional Email adapter | [Notifications](../capabilities/notifications/CAPABILITY.md) |
 
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
@@ -159,3 +161,13 @@ The four SMTP/Webhooks/Audit/Cache v1 contracts fix shared behavioral bounds whi
 ### Shared-file preflight and reviewed composition
 
 Run `bun run add-ons:preflight <id ...>` before combining custom add-ons. It exits nonzero for unreviewed shared files (including journals/config); it never merges files or applies migrations. Webhooks' `installation.json` records its reviewed Jobs registry overlay, permitted only for its hard dependency. Existing customized applications still require manual diff review even when this check passes. `bun run add-ons:test:composition` proves a reviewed API + Audit + Jobs clean consumer using this reference application's unified schema/history; it is a fixture, not an installation or upgrade command for a deployed application. Public semantic upgrade/merge support remains deferred.
+
+## Realtime and Notifications
+
+These remain two independent `defaultInstalled: false` add-ons. Realtime has no custom hard dependency; Notifications requires only Jobs (`postgres-jobs` in official add-on metadata). The reference enables both. Realtime uses Node-native Nitro/H3/CrossWS WebSocket and SSE adapters; `REALTIME_TRANSPORTS` defaults to `sse`. Choose SSE, WebSocket or both explicitly during onboarding, and remove unused route wiring when appropriate. WebSocket v1 has the same server→client event semantics and no generic RPC/client-command protocol.
+
+The reusable Realtime consumer includes reviewed provider-neutral Nitro Vite configuration, both route adapters and a default-deny application authorizer. Adapt the config with existing Vite plugins when installing into a customized app. Supply the existing human cookie session and authorized exact channels before accepting; no arbitrary logged-in subscriptions, query tokens or API keys. The reference shares its process hub between Nitro and Start module runners; restart development after registry changes. Optional `src/lib/realtime-cache.server.ts` provides an alternative single-path Cache backplane; choose it instead of local publication, subscribe explicitly, recreate after failure, and retain no replay claim.
+
+Notifications owns durable records/read state and uses caller DB/transaction executors. Its independent adapter registry starts empty. The reference's Project creation couples domain write, Audit and notification row in one transaction, then emits only `{notificationId}` after commit; Realtime failure cannot undo persistence. The `/app/notifications` view refetches on connection/reconnection and uses recipient-authorized server functions; rendering escapes plain text. Optional Email delegates to existing Email; optional ntfy is resolved at execution. Jobs stores only notification ID/channel. Delivery completion includes a business outcome and is not an external-delivery guarantee.
+
+`0004_tough_mindworm.sql` is the new additive reviewed root migration; previously applied files remain unchanged. Notifications removal retains schema/validation types, table/data, migrations and Jobs; Realtime removal has no database/external-data effect. See the two contracts and the starting guide for exact limits and removal edits. Generic completed-add-on discovery covers both clean fixtures; root verification additionally tests real cookie auth, optional two-process Valkey fanout and Node-worker SMTP/ntfy delivery.

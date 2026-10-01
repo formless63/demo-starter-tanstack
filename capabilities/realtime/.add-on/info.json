@@ -1,0 +1,39 @@
+{
+  "id": "realtime",
+  "name": "realtime",
+  "displayName": "Realtime",
+  "description": "Authenticated SSE and WebSocket hints with bounded process-local fanout and application-owned channel authorization.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "zod": "^4.3.6",
+      "nitro": "3.0.260610-beta"
+    },
+    "scripts": {
+      "realtime:unit": "bun scripts/realtime-unit.ts",
+      "realtime:transport": "bun build scripts/realtime-transport-fixture.ts --target=node --outfile=/tmp/realtime-transport-fixture.mjs && node /tmp/realtime-transport-fixture.mjs"
+    },
+    "devDependencies": {
+      "crossws": "0.4.12"
+    }
+  },
+  "envVars": [
+    {
+      "name": "REALTIME_TRANSPORTS",
+      "default": "sse",
+      "description": "Server-only sse/websocket/sse,websocket; no duplicates.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    }
+  ]
+}

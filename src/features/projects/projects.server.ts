@@ -9,6 +9,11 @@ import {
 } from "#/integrations/audit-log/audit.server";
 import type { AuditIdentity } from "#/integrations/audit-log/validation";
 import { auth } from "#/lib/auth";
+import { createNotificationInTransaction } from "../../integrations/notifications/transaction.server";
+import {
+	applicationRealtime,
+	recipientChannel,
+} from "../../lib/realtime-hub.server";
 import type { ProjectData } from "./project-schema";
 
 export async function requireUser() {
@@ -40,7 +45,7 @@ export async function insertProjectForOwner(
 	data: ProjectData,
 	actor: AuditIdentity = createAuditActor("user", ownerId),
 ) {
-	return db.transaction(async (tx) => {
+	const result = await db.transaction(async (tx) => {
 		const [project] = await tx
 			.insert(projects)
 			.values({
@@ -57,8 +62,25 @@ export async function insertProjectForOwner(
 			outcome: "success",
 			metadata: { source: actor.type === "machine" ? "api" : "application" },
 		});
-		return project;
+		const { notification } = await createNotificationInTransaction(tx, {
+			recipientId: ownerId,
+			type: "projects.created",
+			title: "Project created",
+			body: "Your project is ready.",
+			metadata: { projectId: project.id },
+		});
+		return { project, notification };
 	});
+	try {
+		applicationRealtime.publish(
+			recipientChannel(ownerId),
+			"notifications.created",
+			{ notificationId: result.notification.id },
+		);
+	} catch {
+		/* Already committed; hint is optional. */
+	}
+	return result.project;
 }
 export async function changeProjectForOwner(
 	ownerId: string,

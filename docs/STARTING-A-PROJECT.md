@@ -187,7 +187,7 @@ Run capability governance, types/build, Jobs smoke, E2E and production health. T
 5. Remove `audit-log` from `referenceApplication.enabledCapabilities`; update docs and run governance/typecheck/build/E2E. Independently packaged consumer fixtures remain usable without root integration.
 6. To prune authoring too, delete `capabilities/audit-log/`, evaluation and skill if unused; retain the catalog ID as deferred and remove implementation metadata, using the standard pruning recipe. Other planned statuses stay unchanged.
 
-Dropping deployed audit history requires a **new explicit destructive migration**, retention/privacy/backup decisions and operator review. Never delete/edit applied migrations. For a never-deployed fresh project only, consolidation may be a separate deliberate action. No v1 retention/purge automation exists. To reach the capability-free lean baseline, apply each of the eight removal recipes, removing Webhooks before Jobs.
+Dropping deployed audit history requires a **new explicit destructive migration**, retention/privacy/backup decisions and operator review. Never delete/edit applied migrations. For a never-deployed fresh project only, consolidation may be a separate deliberate action. No v1 retention/purge automation exists. To reach the capability-free lean baseline, apply each completed capability’s removal recipe, removing Notifications and Webhooks before Jobs.
 
 ### Remove Cache / Coordination
 
@@ -202,3 +202,30 @@ If keeping Cache but removing Observability, delete only `src/lib/cache.server.t
 Authoring pruning is separate: remove `capabilities/cache-coordination/`, `CACHE_COORDINATION_MODULE_EVALUATION.md`, `.agents/skills/cache-change/`, and retain the stable catalog ID as `deferred` without implementation metadata; update ROADMAP/docs. TanStack provides no automatic uninstall transaction. The clean fixture proves runtime removal and rebuild without Redis packages or a service.
 
 Cache callers explicitly decode Buffer reads, use setWithoutExpiry only deliberately, and own close() for manual createCache instances. Lease TTLs are seconds (2–300), stale token results are false. Recreate subscriptions after failure; commands reconnect only on later explicit operations. No backend deletion is part of removal.
+
+### Choose Realtime transports during onboarding
+
+Project setup must choose **SSE**, **WebSocket**, or **both** based on application/deployment needs and record that decision in project documentation:
+
+- SSE: simplest server→browser stream. Set server-only `REALTIME_TRANSPORTS=sse` (default).
+- WebSocket: same v1 server→browser event semantics over a persistent socket foundation. Set `REALTIME_TRANSPORTS=websocket`.
+- Both: expose both adapters. Set `REALTIME_TRANSPORTS=sse,websocket`.
+
+WebSocket v1 is not a generic RPC system or client-command handler. Deployment must support persistent Node transports; alternative Nitro targets require separate buffer/ping verification. Keep session/cookie auth and exact channel authorization in the application; never pass tokens in URLs. For a single-transport project, remove the unused `server/routes/api/realtime/` handler and avoid unused WebSocket feature configuration. The reference’s notification view chooses SSE when available, otherwise WebSocket, reconnects and refetches authoritative data. There is no Last-Event-ID resume/replay contract.
+
+Choose local process publication or the application-owned Cache backplane explicitly. In cache mode, route publication through the backplane only, with a dedicated subscription for each needed application channel before local connection fanout; never also publish locally. Outage messages may be lost and subscription recovery is manual. The root `realtime:cache` fixture proves this across two processes.
+
+### Remove Realtime
+
+1. Stop producers and close `applicationRealtime`/manual core hubs, SSE requests and WebSocket clients. Remove `server/routes/api/realtime/`, transport-only Nitro wiring, `src/integrations/realtime/`, root `src/lib/realtime{,-hub,-cache}.server.ts`, and `scripts/realtime-*.ts`/`realtime:*` verification scripts when unused.
+2. Remove the notification hint wrapper/client hook and transport-choice server function if Notifications remains; retain its durable records, recipient queries and read state. Remove optional Cache wrapper subscriptions without deleting Cache data or infrastructure. No external data deletion is authorized by runtime removal.
+3. Remove `REALTIME_TRANSPORTS`, unused Realtime CI commands/reference enablement and root browser transport tests, retaining the baseline Nitro runtime and other capabilities. Adapt shared Vite configuration rather than dropping unrelated plugins. Run governance/types/build/browser/production startup checks.
+4. Authoring pruning is separate: remove the workspace/evaluation/skill only when no longer needed; keep the catalog identity as deferred without implementation metadata. No automatic CLI uninstall transaction exists.
+
+### Remove Notifications
+
+1. Stop domain producers. Drain or deliberately cancel outstanding `notifications.deliver` work before removing the handler. Remove only its queue registry spread and application adapter imports; keep `starter.echo`, Webhooks and all unrelated Jobs handlers.
+2. Remove `/app/notifications`, its navigation entry, `src/features/notifications/`, root notification wrappers/hint publication, producer transaction inserts and runtime files/scripts. In Projects, preserve its existing domain/Audit transaction while removing the notification insert and post-commit hint. Remove optional ntfy configuration and reference-only delivery fixtures. Never delete remote ntfy accounts/topics.
+3. Retain `src/integrations/notifications/schema.ts` and `validation.ts` (schema JSON types), root schema registration, `drizzle/0004_tough_mindworm.sql`, snapshot/journal and durable table/data. A clean installed consumer retains its initial `0000_notifications.sql`. Retain Jobs, Email, Realtime and Audit; remove only unused cross-capability application wiring.
+4. Update package scripts/lockfile/catalog reference enablement/docs. Keep independent add-on authoring if wanted. Run governance/types/tests/build/browser and production migration/app/worker verification. A destructive table/history removal would require a separate new reviewed migration and retention/backup decision; never rewrite applied migrations.
+5. To prune authoring, remove `capabilities/notifications/`, evaluation and skill, retain its stable catalog ID as deferred and remove implementation metadata. Remove Notifications before Jobs when preparing a capability-free starter.
