@@ -39,6 +39,7 @@ export const session = pgTable(
 		updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
 			.defaultNow()
 			.notNull(),
+		activeOrganizationId: text("active_organization_id"),
 		ipAddress: text("ip_address"),
 		userAgent: text("user_agent"),
 		userId: text("user_id")
@@ -177,5 +178,11 @@ export const projects = pgTable(
 	],
 );
 
+export { organizationNotes } from "../features/organizations/schema";
 export { auditEvents } from "../integrations/audit-log/schema";
 export { notifications } from "../integrations/notifications/schema";
+export {
+	invitation,
+	member,
+	organization,
+} from "../integrations/organizations/schema";

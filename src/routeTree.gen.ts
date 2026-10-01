@@ -15,6 +15,7 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiOpenapiDotjsonRouteImport } from './routes/api/openapi[.]json'
 import { Route as AppApiKeysRouteImport } from './routes/app.api-keys'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
+import { Route as AppOrganizationsRouteImport } from './routes/app.organizations'
 import { Route as AppProjectsRouteImport } from './routes/app.projects'
 import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -50,6 +51,11 @@ const AppNotificationsRoute = AppNotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOrganizationsRoute = AppOrganizationsRouteImport.update({
+  id: '/organizations',
+  path: '/organizations',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProjectsRoute = AppProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/app/api-keys': typeof AppApiKeysRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/organizations': typeof AppOrganizationsRoute
   '/app/projects': typeof AppProjectsRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/app/api-keys': typeof AppApiKeysRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/organizations': typeof AppOrganizationsRoute
   '/app/projects': typeof AppProjectsRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/app/api-keys': typeof AppApiKeysRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/organizations': typeof AppOrganizationsRoute
   '/app/projects': typeof AppProjectsRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/api/openapi.json'
     | '/app/api-keys'
     | '/app/notifications'
+    | '/app/organizations'
     | '/app/projects'
     | '/docs/api'
     | '/api/auth/$'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/api/openapi.json'
     | '/app/api-keys'
     | '/app/notifications'
+    | '/app/organizations'
     | '/app/projects'
     | '/docs/api'
     | '/api/auth/$'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/api/openapi.json'
     | '/app/api-keys'
     | '/app/notifications'
+    | '/app/organizations'
     | '/app/projects'
     | '/docs/api'
     | '/api/auth/$'
@@ -201,6 +213,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNotificationsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/organizations': {
+      id: '/app/organizations'
+      path: '/organizations'
+      fullPath: '/app/organizations'
+      preLoaderRoute: typeof AppOrganizationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/projects': {
       id: '/app/projects'
       path: '/projects'
@@ -235,12 +254,14 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppApiKeysRoute: typeof AppApiKeysRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
+  AppOrganizationsRoute: typeof AppOrganizationsRoute
   AppProjectsRoute: typeof AppProjectsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppApiKeysRoute: AppApiKeysRoute,
   AppNotificationsRoute: AppNotificationsRoute,
+  AppOrganizationsRoute: AppOrganizationsRoute,
   AppProjectsRoute: AppProjectsRoute,
 }
 
@@ -258,13 +279,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

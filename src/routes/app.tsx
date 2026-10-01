@@ -1,5 +1,6 @@
 import {
 	IconBell,
+	IconBuilding,
 	IconFolder,
 	IconKey,
 	IconLogout,
@@ -63,6 +64,14 @@ function AppShell() {
 			<div className="mx-auto grid max-w-6xl md:grid-cols-[190px_1fr]">
 				<aside className="border-r p-4 max-md:border-b">
 					<nav className="space-y-1">
+						<Link
+							to="/app/organizations"
+							search={{ invitation: undefined }}
+							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+							activeProps={{ className: "bg-accent" }}
+						>
+							<IconBuilding size={18} /> Organizations
+						</Link>
 						<Link
 							to="/app/notifications"
 							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"

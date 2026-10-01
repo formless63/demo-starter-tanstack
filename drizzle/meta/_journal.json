@@ -43,6 +43,13 @@
       "when": 1790870160579,
       "tag": "0004_tough_mindworm",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790885419548,
+      "tag": "0006_brown_luke_cage",
+      "breakpoints": true
     }
   ]
 }
