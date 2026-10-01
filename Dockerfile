@@ -10,6 +10,7 @@ RUN bun run build \
   && bun build scripts/jobs-doctor.ts --target=node --outfile=.output/jobs-doctor.mjs \
   && bun build scripts/jobs-smoke.ts --target=node --outfile=.output/jobs-smoke.mjs \
   && bun build scripts/jobs-worker.ts --target=node --outfile=.output/jobs-worker.mjs \
+  && bun build scripts/webhooks-smoke.ts --target=node --outfile=.output/webhooks-smoke.mjs \
   && bun build scripts/storage-check.ts --target=node --outfile=.output/storage-check.mjs \
   && bun build scripts/storage-smoke.ts --target=node --outfile=.output/storage-smoke.mjs \
   && bun build scripts/email-check.ts --target=node --outfile=.output/email-check.mjs \

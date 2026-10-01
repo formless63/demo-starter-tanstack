@@ -22,6 +22,9 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 | `observability` | `observability` | Done | Enabled | No | None | None | Optional OTLP | [Observability](../capabilities/observability/CAPABILITY.md) |
 | `object-storage` | `object-storage` | Done | Enabled | No | None | None | S3 only when used | [Object Storage](../capabilities/object-storage/CAPABILITY.md) |
 | `email` | `email` | Done | Enabled | No | None | None | SMTP only when used; optional Mailpit | [Email](../capabilities/email/CAPABILITY.md) |
+| `webhooks` | `webhooks` | Done | Enabled | No | `postgres-jobs` | Jobs | Remote endpoints when used | [Webhooks](../capabilities/webhooks/CAPABILITY.md) |
+| `audit-log` | `audit-log` | Done | Enabled | No | `drizzle` | None | PostgreSQL | [Audit Log](../capabilities/audit-log/CAPABILITY.md) |
+| `cache-coordination` | `cache-coordination` | Done | Enabled | No | None | None | Valkey/Redis-compatible service on use | [Cache / Coordination](../capabilities/cache-coordination/CAPABILITY.md) |
 
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
@@ -57,7 +60,7 @@ For an existing TanStack CLI-created application, run from its root:
 bunx @tanstack/cli@0.71.0 add https://raw.githubusercontent.com/formless63/demo-starter-tanstack/main/capabilities/jobs/add-on.json
 ```
 
-Replace the URL with the API Platform, Observability, Storage or Email distributable to select that capability. Review the resulting diff, configure its environment, apply any declared migrations, and run its `CAPABILITY.md` verification. Observability has no migrations or database dependency. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
+Replace the URL with the API Platform, Observability, Storage, Email, Audit Log or Cache distributable (Webhooks uses the dependency transport described below) to select that capability. Review the resulting diff, configure its environment, apply any declared migrations, and run its `CAPABILITY.md` verification. Observability has no migrations or database dependency. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
 
 Official TanStack add-on dependencies are resolved by the CLI:
 
@@ -65,10 +68,12 @@ Official TanStack add-on dependencies are resolved by the CLI:
 - API Platform declares `dependsOn: ["better-auth", "drizzle"]` because Better Auth alone does not provide its PostgreSQL/Drizzle persistence boundary.
 - Observability declares `dependsOn: []`; its clean fixture proves signals and real optional OTLP export without Jobs, API Platform, authentication, or a database integration.
 - Object Storage declares `dependsOn: []`; its clean fixture rejects database/auth/Jobs/API/telemetry installation, builds backendless, tests real RustFS and Garage, then removes AWS/runtime additions and rebuilds. Local profiles and admin UI are optional infrastructure, not capability dependencies.
-
 - Email declares `dependsOn: []`; a backendless fixture types/builds with SMTP absent, tests real Mailpit SMTP/Chaos, then removes runtime/packages and rebuilds. Better Auth and telemetry are root-only integrations, never clean-consumer requirements.
+- Webhooks declares `dependsOn: ["postgres-jobs"]`; the generic transport resolves custom Jobs and transitive official Drizzle dependencies.
+- Audit Log declares `dependsOn: ["drizzle"]`; the fixture proves real migrations, coupled transactions and retained history on removal.
+- Cache declares `dependsOn: []`; the fixture proves backendless installation, actual Valkey and removal without touching external data.
 
-These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Completed capabilities do not require one another.
+These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Webhooks requires Jobs; optional integrations remain independent.
 
 ## Disabling or removing a capability
 
@@ -125,7 +130,26 @@ bun run add-ons:test jobs
 bun run add-ons:test api-platform
 bun run add-ons:test observability
 bun run add-ons:test object-storage
+bun run add-ons:test webhooks
 bun run check
 ```
 
 Then run the capability-specific database/worker/API smoke commands described in each `CAPABILITY.md`.
+
+## Webhooks
+
+Webhooks is complete and enabled in the reference application. Its add-on declares `dependsOn: ["postgres-jobs"]`. CLI 0.71 changes custom IDs to URLs, so direct raw JSON cannot resolve the stable custom dependency ID. Run `bun scripts/add-ons.ts serve webhooks`, then use its printed `--add-ons` argument with PostgreSQL Drizzle config. The local transport maps catalog dependency IDs to served URLs without changing retained artifacts. The generic catalog harness handles that ordering for `bun run add-ons:test webhooks`. Review the shared Jobs registry composition in customized applications. See [contract](../capabilities/webhooks/CAPABILITY.md). No API Platform, Audit Log or Observability requirement.
+
+## Audit Log
+
+Audit Log is optional and needs only baseline PostgreSQL/Drizzle; Authentication is application actor wiring. Its official add-on declares `dependsOn: ["drizzle"]` and no consumer dependencies. It owns schema/API source, reviewed SQL and a clean install/removal fixture. Root Projects mutations transactionally append safe user/machine records. See [the contract](../capabilities/audit-log/CAPABILITY.md).
+
+The clean scaffold gets a Drizzle config overlay including the baseline and capability schema plus an initial audit migration. Existing customized applications must manually register the owned schema and generate a new reviewed migration in their existing history; do not overwrite config or applied journals. No semantic merger/uninstaller is provided. Code removal retains audit schema/history. Operator destructive removal requires a new explicit migration. API Platform, Jobs, Organizations and business consumers remain optional; Audit Log is separate from Observability and supplies no query authorization/UI.
+
+Verification: `bun run add-ons:test audit-log`, `bun run audit-log:smoke`, and real PostgreSQL tests under `src/integrations/audit-log` and `src/features/projects/audit.integration.test.ts`.
+
+## Cache / Coordination
+
+Cache / Coordination declares `dependsOn: []`; clean installation needs no database, Auth, Jobs, API, Realtime or Observability add-on. Select `capabilities/cache-coordination/add-on.json` with the same official CLI URL flow above. Backendless build and unit checks run before actual disposable pinned Valkey compatibility and clean removal/rebuild. Its protocol subset is tested on Valkey only; no second Redis implementation is claimed. Optional reference telemetry is application-owned.
+
+Run `bun run add-ons:test cache-coordination`, `bun run cache:unit`, and `bun run cache:compat` for its standalone contract; normal root startup/readiness never requires Cache.

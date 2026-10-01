@@ -18,7 +18,7 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, and `Email` are the first five completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
+`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, and `Cache / Coordination` are eight completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
 
 `defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
@@ -37,7 +37,7 @@ capabilities/<id>/
 
 The official pinned TanStack CLI compiles each `.add-on` directory; repository scripts only discover entries from `capabilities/catalog.json`, invoke that CLI, and verify clean installation. They are not an alternative generator. Each catalog entry records its stable TanStack add-on ID; add-on `dependsOn` and conflict sets use those CLI IDs, while capability `requires` uses capability IDs. The checker ensures completed hard capability dependencies are also expressed in official add-on metadata. `bun run add-ons:compile` rebuilds every declared distributable, while `bun run add-ons:test <id>` verifies that the committed output is current, installs it through normal TanStack mechanics into a clean scaffold, resolves official dependencies, and builds the result.
 
-Only implemented capabilities receive an add-on directory. Planned entries such as Webhooks remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
+Only implemented capabilities receive an add-on directory. Planned entries such as Search remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
 
 ### Done
 
@@ -47,15 +47,15 @@ Only implemented capabilities receive an add-on directory. Planned entries such 
 | API Platform / Machine Auth / OpenAPI | None beyond baseline Better Auth, PostgreSQL/Drizzle, and server runtime | Audit Log, Observability, Authorization, Organizations | None beyond baseline PostgreSQL | Enabled | No | Done |
 | Observability | None beyond baseline Start + Node runtime | Every server/runtime capability where useful, including Jobs and API Platform | Optional OTLP destination | Enabled | No | Done |
 | Object Storage | None; no database/auth dependency | Jobs, Observability | S3 when used; tested RustFS 1.0.0 preferred / Garage 2.4.1 | Enabled | No | Done |
-
+| Webhooks | Jobs | Audit Log, Observability, API Platform | Remote webhook endpoints when used | Enabled | No | Done |
 | Email | None; no database/auth dependency | Jobs, Observability; baseline Better Auth wiring | SMTP when used; optional Mailpit v1.31.3 | Enabled | No | Done |
+| Audit Log | None beyond baseline PostgreSQL and Drizzle | Authentication (baseline), API Platform, Organizations, Jobs, Invoice Ninja, Stripe, Medusa | PostgreSQL | Enabled | No | Done |
+| Cache / Coordination | None; no database/auth dependency | Realtime, API Platform, Jobs, Observability | Valkey/Redis-compatible service on use; tested Valkey 9.1.2 | Enabled | No | Done |
 
 ### Foundational / backend
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Webhooks | Jobs | Audit Log, Observability, API Platform | Remote webhook endpoints | Planned |
-| Audit Log | None | Authentication, API Platform, Organizations, Jobs, business integrations | PostgreSQL | Planned |
 | AI | None | Jobs, Object Storage, Observability, Audit Log | Configured model provider | Planned |
 
 Object Storage uses standard AWS SDK v3, with real private streaming/presign/multipart verification on RustFS and Garage. Optional third-party Noooste Garage UI 0.13.0 is infrastructure, not a capability dependency. No storage is needed for build/start; application owners decide readiness policy. MinIO is not the default. Email pins Nodemailer 10.0.13 for lazy provider-neutral SMTP with explicit TLS, safe messages/errors, no retries, and awaited Better Auth magic links. Mailpit v1.31.3 verifies real SMTP and deterministic Chaos; no provider SDK or generic queue is added.
@@ -64,7 +64,6 @@ Object Storage uses standard AWS SDK v3, with real private streaming/presign/mul
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Cache / Coordination | None | Realtime, API Platform, Jobs | Valkey/Redis-compatible service | Planned |
 | Search | None; PostgreSQL-first | Jobs, Object Storage, Organizations | PostgreSQL initially | Planned |
 | Realtime | Authenticated starter identity | Cache / Coordination, Notifications, Observability | None initially | Planned |
 | Notifications | Jobs | Email, Realtime, Audit Log | Optional ntfy; optional SMTP through Email | Planned |
@@ -110,7 +109,7 @@ Starter authentication is a baseline requirement, not a capability edge.
 
 ## Dependency direction
 
-The only planned hard edges are:
+The implemented and planned hard edges are:
 
 ```text
 Webhooks ───────────────► Jobs
@@ -149,3 +148,5 @@ These are research tracks, not automatically installed capabilities.
 ## Implementation governance
 
 Before installing, removing, or changing a capability, use `.agents/skills/capability-change/SKILL.md`. An implemented capability must own a `capabilities/<id>/CAPABILITY.md`, accurately declare scripts, environment, migrations, runtime processes, infrastructure, installation/removal, upgrade concerns, verification, and agent guidance, and link any evaluation document. Custom add-ons also own their official source metadata, retained distributable, declared dependencies, documented conflicts, and clean-install fixture. CI derives its completed-add-on matrix from the catalog, so a new implementation extends metadata rather than copying a workflow job. Clean installation and removal should be tested where the packaging supports them.
+
+Webhooks uses Standard Webhooks HMAC v1 with exact raw-byte verification, stable serialized events, application-owned targets/secrets, and the existing Jobs worker for bounded native pg-boss retries. Its disposable HTTP/Jobs fixture runs through the generic custom dependency transport. DNS/network policy and durable inbound replay storage remain explicit application responsibilities.

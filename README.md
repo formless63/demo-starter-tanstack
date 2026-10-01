@@ -34,6 +34,9 @@ Baseline components are not optional capability modules. Future integrations in 
 | Observability | Done | Optional | Baseline Start + Node runtime; no capability dependency | Safe JSON logs, request IDs, server traces/metrics, optional OTLP | [Observability contract](capabilities/observability/CAPABILITY.md) |
 | Object Storage | Done | Optional | No database/auth/capability dependency; S3 when used | Private streaming, signed PUT/GET, multipart and post-upload verification | [Storage contract](capabilities/object-storage/CAPABILITY.md) |
 | Email | Done | Optional | No database/auth/capability dependency; SMTP when used | Bounded SMTP delivery, safe errors and awaited magic links | [Email contract](capabilities/email/CAPABILITY.md) |
+| Webhooks | Done | Optional | Jobs + baseline Node 24 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
+| Audit Log | Done | Optional | Baseline PostgreSQL + Drizzle | Append-oriented events, bounded safe context, atomic domain writes, keyset queries | [Audit Log contract](capabilities/audit-log/CAPABILITY.md) |
+| Cache / Coordination | Done | Optional | No capability dependency; Valkey on use | Ephemeral cache, atomic counters, advisory leases and pub/sub | [Cache contract](capabilities/cache-coordination/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -154,6 +157,8 @@ Start optional loopback-only Mailpit v1.31.3 with `bun run email:dev:mailpit`; c
 bun install --frozen-lockfile
 bun run capabilities:status
 bun run capabilities:check
+bun run webhooks:unit
+bun run webhooks:smoke
 bun run add-ons:test jobs
 bun run add-ons:test api-platform
 bun run add-ons:test observability
@@ -171,9 +176,9 @@ bun run test:e2e
 
 Playwright covers the public landing page, anonymous protected-route redirect, OpenAPI endpoint, machine-auth boundary, and Scalar rendering. CI runs the static, unit, build, and browser checks, then proves the production artifact by building the image, migrating a clean Compose PostgreSQL database, starting the worker/application, and probing health, OpenAPI, and docs. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
 
-The fourth catalog-driven clean add-on job additionally proves Storage's backendless installation, both real provider suites and runtime removal. Main CI repeats both providers with optional telemetry and the actual Node production-image Storage entrypoint. Normal app health still works with no Storage configuration/service.
+The catalog-driven Storage clean add-on job additionally proves Storage's backendless installation, both real provider suites and runtime removal. Main CI repeats both providers with optional telemetry and the actual Node production-image Storage entrypoint. Normal app health still works with no Storage configuration/service.
 
-Email adds a fifth catalog-driven independent clean fixture. Main CI proves real Better Auth and production-image SMTP delivery, while normal production health also runs with Email unconfigured. Full SMTP/Docker tests remain task/CI checks, never agent-turn hooks.
+Email has a catalog-driven independent clean fixture. Main CI proves real Better Auth and production-image SMTP delivery, while normal production health also runs with Email unconfigured. Full SMTP/Docker tests remain task/CI checks, never agent-turn hooks.
 
 ## Capability/add-on development
 
@@ -235,3 +240,21 @@ For registries, set `APP_IMAGE` to the immutable image reference and use that sa
 ## Repository conventions
 
 `AGENTS.md` is concise canonical agent context. [Agent automation](docs/AGENT-AUTOMATION.md) describes shared project hooks and normal client trust controls. Architecture, stack, and commands use progressive disclosure under `.agents/context`; narrow workflow skills and reusable prompts support cross-tool work. Reusable capability status and dependency governance live in `ROADMAP.md` and `capabilities/catalog.json`. Server-only dependencies belong behind server functions/routes, and authorization is always enforced next to the database mutation.
+
+Webhooks provides a signed Standard Webhooks primitive with Jobs as its only hard capability dependency. See [Webhooks contract](capabilities/webhooks/CAPABILITY.md) and [evaluation](WEBHOOKS_MODULE_EVALUATION.md). Explicit `bun run webhooks:unit` and `bun run webhooks:smoke` use a disposable receiver; normal startup needs no external endpoint.
+
+The Webhooks catalog fixture proves transitive Jobs installation, signed real HTTP delivery and worker retries, then removes Webhooks while retaining Jobs. Main CI also runs its Node production-image smoke; no receiver is needed for normal application health. CLI 0.71 custom dependency IDs require the generic local transport (`bun scripts/add-ons.ts serve webhooks`) rather than direct raw-JSON installation; external publication is deferred.
+
+## Audit Log
+
+Audit Log records Projects create/update/delete in the same Drizzle transaction as the mutation. Signed-in users map to stable user IDs; optional API wiring maps verified machine key IDs, never credentials. Context contains static source/field names, not project values or request/session dumps. The reusable primitive has no consumer capability dependencies, UI, tenancy, logging or retention automation. Run `bun run audit-log:smoke` against a migrated test database. See its [contract](capabilities/audit-log/CAPABILITY.md) and [evaluation](AUDIT_LOG_MODULE_EVALUATION.md) for metadata bounds, keysets, operator authority and privacy/removal responsibilities.
+
+## Cache / Coordination
+
+Optional server-only ephemeral cache, atomic counters, advisory leases and pub/sub, independently packaged as [cache-coordination](capabilities/cache-coordination/CAPABILITY.md). No database/auth/Jobs/Realtime/Observability requirement; lazy config means normal build/start needs no Valkey. No cache UI or automatic readiness dependency.
+
+| Capability | Requires | Optional integrations | External | Default installed |
+| --- | --- | --- | --- | --- |
+| Cache / Coordination | None | Realtime, API Platform, Jobs, Observability | Valkey 9.1.2 / common Redis protocol subset | No |
+
+Use `bun run cache:dev:valkey` for separate loopback ephemeral Valkey, configure server-only `CACHE_URL=redis://127.0.0.1:6379`, then `bun run cache:check` (PING only), `bun run cache:smoke` (unique prefix/exact cleanup), and `bun run cache:dev:down`. `bun run cache:compat` creates and tears down disposable real Valkey; `cache:unit` and `cache:telemetry` verify backendless behavior/safe optional signals. Values expire by default; advisory leases have no fencing/Redlock guarantees; pub/sub has no persistence/replay. See [evaluation](CACHE_COORDINATION_MODULE_EVALUATION.md) and [removal](docs/STARTING-A-PROJECT.md#remove-cache--coordination).

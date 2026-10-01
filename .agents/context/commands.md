@@ -14,6 +14,7 @@
 - `bun run capabilities:status`: read-only summary of completed add-on availability, reference-app enablement, generated-consumer defaults, relationships, and external requirements.
 - `bun run add-ons:compile [id ...]`: compile declared custom add-ons with the pinned official TanStack CLI; outputs stay at `capabilities/<id>/add-on.json`.
 - `bun run add-ons:test [id ...]`: reject stale compiled output, install each selected add-on into a clean disposable Start scaffold, verify official dependencies/assets/package additions, and build it.
+- `bun scripts/add-ons.ts serve <id>`: serve one custom add-on and its catalog dependency closure using CLI-compatible URL identities; required for Webhooks until upstream custom identity/publication is resolved.
 - `bun run add-ons:matrix`: print the completed custom add-on IDs used by CI's data-driven matrix.
 - `bun run api-platform:smoke`: verify hashed machine credentials, read/write permission enforcement, protected Projects operations, and OpenAPI validation against a migrated PostgreSQL database.
 - `bun run observability:smoke`: isolated safe logs/context/span/metric proof plus real trace/metric OTLP export to a temporary local receiver; requires no database or external backend.
@@ -51,3 +52,17 @@
 CI gives each completed add-on matrix job PostgreSQL so capability fixtures may declare clean migration/smoke commands. The main job uses the containerized migration path, runs all repository checks and Playwright, starts the production image, waits for its healthcheck, probes `/api/health`, `/api/openapi.json`, and `/docs/api`, and always tears the stack down.
 
 For a downstream lean application, follow `docs/STARTING-A-PROJECT.md`. Its Jobs-only, API-only, and combined removal recipes preserve database data/migration history by default and finish with capability governance, typecheck, and build verification.
+
+`bun run webhooks:unit` proves protocol/security; `bun run webhooks:smoke` owns disposable real HTTP receiver/sender and exercises existing Jobs retries on a migrated disposable database. `bun run add-ons:test webhooks` verifies transitive custom Jobs installation and removal retaining Jobs.
+
+- `bun run audit-log:smoke`: append, same-transaction commit/rollback, secret rejection and bounded cursor queries against a migrated non-production PostgreSQL database. Leaves safe test audit records by design.
+- `bun test src/integrations/audit-log src/features/projects/audit.integration.test.ts`: safety, clean migration/indexes, coupled commit/rollback/database failure, query ordering/keysets and root user/machine mapping. The clean-migration suite creates/drops its own disposable test database.
+- `bun run add-ons:test audit-log`: official Drizzle clean scaffold, PostgreSQL migration/smoke, runtime removal with retained history/schema and lean rebuild.
+
+- `bun run cache:unit`: backendless configuration/limits/errors/lazy lifecycle.
+- `bun run cache:check`: explicit read-only PING; requires CACHE_URL on use.
+- `bun run cache:smoke`: unique-prefix real contract and exact cleanup; never restarts user service.
+- `bun run cache:compat`: disposable pinned Valkey full contract, restart/recovery and finally teardown.
+- `bun run cache:dev:valkey` / `cache:dev:down`: separate ephemeral loopback development service.
+- `bun run cache:telemetry`: root optional safe app.cache.* signal verification without backend.
+- `bun run add-ons:test cache-coordination`: independent clean installation/build, real Valkey and clean removal/rebuild.

@@ -170,3 +170,5 @@ export const projects = pgTable(
 		index("project_owner_updated_idx").on(table.ownerId, table.updatedAt),
 	],
 );
+
+export { auditEvents } from "../integrations/audit-log/schema";

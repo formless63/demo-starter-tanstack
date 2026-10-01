@@ -1,0 +1,32 @@
+{
+	"id": "audit-log",
+	"name": "audit-log",
+	"displayName": "Audit Log",
+	"description": "Bounded append-oriented PostgreSQL audit events with caller-owned Drizzle transactions and keyset queries.",
+	"version": "1.0.0",
+	"type": "add-on",
+	"phase": "example",
+	"category": "database",
+	"modes": [
+		"file-router"
+	],
+	"dependsOn": [
+		"drizzle"
+	],
+	"packageAdditions": {
+		"dependencies": {
+			"drizzle-orm": "^0.45.1",
+			"pg": "^8.16.3",
+			"drizzle-kit": "^0.31.9",
+			"dotenv": "^17.3.1"
+		},
+		"scripts": {
+			"db:generate": "drizzle-kit generate",
+			"db:migrate": "drizzle-kit migrate",
+			"audit-log:smoke": "bun scripts/audit-log-smoke.ts"
+		}
+	},
+	"author": "TanStack Launchpad",
+	"license": "MIT",
+	"envVars": []
+}

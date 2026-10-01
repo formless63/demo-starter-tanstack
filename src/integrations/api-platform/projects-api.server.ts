@@ -2,6 +2,7 @@ import {
 	findProjectsForOwner,
 	insertProjectForOwner,
 } from "#/features/projects/projects.server";
+import { createAuditActor } from "#/integrations/audit-log/audit.server";
 import { requireApiKey } from "./principal.server";
 import {
 	createProjectOperation,
@@ -50,7 +51,11 @@ export async function createProjectApi(request: Request) {
 			request,
 			createProjectOperation.requestBody,
 		);
-		const project = await insertProjectForOwner(principal.userId, data);
+		const project = await insertProjectForOwner(
+			principal.userId,
+			data,
+			createAuditActor("machine", principal.keyId),
+		);
 		return Response.json(
 			projectCreateResponseApiSchema.parse({ data: serializeProject(project) }),
 			{ status: 201 },
