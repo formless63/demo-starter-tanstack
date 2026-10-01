@@ -41,6 +41,10 @@
     ],
     [
       "bun",
+      "scripts/ops-consumer-fixture.ts"
+    ],
+    [
+      "bun",
       "run",
       "build"
     ],

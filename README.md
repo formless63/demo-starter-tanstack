@@ -35,6 +35,7 @@ Baseline components are not optional capability modules. Future integrations in 
 
 | Capability | Status | Default | Hard requirements | Purpose | Contract |
 | --- | --- | --- | --- | --- | --- |
+| Ops / Admin | In progress | Optional | Baseline Better Auth + Node runtime | Read-only operational overview, explicit safe adapters | [Ops contract](capabilities/ops-admin/CAPABILITY.md) |
 | Jobs | Done | Optional | Baseline PostgreSQL + Drizzle | Typed pg-boss queues, explicit migration, worker, transactional enqueue | [Jobs contract](capabilities/jobs/CAPABILITY.md) |
 | API Platform | Done | Optional | Baseline Better Auth + PostgreSQL/Drizzle + server runtime | User-owned machine keys, typed permissions, native v1 API, OpenAPI 3.1.1, Scalar | [API Platform contract](capabilities/api-platform/CAPABILITY.md) |
 | Observability | Done | Optional | Baseline Start + Node runtime; no capability dependency | Safe JSON logs, request IDs, server traces/metrics, optional OTLP | [Observability contract](capabilities/observability/CAPABILITY.md) |

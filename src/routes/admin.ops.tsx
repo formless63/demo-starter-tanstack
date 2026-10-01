@@ -2,6 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { loadOps } from "#/integrations/ops-admin/ops.functions";
 import type { OpsSummary } from "#/integrations/ops-admin/ops.server";
+import { authClient } from "#/lib/auth-client";
 export const Route = createFileRoute("/admin/ops")({
 	loader: async () => {
 		const result = await loadOps();
@@ -15,10 +16,12 @@ function OpsPage() {
 	const initial = Route.useLoaderData();
 	const [result, setResult] = useState(initial);
 	const [pending, setPending] = useState(false);
+	const [ready, setReady] = useState(false);
 	const inFlight = useRef(false);
 	const generation = useRef(0);
 	useEffect(() => {
 		generation.current++;
+		setReady(true);
 		setResult(initial);
 		return () => {
 			generation.current++;
@@ -50,6 +53,30 @@ function OpsPage() {
 	return (
 		<main className="mx-auto max-w-5xl space-y-6 p-6">
 			<h1 className="text-2xl font-semibold">Operational overview</h1>
+			<a href="/app/projects" className="underline">
+				Back to app
+			</a>
+			<button
+				type="button"
+				className="rounded border px-4 py-2"
+				disabled={!ready}
+				onClick={async () => {
+					generation.current++;
+					setReady(false);
+					setResult({
+						status: 401,
+						body: {
+							code: "unauthenticated",
+							message: "Authentication is required.",
+							retryable: false,
+						},
+					});
+					await authClient.signOut();
+					window.location.href = "/";
+				}}
+			>
+				Sign out
+			</button>
 			<p>
 				Read-only diagnostics. Cached provider metadata may be stale; this view
 				is not readiness.
@@ -57,7 +84,7 @@ function OpsPage() {
 			<button
 				type="button"
 				className="rounded border px-4 py-2"
-				disabled={pending}
+				disabled={pending || !ready}
 				onClick={refresh}
 				aria-busy={pending}
 			>
