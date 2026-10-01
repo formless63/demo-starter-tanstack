@@ -413,7 +413,7 @@ function OrganizationsPage() {
 						<ul>
 							{summary.data.notes.map((note) => (
 								<li className="flex gap-3 py-2" key={note.id}>
-									{note.title}
+									<span>{note.title}</span>
 									{summary.data.context.role !== "member" && (
 										<button
 											disabled={busy}

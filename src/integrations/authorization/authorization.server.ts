@@ -17,6 +17,9 @@ export type AuthorizationTransaction = Pick<
 	NodePgDatabase,
 	"select" | "insert" | "delete" | "execute"
 >;
+export interface AuthorizationDatabase {
+	transaction<T>(run: (tx: AuthorizationTransaction) => Promise<T>): Promise<T>;
+}
 export interface AuthorizationContext {
 	readonly userId?: string;
 	readonly scope: Scope;
@@ -184,7 +187,7 @@ export function defineAuthorization(
 		}
 	}
 	async function authorize(
-		db: NodePgDatabase,
+		db: AuthorizationDatabase,
 		context: AuthorizationContext,
 		action: string,
 		resource?: unknown,
@@ -246,6 +249,8 @@ export function defineAuthorization(
 		input: { scope: Scope; userId: string; roleId: string },
 		operation: "grant" | "revoke",
 	) {
+		if (!input || typeof input !== "object" || Array.isArray(input))
+			throw new AuthorizationError("invalid-input");
 		const scope = exactScope(input.scope),
 			userId = opaqueId(input.userId),
 			roleId = actionId(input.roleId, 64, false);
@@ -353,7 +358,7 @@ export function defineAuthorization(
 		}
 	}
 	async function owned<T>(
-		db: NodePgDatabase,
+		db: AuthorizationDatabase,
 		run: (tx: AuthorizationTransaction) => Promise<T>,
 	): Promise<T> {
 		try {
@@ -366,14 +371,14 @@ export function defineAuthorization(
 		authorizeInTransaction,
 		authorize,
 		can: async (
-			db: NodePgDatabase,
+			db: AuthorizationDatabase,
 			context: AuthorizationContext,
 			action: string,
 			resource?: unknown,
 		) => (await authorize(db, context, action, resource)).allowed,
 		requirePermissionInTransaction,
 		requirePermission: async (
-			db: NodePgDatabase,
+			db: AuthorizationDatabase,
 			context: AuthorizationContext,
 			action: string,
 			resource?: unknown,
@@ -393,18 +398,18 @@ export function defineAuthorization(
 			input: { scope: Scope; userId: string; roleId: string },
 		) => mutate(tx, actor, input, "revoke"),
 		grantRole: (
-			db: NodePgDatabase,
+			db: AuthorizationDatabase,
 			actor: AuthorizationContext,
 			input: { scope: Scope; userId: string; roleId: string },
 		) => owned(db, (tx) => mutate(tx, actor, input, "grant")),
 		revokeRole: (
-			db: NodePgDatabase,
+			db: AuthorizationDatabase,
 			actor: AuthorizationContext,
 			input: { scope: Scope; userId: string; roleId: string },
 		) => owned(db, (tx) => mutate(tx, actor, input, "revoke")),
 		listAssignmentsInTransaction,
 		listAssignments: (
-			db: NodePgDatabase,
+			db: AuthorizationDatabase,
 			actor: AuthorizationContext,
 			scope: Scope,
 			input: { limit?: number; cursor?: string } = {},

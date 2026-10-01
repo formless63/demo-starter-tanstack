@@ -77,6 +77,21 @@ try{
  const second=await call("createOrganization",{name:"Second",slug:"second-org"},"other",true);
  const parallel=await Promise.all([resolveTenantContext({id:"owner"},id,db),resolveTenantContext({id:"other"},String(second.id),db)]);assert.notEqual(parallel[0].scope.id,parallel[1].scope.id);
  assert.equal((await listOwnOrganizations({id:"owner"},db,{limit:1})).items.length,1);
+
+ // Database defenses and provisioning failure never establish a usable tenant.
+ await assert.rejects(pool.query("INSERT INTO member (id,organization_id,user_id,role,created_at) VALUES ($1,$2,'owner','member',now())",[randomUUID(),id]));
+ await assert.rejects(pool.query("INSERT INTO member (id,organization_id,user_id,role,created_at) VALUES ($1,$2,'other','owner',now())",[randomUUID(),id]));
+ await assert.rejects(pool.query("INSERT INTO member (id,organization_id,user_id,role,created_at) VALUES ($1,$2,'other','admin,member',now())",[randomUUID(),id]));
+ const limited=defineOrganizations({ORGANIZATIONS_CREATION_LIMIT:"1"});
+ const limitedAuth=betterAuth({baseURL:"http://localhost:3000",secret,database:createOrganizationsDrizzleAdapter(db),logger:{disabled:true},plugins:[limited.plugin],hooks:{before:limited.before,after:limited.after},onAPIError:limited.onAPIError});
+ await assert.rejects(limitedAuth.api.createOrganization({headers:headers("owner"),body:{name:"Denied",slug:"denied-limit"}}));
+ await pool.query("CREATE FUNCTION fail_fixture_creator() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.role='owner' THEN RAISE EXCEPTION 'private-provisioning-fixture'; END IF; RETURN NEW; END $$; CREATE TRIGGER fail_fixture_creator BEFORE INSERT ON member FOR EACH ROW EXECUTE FUNCTION fail_fixture_creator()");
+ for(const http of [false,true]){
+  const slug=`orphan-${http?"http":"api"}`;
+  await assert.rejects(call("createOrganization",{name:"Provisioning failure",slug},"owner",http),error=>{assert.ok(!String(error).includes("private-provisioning-fixture"));assert.ok(!String(error).includes("INSERT"));return true;});
+  const orphan:{rows:{id:string}[];rowCount:number|null}=await pool.query("SELECT id FROM organization WHERE slug=$1",[slug]);assert.equal(orphan.rowCount,1);await assert.rejects(resolveTenantContext({id:"owner"},String(orphan.rows[0].id),db));assert.equal((await diagnoseOrganizationAdmission(db,{kind:"operator"},String(orphan.rows[0].id))).hasSingleOwner,false);
+ }
+ await pool.query("DROP TRIGGER fail_fixture_creator ON member; DROP FUNCTION fail_fixture_creator()");
  const failureInvite=await call("inviteMember",{organizationId:id,email:"recipient@example.test"});
  await pool.query("CREATE FUNCTION fail_fixture_member() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'fixture-only failure'; END $$; CREATE TRIGGER fail_fixture_member BEFORE INSERT ON member FOR EACH ROW EXECUTE FUNCTION fail_fixture_member()");
  for(const http of [false,true]){await assert.rejects(call("acceptInvitation",{invitationId:failureInvite.id},"recipient",http));assert.equal((await pool.query("SELECT status FROM invitation WHERE id=$1",[failureInvite.id])).rows[0].status,"pending");}

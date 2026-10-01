@@ -37,5 +37,12 @@
       "--noEmit"
     ]
   ],
-  "build": true
+  "build": true,
+  "postBuildVerificationCommands": [
+    [
+      "bun",
+      "capabilities/feature-flags/test/lifecycle.ts",
+      "feature-flags"
+    ]
+  ]
 }

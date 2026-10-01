@@ -3,6 +3,8 @@ import {
 	insertProjectForOwner,
 } from "#/features/projects/projects.server";
 import { createAuditActor } from "#/integrations/audit-log/audit.server";
+import { personalPolicyContext } from "#/lib/application-policy.server";
+import type { ApiPrincipal } from "./principal.server";
 import { requireApiKey } from "./principal.server";
 import {
 	createProjectOperation,
@@ -12,6 +14,15 @@ import {
 } from "./projects.contracts";
 import { apiErrorResponse, parseJsonBody } from "./responses";
 
+function policyContext(principal: ApiPrincipal) {
+	return {
+		...personalPolicyContext(principal.userId),
+		credentialAllows: (action: string) =>
+			principal.permissions.projects.includes(
+				action === "projects.read" ? "read" : "write",
+			),
+	};
+}
 function serializeProject(project: {
 	id: string;
 	name: string;
@@ -32,7 +43,10 @@ export async function listProjectsApi(request: Request) {
 			request,
 			listProjectsOperation.permissions,
 		);
-		const projects = await findProjectsForOwner(principal.userId);
+		const projects = await findProjectsForOwner(
+			principal.userId,
+			policyContext(principal),
+		);
 		return Response.json(
 			projectListApiSchema.parse({ data: projects.map(serializeProject) }),
 		);
@@ -55,6 +69,7 @@ export async function createProjectApi(request: Request) {
 			principal.userId,
 			data,
 			createAuditActor("machine", principal.keyId),
+			policyContext(principal),
 		);
 		return Response.json(
 			projectCreateResponseApiSchema.parse({ data: serializeProject(project) }),

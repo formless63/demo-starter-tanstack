@@ -182,3 +182,15 @@ Notifications owns durable records/read state and uses caller DB/transaction exe
 `0004_tough_mindworm.sql` is the new additive reviewed root migration; previously applied files remain unchanged. Notifications removal retains schema/validation types, table/data, migrations and Jobs; Realtime removal has no database/external-data effect. See the two contracts and the starting guide for exact limits and removal edits. Generic completed-add-on discovery covers both clean fixtures; root verification additionally tests real cookie auth, optional two-process Valkey fanout and Node-worker SMTP/ntfy delivery.
 
 The integrated migration journal retains both original additive SQL files and timestamps: Search is entry 4 (`0004_search`) and Notifications entry 5 (`0004_tough_mindworm`). Snapshot 0004 remains Search; snapshot 0005 combines both schemas and links to snapshot 0004. Applied baseline migrations are unchanged. Branch-specific deployed databases must be reviewed against their recorded migration history before upgrade.
+
+## Identity policy capabilities
+
+Organizations, Authorization and Feature Flags are three independent opt-in add-ons, currently in-progress. The root reference composes their auth/UI/policy/projection; catalog enablement is finalized only after completion gates. Generic lifecycle CI discovers installable in-progress authoring alongside completed add-ons, so unfinished work is tested without claiming completion.
+
+| ID | Official prerequisites | Optional application integrations | Canonical contract |
+| --- | --- | --- | --- |
+| organizations | Better Auth, Drizzle; baseline PostgreSQL/Node | Audit, Notifications | [Organizations](../capabilities/organizations/CAPABILITY.md) |
+| authorization | Better Auth, Drizzle; baseline PostgreSQL/Node | Organizations, API Platform, Audit | [Authorization](../capabilities/authorization/CAPABILITY.md) |
+| feature-flags | Drizzle; baseline PostgreSQL/Node | Organizations, Authorization, Audit; baseline Authentication | [Feature Flags](../capabilities/feature-flags/CAPABILITY.md) |
+
+Install and prove each using `bun run add-ons:test <id>`. Shared auth/schema overlays require review when composing customized consumers; the CLI does not provide semantic merges/uninstall transactions. Preserve applied SQL/journals/data on removal. Membership lookup authorizes tenant context; active selection is UX only. Assignment evaluation uses exact scope, explicit resource predicates and credential intersections. Flags never authorize and expose only the fixed root boolean allowlist. See the contracts for precise bounds, errors, transaction ownership and native invitation crash limitations.

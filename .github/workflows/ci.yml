@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v5
       - id: catalog
         run: |
-          capability_matrix=$(jq -c '[.capabilities[] | select(.status == "done" and .tanstackAddOn != null) | .id]' capabilities/catalog.json)
+          capability_matrix=$(jq -c '[.capabilities[] | select((.status == "done" or .status == "in-progress") and .tanstackAddOn != null) | .id]' capabilities/catalog.json)
           echo "capabilities=$capability_matrix" >> "$GITHUB_OUTPUT"
 
   custom-add-ons:

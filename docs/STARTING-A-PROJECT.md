@@ -218,3 +218,21 @@ To add AI to a lean generated consumer, explicitly select `capabilities/ai/add-o
 5. If also pruning authoring, remove `capabilities/search/`, `SEARCH_MODULE_EVALUATION.md` and `.agents/skills/search-change/`, retain stable catalog ID as deferred, remove implementation metadata and update ROADMAP/docs. Other capability statuses stay unchanged.
 
 Removing Search code never deletes application records. Dropping the generated column/index later requires a new explicit reviewed migration; preserve applied migration history. There is no CLI uninstall transaction. The clean lifecycle fixture builds before removal and after removal, proving retained domain records, generated vector, schema helper and migration hashes.
+
+## Identity policy capabilities
+
+Each independent consumer is opt-in: select `capabilities/organizations/add-on.json`, `capabilities/authorization/add-on.json` or `capabilities/feature-flags/add-on.json` through the generic CLI. Review shared auth/schema/config overlays before combining them; use existing journals and generate additive migrations in a deployed application. Never replace an applied journal with a fresh scaffold journal. The root's notes example remains separate from personal Projects.
+
+### Remove Organizations
+
+Remove the organization plugin/global hooks/client plugin, dedicated auth pool, settings/env entries, organization route/navigation and notes application. Restore baseline auth's existing API-key/magic-link/OIDC dispatch hooks and adapter while preserving their behavior. Remove the optional tenant resolver/mapped-role adapters from application policy and the tenant selection in Flags projection; unresolved tenant scopes must deny. Personal Projects remain owner-filtered. Retain organization/member/invitation/note tables and native session column data, schema-only declarations and migrations0006/history. Keeping schema-only declarations in the migration configuration prevents accidental future drops; plugin registration/client projections can be removed without changing stored columns. Stop any organization-scoped jobs or give them an authoritative replacement resolver; stale active selection is never access. Do not delete owners/data or auto-reassign orphan organizations. Operator diagnostic/recovery is documented in the [contract](../capabilities/organizations/CAPABILITY.md).
+
+### Remove Authorization
+
+Restore explicit personal owner checks and current-member/read + owner/admin/write notes checks before removing `application-policy.server.ts` and policy calls. Remove machine-key policy adapter while keeping baseline credential verification/grants/rate limits. No protected route may lose its original predicate/guard. Delete evaluator/validation integration code and its CLI grant/revoke path; retain schema-only assignment declarations, tables and migration0007/history. Organizations native administrative permissions remain valid. Flags retain their own trusted management guard and existing security boundaries.
+
+### Remove Feature Flags
+
+Remove `/api/flags`, product hook/panel, operator flag commands and provider/evaluator code; the panel defaults to absent. Preserve ordinary Authentication/Authorization and resource predicates. Retain schema-only definition/override declarations, tables and migration0008/history. No target/membership cleanup, remote service or environment setting is implied. Disable is a reversible management action; data deletion is a separate operator-approved additive destructive migration.
+
+For every removal run governance/typecheck/build, relevant backend and development/production browser coverage, both explicit migrations, worker and production health. Generic fixtures prove independent runtime removal/rebuild with retained data and exact migration history. Removing reusable authoring is separate: prune the exact capability/evaluation, remove implementation metadata, retain stable catalog ID as deferred and update roadmap/docs. Do not remove unrelated capabilities.

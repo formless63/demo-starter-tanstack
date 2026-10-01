@@ -42,6 +42,7 @@ export function actionId(value: unknown, max = 128, requireDot = true): string {
 	if (
 		typeof value !== "string" ||
 		value.length > max ||
+		value.trim() !== value ||
 		!/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(value) ||
 		(requireDot && !value.includes("."))
 	)

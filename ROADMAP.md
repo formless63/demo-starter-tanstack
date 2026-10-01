@@ -157,3 +157,8 @@ Agent-led existing-material onboarding, portable `.project` profiles/provenance/
 Bounded baseline maintenance aligns Better Auth/API Key and the bundled Drizzle adapter at 1.7.7, canonical Jobs process roles/native attempt context and routing-safe transactional enqueue, and Project input limits (name 120, description 1000). All twelve completed capabilities remain opt-in for clean consumers and enabled in the root reference; baseline maintenance adds no hard capability edges.
 
 Search v1 uses explicit simple PostgreSQL18 full-text search, weighted A/B STORED vectors and GIN in application-owned tables, ts_rank_cd normalization32 and bounded canonical numeric-float4 keysets with six-digit timestamps and opaque IDs. The disposable lifecycle database survives the generic final removal build before rows/vector/GIN/history checks and teardown. The root Projects POST integration enforces existing owners. Add-on assets install no universal search table or production domain migration.
+
+
+### Identity policy Wave 2
+
+Organizations → Authorization → Feature Flags are independently packaged and in-progress, with reference composition and isolated PostgreSQL/lifecycle proofs under development. See their capability contracts and decision documents; final root/browser/production/exact-head CI gates govern completion. Native Better Auth admission bounds are not serialized quotas, and its invitation claim/membership crash window is documented explicitly.

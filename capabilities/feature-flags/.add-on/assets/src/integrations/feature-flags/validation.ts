@@ -42,6 +42,7 @@ export function actionId(value: unknown, max = 128, requireDot = true): string {
 	if (
 		typeof value !== "string" ||
 		value.length > max ||
+		value.trim() !== value ||
 		!/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(value) ||
 		(requireDot && !value.includes("."))
 	)
@@ -68,7 +69,10 @@ export function cursorFor(row: { id: string; createdAt: Date }) {
 		JSON.stringify([1, row.createdAt.toISOString(), row.id]),
 	).toString("base64url");
 }
-export function pageInput(input: { limit?: number; cursor?: string } = {}) {
+export function pageInput(
+	input: { limit?: number; cursor?: string } = {},
+	kind: "key" | "uuid" = "uuid",
+) {
 	const limit = input.limit ?? 25;
 	if (!Number.isInteger(limit) || limit < 1 || limit > 100)
 		throw new FeatureFlagsError("invalid-input");
@@ -93,6 +97,13 @@ export function pageInput(input: { limit?: number; cursor?: string } = {}) {
 				typeof tuple[2] !== "string" ||
 				tuple[2].length < 1 ||
 				tuple[2].length > 128
+			)
+				throw 0;
+			if (kind === "key") actionId(tuple[2], 128, false);
+			else if (
+				!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(
+					tuple[2],
+				)
 			)
 				throw 0;
 			cursor = { createdAt: new Date(tuple[1]), id: tuple[2] };

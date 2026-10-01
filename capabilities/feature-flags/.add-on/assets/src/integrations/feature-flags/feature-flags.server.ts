@@ -36,6 +36,9 @@ export type FlagTransaction = Pick<
 	NodePgDatabase,
 	"select" | "insert" | "update" | "delete" | "execute"
 >;
+export interface FlagDatabase {
+	transaction<T>(run: (tx: FlagTransaction) => Promise<T>): Promise<T>;
+}
 export interface FlagActor {
 	readonly userId: string;
 	readonly authority?: "operator";
@@ -139,7 +142,7 @@ export function defineFeatureFlags(options: FlagOptions = {}) {
 			throw new FeatureFlagsError("forbidden");
 	}
 	async function owned<T>(
-		db: NodePgDatabase,
+		db: FlagDatabase,
 		run: (tx: FlagTransaction) => Promise<T>,
 	): Promise<T> {
 		try {
@@ -152,7 +155,7 @@ export function defineFeatureFlags(options: FlagOptions = {}) {
 		}
 	}
 	async function evaluateMany(
-		db: NodePgDatabase,
+		db: FlagDatabase,
 		keys: readonly string[],
 		context: FlagContext,
 	): Promise<Record<string, FlagDetails>> {
@@ -281,6 +284,8 @@ export function defineFeatureFlags(options: FlagOptions = {}) {
 			rolloutBasisPoints?: number | null;
 		},
 	) {
+		if (!input || typeof input !== "object" || Array.isArray(input))
+			throw new FeatureFlagsError("invalid-input");
 		const key = keyId(input.key),
 			values = definitionValues({
 				description: input.description ?? "",
@@ -328,6 +333,8 @@ export function defineFeatureFlags(options: FlagOptions = {}) {
 			rolloutBasisPoints?: number | null;
 		},
 	) {
+		if (!input || typeof input !== "object" || Array.isArray(input))
+			throw new FeatureFlagsError("invalid-input");
 		const key = keyId(input.key),
 			revision = expected(input.expectedRevision);
 		if (
@@ -390,6 +397,8 @@ export function defineFeatureFlags(options: FlagOptions = {}) {
 		},
 		remove = false,
 	) {
+		if (!input || typeof input !== "object" || Array.isArray(input))
+			throw new FeatureFlagsError("invalid-input");
 		const key = keyId(input.key),
 			revision = expected(input.expectedRevision),
 			targetId = opaqueId(input.targetId);
@@ -444,7 +453,7 @@ export function defineFeatureFlags(options: FlagOptions = {}) {
 		actor: FlagActor,
 		input: { limit?: number; cursor?: string } = {},
 	) {
-		const { limit, cursor } = pageInput(input);
+		const { limit, cursor } = pageInput(input, "key");
 		try {
 			await setFlagTransactionBounds(tx);
 			await guard(tx, actor, "list");
@@ -507,24 +516,24 @@ export function defineFeatureFlags(options: FlagOptions = {}) {
 	return Object.freeze({
 		evaluateMany,
 		evaluateBooleanDetails: async (
-			db: NodePgDatabase,
+			db: FlagDatabase,
 			key: string,
 			context: FlagContext,
 		) => (await evaluateMany(db, [key], context))[key],
 		evaluateBoolean: async (
-			db: NodePgDatabase,
+			db: FlagDatabase,
 			key: string,
 			context: FlagContext,
 		) => (await evaluateMany(db, [key], context))[key].value,
 		createDefinitionInTransaction: createInTransaction,
 		createDefinition: (
-			db: NodePgDatabase,
+			db: FlagDatabase,
 			actor: FlagActor,
 			input: Parameters<typeof createInTransaction>[2],
 		) => owned(db, (tx) => createInTransaction(tx, actor, input)),
 		updateDefinitionInTransaction: updateInTransaction,
 		updateDefinition: (
-			db: NodePgDatabase,
+			db: FlagDatabase,
 			actor: FlagActor,
 			input: Parameters<typeof updateInTransaction>[2],
 		) => owned(db, (tx) => updateInTransaction(tx, actor, input)),
@@ -534,7 +543,7 @@ export function defineFeatureFlags(options: FlagOptions = {}) {
 			input: Parameters<typeof overrideInTransaction>[2],
 		) => overrideInTransaction(tx, actor, input),
 		setOverride: (
-			db: NodePgDatabase,
+			db: FlagDatabase,
 			actor: FlagActor,
 			input: Parameters<typeof overrideInTransaction>[2],
 		) => owned(db, (tx) => overrideInTransaction(tx, actor, input)),
@@ -544,19 +553,19 @@ export function defineFeatureFlags(options: FlagOptions = {}) {
 			input: Omit<Parameters<typeof overrideInTransaction>[2], "value">,
 		) => overrideInTransaction(tx, actor, input, true),
 		removeOverride: (
-			db: NodePgDatabase,
+			db: FlagDatabase,
 			actor: FlagActor,
 			input: Omit<Parameters<typeof overrideInTransaction>[2], "value">,
 		) => owned(db, (tx) => overrideInTransaction(tx, actor, input, true)),
 		listDefinitionsInTransaction,
 		listDefinitions: (
-			db: NodePgDatabase,
+			db: FlagDatabase,
 			actor: FlagActor,
 			input: Parameters<typeof listDefinitionsInTransaction>[2] = {},
 		) => owned(db, (tx) => listDefinitionsInTransaction(tx, actor, input)),
 		listOverridesInTransaction,
 		listOverrides: (
-			db: NodePgDatabase,
+			db: FlagDatabase,
 			actor: FlagActor,
 			key: string,
 			input: Parameters<typeof listOverridesInTransaction>[3] = {},

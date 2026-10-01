@@ -44,5 +44,12 @@
       "--noEmit"
     ]
   ],
-  "build": true
+  "build": true,
+  "postBuildVerificationCommands": [
+    [
+      "bun",
+      "capabilities/organizations/test/lifecycle.ts",
+      "organizations"
+    ]
+  ]
 }

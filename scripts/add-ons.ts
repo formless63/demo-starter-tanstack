@@ -411,7 +411,7 @@ const addOns = selectedAddOns(catalog, command === "test-composition" ? [] : req
 if (command === "matrix") {
 	console.info(
 		JSON.stringify(
-			addOns.filter(({ status }) => status === "done").map(({ id }) => id),
+			addOns.filter(({ status }) => status === "done" || status === "in-progress").map(({ id }) => id),
 		),
 	);
 } else if (command === "serve") {

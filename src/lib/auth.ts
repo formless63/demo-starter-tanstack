@@ -100,6 +100,11 @@ export const auth = betterAuth({
 	secret: env.BETTER_AUTH_SECRET,
 	database: createOrganizationsDrizzleAdapter(organizationsAuthDatabase.db),
 	emailAndPassword: { enabled: false },
+	session: {
+		additionalFields: {
+			activeOrganizationId: { type: "string", required: false, input: false },
+		},
+	},
 	socialProviders:
 		env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
 			? {

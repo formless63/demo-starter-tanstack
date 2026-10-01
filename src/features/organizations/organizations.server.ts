@@ -1,6 +1,7 @@
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "#/db";
+import { AuthorizationError } from "#/integrations/authorization/validation";
 import {
 	listOrganizationMembers,
 	listOwnOrganizations,
@@ -12,6 +13,7 @@ import {
 	OrganizationError,
 	opaqueId,
 } from "#/integrations/organizations/validation";
+import { applicationPolicy } from "#/lib/application-policy.server";
 import { auth } from "#/lib/auth";
 import { organizationNotes } from "./schema";
 
@@ -28,6 +30,14 @@ export async function ownOrganizations() {
 			return listOwnOrganizations(user, tx);
 		});
 	} catch (error) {
+		if (error instanceof AuthorizationError)
+			throw new OrganizationError(
+				error.code === "forbidden"
+					? "forbidden"
+					: error.code === "timeout"
+						? "timeout"
+						: "unavailable",
+			);
 		throw normalizeOrganizationError(error);
 	}
 }
@@ -37,6 +47,11 @@ export async function organizationSummary(id: string) {
 		return await db.transaction(async (tx) => {
 			await setOrganizationTransactionBounds(tx);
 			const context = await resolveTenantContext(user, id, tx);
+			await applicationPolicy.requirePermissionInTransaction(
+				tx,
+				context,
+				"notes.read",
+			);
 			const members = await listOrganizationMembers(user, id, tx);
 			const notes = await tx
 				.select()
@@ -47,6 +62,14 @@ export async function organizationSummary(id: string) {
 			return { context, members: members.items, notes };
 		});
 	} catch (error) {
+		if (error instanceof AuthorizationError)
+			throw new OrganizationError(
+				error.code === "forbidden"
+					? "forbidden"
+					: error.code === "timeout"
+						? "timeout"
+						: "unavailable",
+			);
 		throw normalizeOrganizationError(error);
 	}
 }
@@ -55,6 +78,8 @@ export async function createNote(input: {
 	title: string;
 }) {
 	const user = await actor();
+	if (!input || typeof input !== "object" || Array.isArray(input))
+		throw new OrganizationError("invalid-input");
 	const organizationId = opaqueId(input.organizationId);
 	if (typeof input.title !== "string")
 		throw new OrganizationError("invalid-input");
@@ -73,7 +98,11 @@ export async function createNote(input: {
 			const context = await resolveTenantContext(user, organizationId, tx, {
 				lock: true,
 			});
-			if (context.role === "member") throw new OrganizationError("forbidden");
+			await applicationPolicy.requirePermissionInTransaction(
+				tx,
+				context,
+				"notes.write",
+			);
 			const [note] = await tx
 				.insert(organizationNotes)
 				.values({
@@ -85,6 +114,14 @@ export async function createNote(input: {
 			return note;
 		});
 	} catch (error) {
+		if (error instanceof AuthorizationError)
+			throw new OrganizationError(
+				error.code === "forbidden"
+					? "forbidden"
+					: error.code === "timeout"
+						? "timeout"
+						: "unavailable",
+			);
 		throw normalizeOrganizationError(error);
 	}
 }
@@ -93,6 +130,8 @@ export async function removeNote(input: {
 	id: string;
 }) {
 	const user = await actor();
+	if (!input || typeof input !== "object" || Array.isArray(input))
+		throw new OrganizationError("invalid-input");
 	const organizationId = opaqueId(input.organizationId);
 	const id = opaqueId(input.id);
 	try {
@@ -101,7 +140,22 @@ export async function removeNote(input: {
 			const context = await resolveTenantContext(user, organizationId, tx, {
 				lock: true,
 			});
-			if (context.role === "member") throw new OrganizationError("forbidden");
+			const [existing] = await tx
+				.select({ id: organizationNotes.id })
+				.from(organizationNotes)
+				.where(
+					and(
+						eq(organizationNotes.organizationId, context.scope.id),
+						eq(organizationNotes.id, id),
+					),
+				)
+				.for("update");
+			if (!existing) throw new OrganizationError("not-found");
+			await applicationPolicy.requirePermissionInTransaction(
+				tx,
+				context,
+				"notes.write",
+			);
 			const [note] = await tx
 				.delete(organizationNotes)
 				.where(
@@ -115,6 +169,116 @@ export async function removeNote(input: {
 			return note;
 		});
 	} catch (error) {
+		if (error instanceof AuthorizationError)
+			throw new OrganizationError(
+				error.code === "forbidden"
+					? "forbidden"
+					: error.code === "timeout"
+						? "timeout"
+						: "unavailable",
+			);
+		throw normalizeOrganizationError(error);
+	}
+}
+
+export async function getNote(input: { organizationId: string; id: string }) {
+	const user = await actor();
+	if (!input || typeof input !== "object")
+		throw new OrganizationError("invalid-input");
+	const organizationId = opaqueId(input.organizationId),
+		id = opaqueId(input.id);
+	try {
+		return await db.transaction(async (tx) => {
+			await setOrganizationTransactionBounds(tx);
+			const context = await resolveTenantContext(user, organizationId, tx);
+			const [note] = await tx
+				.select()
+				.from(organizationNotes)
+				.where(
+					and(
+						eq(organizationNotes.organizationId, context.scope.id),
+						eq(organizationNotes.id, id),
+					),
+				)
+				.limit(1);
+			if (!note) throw new OrganizationError("not-found");
+			await applicationPolicy.requirePermissionInTransaction(
+				tx,
+				context,
+				"notes.read",
+			);
+			return note;
+		});
+	} catch (error) {
+		if (error instanceof AuthorizationError)
+			throw new OrganizationError(
+				error.code === "forbidden"
+					? "forbidden"
+					: error.code === "timeout"
+						? "timeout"
+						: "unavailable",
+			);
+		throw normalizeOrganizationError(error);
+	}
+}
+export async function updateNote(input: {
+	organizationId: string;
+	id: string;
+	title: string;
+}) {
+	const user = await actor();
+	if (!input || typeof input !== "object")
+		throw new OrganizationError("invalid-input");
+	const organizationId = opaqueId(input.organizationId),
+		id = opaqueId(input.id);
+	if (typeof input.title !== "string")
+		throw new OrganizationError("invalid-input");
+	const title = input.title.trim();
+	if (
+		title.length < 1 ||
+		title.length > 120 ||
+		Array.from(title).some(
+			(c) => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127,
+		)
+	)
+		throw new OrganizationError("invalid-input");
+	try {
+		return await db.transaction(async (tx) => {
+			await setOrganizationTransactionBounds(tx);
+			const context = await resolveTenantContext(user, organizationId, tx, {
+				lock: true,
+			});
+			const predicate = and(
+				eq(organizationNotes.organizationId, context.scope.id),
+				eq(organizationNotes.id, id),
+			);
+			const [existing] = await tx
+				.select({ id: organizationNotes.id })
+				.from(organizationNotes)
+				.where(predicate)
+				.for("update");
+			if (!existing) throw new OrganizationError("not-found");
+			await applicationPolicy.requirePermissionInTransaction(
+				tx,
+				context,
+				"notes.write",
+			);
+			const [note] = await tx
+				.update(organizationNotes)
+				.set({ title, updatedAt: new Date() })
+				.where(predicate)
+				.returning();
+			return note;
+		});
+	} catch (error) {
+		if (error instanceof AuthorizationError)
+			throw new OrganizationError(
+				error.code === "forbidden"
+					? "forbidden"
+					: error.code === "timeout"
+						? "timeout"
+						: "unavailable",
+			);
 		throw normalizeOrganizationError(error);
 	}
 }

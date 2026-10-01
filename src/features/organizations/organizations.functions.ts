@@ -21,3 +21,15 @@ export const deleteOrganizationNote = createServerFn({ method: "POST" })
 	.handler(async ({ data }) =>
 		(await import("./organizations.server")).removeNote(data),
 	);
+export const getOrganizationNote = createServerFn({ method: "POST" })
+	.validator((data: { organizationId: string; id: string }) => data)
+	.handler(async ({ data }) =>
+		(await import("./organizations.server")).getNote(data),
+	);
+export const updateOrganizationNote = createServerFn({ method: "POST" })
+	.validator(
+		(data: { organizationId: string; id: string; title: string }) => data,
+	)
+	.handler(async ({ data }) =>
+		(await import("./organizations.server")).updateNote(data),
+	);
