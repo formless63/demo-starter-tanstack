@@ -35,12 +35,26 @@ export function sessionContext(root: string, execute: Runner = run): string {
 			lines.push(`Capabilities: ${summaries.slice(0, 32).join("; ")}.`);
 	} else lines.push("Capabilities: status temporarily unavailable.");
 	if (existsSync(resolve(root, ".project/config.json"))) {
-        const project = execute(root, "bun", ["run", "project:status", "--session"], 3000);
-        if (project.ok) {
-            const allowed = /^(?:Project: [A-Za-z0-9 ._-]{1,80}|Capabilities: (?:[a-z][a-z0-9-]*(?:, )?)+|Appearance: theme=[a-z][a-z0-9-]*; mode=(?:light|dark|system))$/;
-            lines.push(...project.output.split("\n").filter(line => allowed.test(line) && line.length <= 200).slice(0,3));
-        } else lines.push("Project: profile validation needs attention; run project:check.");
-    }
+		const project = execute(
+			root,
+			"bun",
+			["run", "project:status", "--session"],
+			3000,
+		);
+		if (project.ok) {
+			const allowed =
+				/^(?:Project: [A-Za-z0-9 ._-]{1,80}|Capabilities: (?:[a-z][a-z0-9-]*(?:, )?)+|Appearance: theme=[a-z][a-z0-9-]*; mode=(?:light|dark|system))$/;
+			lines.push(
+				...project.output
+					.split("\n")
+					.filter((line) => allowed.test(line) && line.length <= 200)
+					.slice(0, 3),
+			);
+		} else
+			lines.push(
+				"Project: profile validation needs attention; run project:check.",
+			);
+	}
 	lines.push(
 		"Read AGENTS.md and use the matching .agents/skills workflow before changing a governed domain.",
 	);

@@ -32,17 +32,40 @@ export function agentHarness(path: string): boolean {
 	);
 }
 export function projectSurface(path: string): boolean {
- return [".project/", ".agents/schemas/", "docs/templates/project/", ".agents/skills/project-onboarding/", ".agents/skills/appearance-change/", "appearance/"].some(prefix=>path.startsWith(prefix)) ||
- ["PROJECT.md", "SPEC.md", "DESIGN.md", ".agents/prompts/onboard-project.md", "docs/PROJECT-ONBOARDING.md", "docs/APPEARANCE.md", "src/theme.css", "src/styles.css", "src/appearance-policy.ts"].includes(path) ||
- /^scripts\/(?:lib\/)?(?:project|theme)(?:[-.][^/]*)?\.ts$/.test(path);
+	return (
+		[
+			".project/",
+			".agents/schemas/",
+			"docs/templates/project/",
+			".agents/skills/project-onboarding/",
+			".agents/skills/appearance-change/",
+			"appearance/",
+		].some((prefix) => path.startsWith(prefix)) ||
+		[
+			"PROJECT.md",
+			"SPEC.md",
+			"DESIGN.md",
+			".agents/prompts/onboard-project.md",
+			"docs/PROJECT-ONBOARDING.md",
+			"docs/APPEARANCE.md",
+			"src/theme.css",
+			"src/styles.css",
+			"src/appearance-policy.ts",
+		].includes(path) ||
+		/^scripts\/(?:lib\/)?(?:project|theme)(?:[-.][^/]*)?\.ts$/.test(path)
+	);
 }
 function projectDocuments(root: string): string[] {
- const file = resolve(root,".project/config.json");
- try {
-  if (!existsSync(file) || statSync(file).size > 512*1024) return [];
-  const documents = JSON.parse(readFileSync(file,"utf8")).documents;
-  return Object.values(documents).filter((path): path is string => typeof path === "string" && path.length <= 240);
- } catch { return []; }
+	const file = resolve(root, ".project/config.json");
+	try {
+		if (!existsSync(file) || statSync(file).size > 512 * 1024) return [];
+		const documents = JSON.parse(readFileSync(file, "utf8")).documents;
+		return Object.values(documents).filter(
+			(path): path is string => typeof path === "string" && path.length <= 240,
+		);
+	} catch {
+		return [];
+	}
 }
 export function qualityGate(
 	root: string,
@@ -81,8 +104,12 @@ export function qualityGate(
 		!execute(root, "bun", ["run", "agents:check"], 10000).ok
 	)
 		failed.push("bun run agents:check");
-    const documents = projectDocuments(root);
-    if (paths.some(path => projectSurface(path) || documents.includes(path)) && !execute(root,"bun",["run","project:check"],10000).ok) failed.push("bun run project:check");
+	const documents = projectDocuments(root);
+	if (
+		paths.some((path) => projectSurface(path) || documents.includes(path)) &&
+		!execute(root, "bun", ["run", "project:check"], 10000).ok
+	)
+		failed.push("bun run project:check");
 	return failed.length
 		? `Fix the deterministic quality check failure(s), then retry: ${failed.join("; ")}.`
 		: undefined;

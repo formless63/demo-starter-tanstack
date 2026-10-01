@@ -60,3 +60,9 @@ Webhooks owns server-only raw signing/verification and Jobs-backed delivery unde
 ## Cache boundary
 
 `src/integrations/cache` owns lazy server-only ephemeral data/atomic counters/advisory leases/pubsub, with separate validated data/lease/channel namespaces and bounded inputs. No DB/Auth/Jobs/Realtime/API/Observability import. `src/lib/cache.server.ts` is optional application telemetry and shutdown wiring. Explicit tools own connection checks; startup and database readiness never contact Valkey. Separate `compose.cache.yaml` is loopback-only and non-persistent.
+
+## Project bootstrap and appearance
+
+Baseline authoring workflows live in project-onboarding/appearance-change skills and docs/PROJECT-ONBOARDING.md / docs/APPEARANCE.md. Version-1 `.project` JSON contracts are framework-neutral; catalog remains authoritative for capability status/dependencies and application enablement. The reference has no downstream profile. Existing material and approved proposals govern customization and reviewed canonical skill imports. Checks/status do not install capabilities.
+
+`appearance/default-theme.json` is the reference normalized source; downstream `.project/theme.json` is vendored data. Explicit tooling generates dedicated `src/theme.css` and `src/appearance-policy.ts`, never registry installers, arbitrary CSS, assets or font downloads. React external-store subscriptions plus a trusted early head script own persisted/system-aware mode; no backend startup work. Nuxt's companion should retain native color-mode using the same conceptual contract, not this React store.
