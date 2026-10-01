@@ -3,6 +3,7 @@ import {fromCrossJSON,toJSON} from "seroval";
 import {createHmac,randomUUID} from 'node:crypto';
 import {expect,test} from '@playwright/test';
 import {Pool} from 'pg';
+import {request as nativeHttpRequest} from "node:http";
 import {drizzle} from 'drizzle-orm/node-postgres';
 import {defineFeatureFlags} from '../src/integrations/feature-flags/feature-flags.server';
 
@@ -31,6 +32,12 @@ test('tenant selection preserves personal ownership, denies member writes and pr
   const ids=Object.fromEntries(await Promise.all(['getOrganizationNote','updateOrganizationNote','deleteOrganizationNote','addOrganizationNote'].map(async name=>[name,await nativeId(name)])));
   const call=async(name:string,data:unknown)=>request.post(`/_serverFn/${ids[name]}`,{headers:{'Content-Type':'application/json','x-tsr-serverFn':'true',Origin:baseURL!,Cookie:cookie},data:JSON.stringify(toJSON({data,context:{}}))});
   const ownNote=fromCrossJSON(await(await call('getOrganizationNote',{organizationId:tenantA,id:noteA})).json(),{refs:new Map()}) as {result:{title:string}};expect(ownNote.result.title).toBe('Alpha private note');
+  if(!process.env.E2E_BASE_URL){
+   // Exercise actual incomplete POST-body cancellation, not a mocked abort error.
+   for(let i=0;i<3;i++)await new Promise<void>(resolve=>{const upload=nativeHttpRequest(new URL(`/_serverFn/${ids.getOrganizationNote}`,baseURL),{method:'POST',headers:{'Content-Type':'application/json','Content-Length':'100000','x-tsr-serverFn':'true',Origin:baseURL!,Cookie:cookie}});upload.on('error',()=>resolve());upload.on('close',()=>resolve());upload.write('{"data":');setTimeout(()=>upload.destroy(),100);});
+   expect((await request.get('/api/health')).status()).toBe(200);
+  }
+
   for(const name of ['getOrganizationNote','updateOrganizationNote','deleteOrganizationNote']){const response=await call(name,{organizationId:tenantA,id:noteB,title:'Denied cross-tenant'});const body=await response.text();expect(body).toContain('Organization resource was not found.');expect(body).not.toContain('Beta shared note');expect(body).not.toMatch(/SELECT |postgresql|fixture-operator|organization_note/);}
   const spoofed=await request.get(`/api/flags?tenantId=${tenantB}&keys=private.flag`,{headers:{Cookie:cookie,'X-Organization-ID':tenantB}});expect(await spoofed.json()).toEqual({'beta.dashboard':true});
   await page.getByRole('link',{name:'Organizations',exact:true}).click();await expect(page.getByText('Alpha private note',{exact:true})).toBeVisible();await page.getByLabel('Note title',{exact:true}).fill('Created through authorized tenant action');await page.getByRole('button',{name:'Add note',exact:true}).click();await expect(page.getByText('Created through authorized tenant action',{exact:true})).toBeVisible();
@@ -51,6 +58,7 @@ test('tenant selection preserves personal ownership, denies member writes and pr
    await page.getByRole('link',{name:'Organizations',exact:true}).click();await requestAborted;await page.getByLabel('Active organization').selectOption(tenantB);await expect(page.getByText('Beta shared note',{exact:true})).toBeVisible();
    const fresh=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/flags');await page.getByRole('link',{name:'Projects',exact:true}).click();expect(await(await fresh).json()).toEqual({'beta.dashboard':false});release();await oldFinished;await expect(page.getByRole('complementary',{name:'Beta dashboard'})).toHaveCount(0);
   }finally{release();await page.unroute('**/api/flags',intercept);page.off('requestfailed',onFailure);}
+  await expect(page.locator('vite-error-overlay')).toHaveCount(0);
   await pool.query('DELETE FROM member WHERE organization_id=$1 AND user_id=$2',[tenantB,owner]);await page.getByRole('link',{name:'Organizations',exact:true}).click();await expect(page.getByText('Beta shared note',{exact:true})).toHaveCount(0);const stale=await request.get('/api/flags',{headers:{Cookie:cookie}});expect(await stale.json()).toEqual({'beta.dashboard':false});
  }finally{
   if(createdFlag){await pool.query("DELETE FROM feature_flag_override WHERE flag_key='beta.dashboard'");await pool.query("DELETE FROM feature_flag WHERE key='beta.dashboard'");}
