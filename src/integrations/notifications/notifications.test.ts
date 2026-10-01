@@ -22,8 +22,8 @@ describe("notification canonical contracts", () => {
 		expect(
 			notificationValues({ ...input, title: "  plain text  " }).title,
 		).toBe("  plain text  ");
-		expect(notificationValues({ ...input, title: "" }).title).toBe("");
-		expect(validateNotificationMetadata({ "": 1 })).toEqual({ "": 1 });
+		expect(() => notificationValues({ ...input, title: "" })).toThrow();
+		expect(() => validateNotificationMetadata({ "": 1 })).toThrow();
 		const exact = Object.fromEntries(
 			Array.from({ length: 8 }, (_, i) => [
 				`k${i}`,
@@ -184,11 +184,7 @@ describe("notification canonical contracts", () => {
 				notificationId: row.id,
 				channel: "email",
 			}),
-		).rejects.toMatchObject({
-			code: "unavailable",
-			retryable: true,
-			message: "Notifications unavailable",
-		});
+		).resolves.toEqual({ outcome: "ambiguous", category: "rejected" });
 	});
 	it("ntfy defaults are lazy/private, redirects permanent, retry statuses bounded and response body never read", async () => {
 		expect(() => ntfyConfig({})).toThrow();

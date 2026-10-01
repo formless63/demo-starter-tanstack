@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { defineJob } from "../jobs/types";
+import type { JobDefinition } from "../jobs/types";
 import type { Notification } from "./schema";
 import { NotificationError } from "./validation";
 export const notificationDeliveryPayload = z.strictObject({
@@ -9,6 +9,10 @@ export const notificationDeliveryPayload = z.strictObject({
 export type NotificationChannel = z.infer<
 	typeof notificationDeliveryPayload
 >["channel"];
+const deliveryResult = z.object({
+	outcome: z.enum(["delivered", "partial", "permanent", "ambiguous"]),
+	category: z.enum(["rejected", "not-found", "disabled"]).optional(),
+});
 export interface DeliveryResult {
 	outcome: "delivered" | "partial" | "permanent" | "ambiguous";
 	category?: "rejected" | "not-found" | "disabled";
@@ -18,11 +22,11 @@ export type NotificationAdapter = (
 	context: { signal: AbortSignal },
 ) => Promise<DeliveryResult>;
 export function createNotificationJobs(options: {
-	load(id: string): Promise<Notification | null>;
+	load(id: string, signal: AbortSignal): Promise<Notification | null>;
 	adapters: Partial<Record<NotificationChannel, NotificationAdapter>>;
 }) {
 	return {
-		"notifications.deliver": defineJob({
+		"notifications.deliver": {
 			payload: notificationDeliveryPayload,
 			queue: {
 				retryLimit: 5,
@@ -32,38 +36,59 @@ export function createNotificationJobs(options: {
 				expireInSeconds: 60,
 				deleteAfterSeconds: 86400,
 			},
-			async handler(payload) {
+			async handler(
+				payload: z.output<typeof notificationDeliveryPayload>,
+				context?: { signal?: AbortSignal },
+			) {
 				const controller = new AbortController();
-				// Bound resolution/adapters inside the job's 60s expiry, including adapters that ignore abort.
+				let invoked = false;
 				let timer: ReturnType<typeof setTimeout> | undefined;
+				let cancel: (() => void) | undefined;
+				const terminal = (): DeliveryResult => ({
+					outcome: invoked ? "ambiguous" : "permanent",
+					category: "rejected",
+				});
+				if (context?.signal?.aborted) return terminal();
 				try {
+					const interrupted = new Promise<DeliveryResult>((resolve) => {
+						cancel = () => {
+							controller.abort();
+							resolve(terminal());
+						};
+						context?.signal?.addEventListener("abort", cancel, { once: true });
+						timer = setTimeout(cancel, 55000);
+					});
 					return await Promise.race([
+						interrupted,
 						(async (): Promise<DeliveryResult> => {
-							const row = await options.load(payload.notificationId);
-							if (controller.signal.aborted)
-								throw new NotificationError("unavailable", true);
+							const row = await options.load(
+								payload.notificationId,
+								controller.signal,
+							);
+							if (controller.signal.aborted) return terminal();
 							if (!row) return { outcome: "permanent", category: "not-found" };
 							const adapter = options.adapters[payload.channel];
 							if (!adapter)
 								return { outcome: "permanent", category: "disabled" };
-							return adapter(row, { signal: controller.signal });
+							if (controller.signal.aborted) return terminal();
+							invoked = true;
+							const result = await adapter(row, { signal: controller.signal });
+							// Application adapters are untrusted output: never persist extra fields.
+							return deliveryResult.parse(result);
 						})(),
-						new Promise<never>((_, reject) => {
-							timer = setTimeout(() => {
-								controller.abort();
-								reject(new NotificationError("unavailable", true));
-							}, 55000);
-						}),
 					]);
 				} catch (error) {
-					if (error instanceof NotificationError && !error.retryable)
+					if (error instanceof NotificationError && error.retryable)
+						throw new NotificationError("unavailable", true);
+					if (error instanceof NotificationError)
 						return { outcome: "permanent", category: "rejected" };
-					throw new NotificationError("unavailable", true);
+					return terminal();
 				} finally {
 					clearTimeout(timer);
+					if (cancel) context?.signal?.removeEventListener("abort", cancel);
 					controller.abort();
 				}
 			},
-		}),
+		} satisfies JobDefinition<typeof notificationDeliveryPayload>,
 	} as const;
 }
