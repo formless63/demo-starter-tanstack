@@ -26,7 +26,7 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 
 Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
 
-The twelve completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination, AI, Search, Realtime and Notifications.
+The thirteen completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination, AI, Search, Realtime, Notifications and Import / Export.
 
 `defaultInstalled` describes only clean generated consumers. The root reference application's intentionally integrated capabilities are listed separately in `referenceApplication.enabledCapabilities`; disabling an application integration does not require deleting the reusable add-on workspace or its stable catalog identity. Removal retains database data and committed migration history unless a separate destructive change explicitly says otherwise.
 
@@ -83,6 +83,6 @@ Canonical Project mutation input limits are 120 characters for trimmed names and
 
 `src/integrations/notifications/` owns application PostgreSQL schema, strict metadata/plain-text creation, recipient-scoped keyset/read-state queries and Jobs delivery composition. Jobs is its only hard capability edge; Email/Realtime/Audit/Observability/ntfy remain optional. The reference’s Project domain/Audit/notification writes share one transaction, followed by a best-effort ID-only hint after commit. Application Email adapter resolves current address and delegates exactly once to Email; ntfy/current topic configuration are resolved at execution. Payloads contain only notificationId/channel. Browser notification view refetches on connection/reconnection. Worker registry excludes auth/browser routing imports; root HTTP authorization stays in its separate server-only wrapper. Removal retains notification history/schema/migrations and Jobs.
 
-## Import / Export work in progress
+## Import / Export
 
 `src/integrations/import-export` owns scoped durable receipts, bounded CSV, existing Jobs/Storage composition and explicit reconciliation/purge. `src/lib/import-export.server.ts` owns the personal Project registry/current user authorization/Audit composition; routes authenticate before building context. No Organizations/Authorization imports or tenant selection authority. Keep receipt+domain writes in one locked transaction, snapshot transaction closed before S3, retained data/migration history on removal. Canonical contract: `capabilities/import-export/CAPABILITY.md`. Status remains in progress until full lifecycle/production/CI gate passes.

@@ -1,6 +1,6 @@
 # Import / Export evaluation
 
-Status: in progress. Canonical observable contract: [CAPABILITY.md](capabilities/import-export/CAPABILITY.md).
+Status: done. Canonical observable contract: [CAPABILITY.md](capabilities/import-export/CAPABILITY.md).
 
 ## Cross-framework v1 contract
 
@@ -24,8 +24,8 @@ Generic opt-in clean installation contains only Jobs/Storage closure. The separa
 
 Root governance/lint/types/tests/build pass; development and production browser suites each pass12 cases. Supplementary host-built Node24.21 image passes explicit application/Jobs migrations, schema doctor, CSV/Storage tests, independent worker execution and database health with no S3/SMTP/Cache/AI startup configuration. This is evidence for runtime behavior, not a passed canonical Dockerfile build.
 
-## Remaining completion gate
+## Completion evidence
 
-Status remains in progress and the PR stays draft. All twelve existing completed capability lifecycles pass, including Storage, Email and Notifications. Previously rate-limited images were obtained from the official Mailpit GHCR mirror and documented Google Docker Hub cache, with exact manifest digests checked against Docker Hub; versions are unchanged. Canonical Dockerfile install remains blocked by builder registry connectivity: direct requests hang, while the environment proxy lacks a trusted CA in the pinned base. TLS checks remain enabled and the Dockerfile is unchanged. Exact final-head hosted CI remains required. The existing generic matrix includes authored in-progress add-ons as well as done add-ons, so all13 lifecycles run without claiming completion before verification. No done/ready/merge claim or weakened verification gate.
+[Hosted CI36933470262](https://github.com/formless63/demo-starter-tanstack/actions/runs/36933470262) passed at b20eb996283524e06838fcdc3a5c316384a321db, including canonical production root verification and all13 generic capability lifecycles. The local builder registry/TLS restriction did not prevent the hosted canonical Dockerfile gate. All thirteen completed capabilities are reference-enabled and remain opt-in for generated consumers. The existing generic matrix also verifies authored in-progress add-ons before completion status.
 
-Current run evidence, exact heads and hosted run links belong in the PR. Existing provider/database migrations and hashes remain immutable; explicit cleanup is separate from runtime removal.
+This status/documentation checkpoint requires its own exact-head full CI; the PR remains draft for parent integration coordination. Current run evidence, exact heads and hosted run links belong in the PR. Existing provider/database migrations and hashes remain immutable; explicit cleanup is separate from runtime removal.

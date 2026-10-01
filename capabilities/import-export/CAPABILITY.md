@@ -1,6 +1,6 @@
 # Import / Export capability
 
-Status: in progress. Optional (`defaultInstalled: false`); the root reference enables the personal Projects example. Evaluation: [IMPORT_EXPORT_MODULE_EVALUATION.md](../../IMPORT_EXPORT_MODULE_EVALUATION.md).
+Status: done. Optional (`defaultInstalled: false`); the root reference enables the personal Projects example. Evaluation: [IMPORT_EXPORT_MODULE_EVALUATION.md](../../IMPORT_EXPORT_MODULE_EVALUATION.md).
 
 ## Requirements and ownership
 
@@ -48,6 +48,6 @@ Stop producers and drain or preserve pending work before removing handler/routes
 
 ## Verification and maintenance
 
-`import-export:unit`, `import-export:compat`, `storage:abort`, generic `add-ons:test import-export`, all completed capability lifecycles, root check/browser development+production and image/explicit migrations/worker/health/exact-head hosted CI are completion gates. Two-provider fixtures create their own PostgreSQL database, S3 stacks and objects and use only disposable credentials. Status stays in progress until the entire gate passes. Evidence/remaining limits are recorded in the evaluation and PR, not inferred from source metadata.
+`import-export:unit`, `import-export:compat`, `storage:abort`, generic `add-ons:test import-export`, all completed capability lifecycles, root check/browser development+production and image/explicit migrations/worker/health/exact-head hosted CI are completion gates. Two-provider fixtures create their own PostgreSQL database, S3 stacks and objects and use only disposable credentials. The complete gate passed in hosted CI36933470262; every subsequent change requires exact-head verification. Evidence/remaining limits are recorded in the evaluation and PR, not inferred from source metadata.
 
 The reference Project pagination fixture uses `IMPORT_EXPORT_USE_WORKER=1 IMPORT_EXPORT_FIXTURE_SCRIPT=scripts/import-export-project-fixture.ts bun run import-export:compat` with the disposable local `ie-reference:host-built` runtime image. `IMPORT_EXPORT_HARD_CRASH=1 bun run import-export:compat` exercises six real killed claims per provider; it preserves retry/expiry policy and uses supported fetch ignoreStartAfter only to shorten scheduled backoff waits. Generic clean lifecycle proves exact native job plus source/output artifact retention after final removal/rebuild. These variables are fixture controls, not application configuration.
