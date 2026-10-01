@@ -7,6 +7,27 @@ import { defineConfig } from "vite";
 
 const config = defineConfig({
 	resolve: { tsconfigPaths: true },
+	environments: {
+		client: {
+			// Keep the client dependency set stable while the first page hydrates.
+			optimizeDeps: {
+				noDiscovery: true,
+				include: [
+					"better-auth/react",
+					"better-auth/client/plugins",
+					"@scalar/api-reference-react",
+					"@tabler/icons-react",
+					"@tanstack/react-devtools",
+					"@tanstack/react-form",
+					"@tanstack/react-query",
+					"@tanstack/react-query-devtools",
+					"@tanstack/react-router-ssr-query",
+					"sonner",
+					"zod",
+				],
+			},
+		},
+	},
 	plugins: [nitro(), devtools(), tailwindcss(), tanstackStart(), viteReact()],
 });
 

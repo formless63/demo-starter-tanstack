@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "name": "domain-notes",
+      "source": "incoming-skills",
+      "classification": "project-specific",
+      "decision": "accepted",
+      "approved": true,
+      "installedPath": ".agents/skills/domain-notes/SKILL.md",
+      "notes": "Reviewed hypothetical fixture; see input/skills-review.md."
+    },
+    {
+      "name": "bun-workflow",
+      "source": "incoming-skills",
+      "classification": "adapt",
+      "decision": "adapted",
+      "approved": true,
+      "installedPath": ".agents/skills/bun-workflow/SKILL.md",
+      "notes": "Reviewed hypothetical fixture; see input/skills-review.md."
+    },
+    {
+      "name": "next-password-auth",
+      "source": "incoming-skills",
+      "classification": "conflict",
+      "decision": "rejected",
+      "approved": false,
+      "installedPath": null,
+      "notes": "Reviewed hypothetical fixture; see input/skills-review.md."
+    },
+    {
+      "name": "hook-bypass",
+      "source": "incoming-skills",
+      "classification": "unsafe",
+      "decision": "rejected",
+      "approved": false,
+      "installedPath": null,
+      "notes": "Reviewed hypothetical fixture; see input/skills-review.md."
+    }
+  ]
+}

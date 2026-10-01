@@ -20,6 +20,8 @@ export const projectCreateResponseApiSchema = z.object({
 });
 
 const standardErrors = {
+	408: { description: "Request body read timeout", schema: apiErrorSchema },
+	413: { description: "Request body exceeds 64 KiB", schema: apiErrorSchema },
 	400: { description: "Malformed request", schema: apiErrorSchema },
 	401: { description: "Missing or invalid API key", schema: apiErrorSchema },
 	403: {

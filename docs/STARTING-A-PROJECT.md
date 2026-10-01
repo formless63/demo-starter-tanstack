@@ -4,6 +4,21 @@ This guide answers: “I cloned this repository—how do I turn it into my appli
 
 Before removing anything, create a branch and run `bun run capabilities:status`. The root reference application deliberately enables all completed capabilities, while generated consumers opt in independently.
 
+## Recommended agent-led onboarding
+
+1. Clone/generate the starter and reproduce dependencies.
+2. Supply existing requirements, design documents/screenshots, migration material and skill libraries.
+3. Ask the coding agent to **onboard this project**, following `.agents/skills/project-onboarding/SKILL.md` or the portable prompt.
+4. Review inferred decisions, fill only remaining gaps, and inspect concrete document edits, capability plan, appearance/font choices and proposed skill imports/adaptations.
+5. Approve the concrete plan. External skill imports/adaptations require explicit approval; hooks/MCP/settings/permissions are separate review.
+6. Apply the selected capability state through existing installation/removal/pruning conventions and the approved semantic theme/policy through appearance tooling. Planned features stay deferred.
+7. Run `project:check`, `project:status`, `theme:check`, capability checks/status and normal task verification. Resolve application enablement drift.
+8. Begin feature implementation from the approved profile and authoritative documents.
+
+See [PROJECT-ONBOARDING](PROJECT-ONBOARDING.md) for portable schemas, provenance and templates, and [APPEARANCE](APPEARANCE.md) for safe theme importing. Existing good SPEC/PRD/DESIGN filenames are preserved. The starter has no fake PROJECT/SPEC/DESIGN or real `.project/config.json`.
+
+Manual setup remains supported. Use the recipes below, copy relevant `docs/templates/project/` templates only when needed, write schema-valid metadata if useful, and run the same deterministic checks. Agent onboarding is recommended, not mandatory.
+
 ## Full/reference setup
 
 Keep the completed capabilities when their features fit the application, or when you want the repository's complete reference paths intact.
@@ -39,6 +54,8 @@ bun install
 bun run generate-routes
 bun run capabilities:status
 bun run capabilities:check
+bun run project:check
+bun run theme:check
 bun run typecheck
 bun run build
 ```
@@ -88,7 +105,7 @@ Review shared files manually:
 6. In `src/lib/auth.ts`, remove the `@better-auth/api-key` import, remove `typeof apiKey` from the plugin union, and remove only the `plugins.push(apiKey({...}))` block. Preserve GitHub, generic OIDC, magic-link, and TanStack cookie configuration.
 7. Keep the `apikey` table declaration in `src/db/schema.ts` by default so a later `db:generate` does not propose an accidental destructive drop. Keep the boolean `user.emailVerified` mapping.
 8. Keep `drizzle/0001_pretty_kat_farrell.sql`, `drizzle/0002_even_nighthawk.sql`, and migration snapshots/journal. The first migration also corrects `email_verified` to Better Auth 1.7's boolean semantics; never blindly delete or reverse it.
-9. Remove API Platform-only packages when unused elsewhere: `@better-auth/api-key`, `@scalar/api-reference-react`, `zod-openapi`, and development dependency `@scalar/openapi-parser`. Keep baseline Better Auth, Drizzle, Zod, TanStack, and Tabler packages.
+9. Remove API Platform-only packages when unused elsewhere: `@better-auth/api-key`, `@scalar/api-reference-react`, `zod-openapi`, and development dependency `@scalar/openapi-parser`. Keep baseline Better Auth, Drizzle, Zod, TanStack, and Tabler packages. When pruning Scalar, also remove `@scalar/api-reference-react` from `vite.config.ts` client `optimizeDeps.include`; the remaining entries belong to baseline browser auth/validation.
 10. Remove the production-container `/api/openapi.json` and `/docs/api` probes from `.github/workflows/ci.yml`. Keep `/api/health`.
 11. Remove `api-platform` from `referenceApplication.enabledCapabilities` in `capabilities/catalog.json`. Keep `defaultInstalled: false`.
 12. Regenerate `src/routeTree.gen.ts`, update the lockfile, and run the verification commands above.
