@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "pattern": "^[^\\x00-\\x1f\\x7f]+$"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "pattern": "^[^\\x00-\\x1f\\x7f]+$"
+        }
+      },
+      "required": [
+        "name",
+        "summary"
+      ],
+      "additionalProperties": false
+    },
+    "documents": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^(?!\\/)(?![A-Za-z]:)(?!.*(?:^|\\/)\\.\\.?($|\\/))[A-Za-z0-9_. -]+(?:\\/[A-Za-z0-9_. -]+)*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "spec": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^(?!\\/)(?![A-Za-z]:)(?!.*(?:^|\\/)\\.\\.?($|\\/))[A-Za-z0-9_. -]+(?:\\/[A-Za-z0-9_. -]+)*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "design": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^(?!\\/)(?![A-Za-z]:)(?!.*(?:^|\\/)\\.\\.?($|\\/))[A-Za-z0-9_. -]+(?:\\/[A-Za-z0-9_. -]+)*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "project",
+        "spec",
+        "design"
+      ],
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "selected": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          }
+        },
+        "deferred": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          }
+        },
+        "excluded": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          }
+        }
+      },
+      "required": [
+        "selected",
+        "deferred",
+        "excluded"
+      ],
+      "additionalProperties": false
+    },
+    "appearance": {
+      "type": "object",
+      "properties": {
+        "colorMode": {
+          "type": "object",
+          "properties": {
+            "supported": {
+              "minItems": 1,
+              "maxItems": 2,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "light",
+                  "dark"
+                ]
+              }
+            },
+            "default": {
+              "type": "string",
+              "enum": [
+                "light",
+                "dark",
+                "system"
+              ]
+            },
+            "userSelectable": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "supported",
+            "default",
+            "userSelectable"
+          ],
+          "additionalProperties": false
+        },
+        "theme": {
+          "type": "object",
+          "properties": {
+            "source": {
+              "type": "string",
+              "enum": [
+                "starter",
+                "tweakcn",
+                "shadcn-registry",
+                "custom"
+              ]
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,63}$"
+            },
+            "reference": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500,
+                  "pattern": "^[^\\x00-\\x1f\\x7f]+$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "file": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "^(?!\\/)(?![A-Za-z]:)(?!.*(?:^|\\/)\\.\\.?($|\\/))[A-Za-z0-9_. -]+(?:\\/[A-Za-z0-9_. -]+)*$"
+            }
+          },
+          "required": [
+            "source",
+            "name",
+            "reference",
+            "file"
+          ],
+          "additionalProperties": false
+        },
+        "fonts": {
+          "type": "string",
+          "enum": [
+            "system-fallback",
+            "self-hosted",
+            "project-provided",
+            "approved-external"
+          ]
+        }
+      },
+      "required": [
+        "colorMode",
+        "theme"
+      ],
+      "additionalProperties": false
+    },
+    "skills": {
+      "type": "object",
+      "properties": {
+        "manifest": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^(?!\\/)(?![A-Za-z]:)(?!.*(?:^|\\/)\\.\\.?($|\\/))[A-Za-z0-9_. -]+(?:\\/[A-Za-z0-9_. -]+)*$"
+        }
+      },
+      "required": [
+        "manifest"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "project",
+    "documents",
+    "capabilities",
+    "appearance",
+    "skills"
+  ],
+  "additionalProperties": false
+}

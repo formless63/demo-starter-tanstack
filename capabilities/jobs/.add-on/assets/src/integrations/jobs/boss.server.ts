@@ -3,7 +3,7 @@ import { type ConstructorOptions, PgBoss } from "pg-boss";
 const SCHEMA_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 export function jobsDatabaseUrl() {
-	const value = process.env.PGBOSS_DATABASE_URL ?? process.env.DATABASE_URL;
+	const value = process.env.PGBOSS_DATABASE_URL || process.env.DATABASE_URL;
 	if (!value) {
 		throw new Error("PGBOSS_DATABASE_URL or DATABASE_URL is required");
 	}
@@ -11,19 +11,61 @@ export function jobsDatabaseUrl() {
 }
 
 export function jobsSchema() {
-	const value = process.env.PGBOSS_SCHEMA ?? "pgboss";
-	if (!SCHEMA_PATTERN.test(value)) {
+	const value = process.env.PGBOSS_SCHEMA || "pgboss";
+	if (!SCHEMA_PATTERN.test(value) || Buffer.byteLength(value) > 63) {
 		throw new Error("PGBOSS_SCHEMA must be a valid PostgreSQL identifier");
 	}
 	return value;
 }
 
+export function jobsListenNotify() {
+	const value = process.env.PGBOSS_USE_LISTEN_NOTIFY || "false";
+	if (!["true", "false"].includes(value))
+		throw new Error("PGBOSS_USE_LISTEN_NOTIFY must be true or false");
+	return value === "true";
+}
+export function workerConcurrency() {
+	const raw = process.env.JOBS_CONCURRENCY || "4";
+	const value = Number(raw);
+	if (
+		!/^\d+$/.test(raw) ||
+		!Number.isSafeInteger(value) ||
+		value < 1 ||
+		value > 100
+	)
+		throw new Error("JOBS_CONCURRENCY must be an integer between 1 and 100");
+	return value;
+}
+/** Transactional enqueue must use the domain database, not an isolated Jobs database.
+ * Use a common canonical host/database URL; credentials may differ. */
+export function assertTransactionalJobsDatabase() {
+	const domain = process.env.DATABASE_URL;
+	if (!domain) throw new Error("Transactional Jobs requires DATABASE_URL");
+	const identity = (value: string) => {
+		try {
+			const url = new URL(value);
+			if (!["postgres:", "postgresql:"].includes(url.protocol))
+				throw new Error();
+			return JSON.stringify([
+				url.hostname.toLowerCase(),
+				url.port || "5432",
+				decodeURIComponent(url.pathname),
+			]);
+		} catch {
+			throw new Error("Jobs database configuration is invalid");
+		}
+	};
+	if (identity(domain) !== identity(jobsDatabaseUrl()))
+		throw new Error(
+			"Transactional Jobs requires the same canonical database host, port and database as DATABASE_URL",
+		);
+}
 export function createJobsBoss(overrides: Partial<ConstructorOptions> = {}) {
 	const boss = new PgBoss({
 		connectionString: jobsDatabaseUrl(),
 		migrate: false,
 		schema: jobsSchema(),
-		useListenNotify: process.env.PGBOSS_USE_LISTEN_NOTIFY === "true",
+		useListenNotify: jobsListenNotify(),
 		...overrides,
 	});
 	boss.on("error", (error) => {

@@ -9,7 +9,9 @@
       "database": "postgresql"
     }
   },
-  "expectedOfficialAddOns": ["drizzle"],
+  "expectedOfficialAddOns": [
+    "drizzle"
+  ],
   "expectedFiles": [
     "src/db/index.ts",
     "src/integrations/jobs/boss.server.ts",
@@ -22,7 +24,20 @@
     "scripts/jobs-migrate.ts",
     "scripts/jobs-smoke.ts",
     "scripts/jobs-worker.ts",
-    "capabilities/jobs/CAPABILITY.md"
+    "capabilities/jobs/CAPABILITY.md",
+    "scripts/jobs-lifecycle-fixture.ts"
   ],
-  "build": true
+  "build": true,
+  "verificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "scripts/jobs-lifecycle-fixture.ts"
+    ]
+  ]
 }
