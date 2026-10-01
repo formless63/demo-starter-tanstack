@@ -2,6 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "#/db";
 import { projects, user } from "#/db/schema";
+import { encodeSearchCursor } from "#/integrations/search/validation";
 import { searchProjectsForOwner } from "./projects.server";
 
 const owner = `search-owner-${crypto.randomUUID()}`;
@@ -66,6 +67,34 @@ describe("Projects Search reference authorization", () => {
 				})
 			).results.every((r) => r.row.ownerId === other),
 		).toBe(true);
+	});
+	it("forged cursors cannot change owner predicates and invalid input never reaches SQL", async () => {
+		const cursor = encodeSearchCursor({
+			rank: 1,
+			updatedAt: "9999-12-31T23:59:59.999999Z",
+			id: `${other}-private`,
+		});
+		const page = await searchProjectsForOwner(owner, {
+			query: "nebula",
+			cursor,
+		});
+		expect(page.results.map((r) => r.row.ownerId)).toEqual([owner, owner]);
+		const select = vi.spyOn(db, "select");
+		try {
+			for (const request of [
+				{ query: "nebula", cursor: "a".repeat(2049) },
+				{ query: "nebula", cursor: "bad=" },
+				{ query: "\ud800" },
+				{ query: "x".repeat(257) },
+			]) {
+				await expect(
+					searchProjectsForOwner(owner, request),
+				).rejects.toMatchObject({ code: "invalid-query" });
+			}
+			expect(select).not.toHaveBeenCalled();
+		} finally {
+			select.mockRestore();
+		}
 	});
 	it("has a stored generated column and GIN index", async () => {
 		const generated = await db.execute(

@@ -90,59 +90,57 @@ try {
 				),
 			);
 		}
-		await tx
-			.insert(fixture)
-			.values([
-				{
-					id: "a-title",
-					owner: "a",
-					title: "orbit",
-					body: "",
-					updatedAt: new Date("2026-01-01"),
-				},
-				{
-					id: "b-body",
-					owner: "a",
-					title: "",
-					body: "orbit",
-					updatedAt: new Date("2026-01-01"),
-				},
-				{
-					id: "foreign",
-					owner: "b",
-					title: "orbit",
-					body: marker,
-					updatedAt: new Date("2026-01-01"),
-				},
-				{
-					id: "phrase",
-					owner: "a",
-					title: "solar wind",
-					body: "",
-					updatedAt: new Date("2026-01-01"),
-				},
-				{
-					id: "separate",
-					owner: "a",
-					title: "solar bright wind",
-					body: "",
-					updatedAt: new Date("2026-01-01"),
-				},
-				{
-					id: "simple",
-					owner: "a",
-					title: "running",
-					body: null,
-					updatedAt: new Date("2026-01-01"),
-				},
-				...Array.from({ length: 31 }, (_, i) => ({
-					id: `tie-${String(i).padStart(2, "0")}`,
-					owner: "a",
-					title: "",
-					body: "tie",
-					updatedAt: new Date("2026-01-01"),
-				})),
-			]);
+		await tx.insert(fixture).values([
+			{
+				id: "a-title",
+				owner: "a",
+				title: "orbit",
+				body: "",
+				updatedAt: new Date("2026-01-01"),
+			},
+			{
+				id: "b-body",
+				owner: "a",
+				title: "",
+				body: "orbit",
+				updatedAt: new Date("2026-01-01"),
+			},
+			{
+				id: "foreign",
+				owner: "b",
+				title: "orbit",
+				body: marker,
+				updatedAt: new Date("2026-01-01"),
+			},
+			{
+				id: "phrase",
+				owner: "a",
+				title: "solar wind",
+				body: "",
+				updatedAt: new Date("2026-01-01"),
+			},
+			{
+				id: "separate",
+				owner: "a",
+				title: "solar bright wind",
+				body: "",
+				updatedAt: new Date("2026-01-01"),
+			},
+			{
+				id: "simple",
+				owner: "a",
+				title: "running",
+				body: null,
+				updatedAt: new Date("2026-01-01"),
+			},
+			...Array.from({ length: 137 }, (_, i) => ({
+				id: `tie-${String(i).padStart(3, "0")}`,
+				owner: "a",
+				title: "",
+				body: "tie",
+				updatedAt: new Date("2026-01-01"),
+			})),
+		]);
 		const weighted = await search({ query: "orbit" });
 		assert.deepEqual(
 			weighted.results.map((r) => r.row.id),
@@ -190,38 +188,49 @@ try {
 		assert.equal((await search({ query: "tie" })).results.length, 25);
 		assert.equal(
 			(await search({ query: "tie", limit: 100 })).results.length,
-			31,
+			100,
 		);
 		// PostgreSQL timestamps can distinguish rows within the same JS millisecond.
 		await tx.execute(
-			sql`UPDATE search_fixture SET updated_at = '2026-01-01T00:00:00.000123Z' WHERE id = 'tie-00'`,
+			sql`UPDATE search_fixture SET updated_at = '2026-01-01T00:00:00.000123Z' WHERE id = 'tie-000'`,
 		);
-		const all = await search({ query: "tie", limit: 100 });
-		const ids: string[] = [];
-		let cursor: string | undefined;
-		do {
-			const page = await search({
-				query: "tie",
-				limit: 1,
-				...(cursor ? { cursor } : {}),
-			});
-			ids.push(...page.results.map((r) => r.row.id));
-			cursor = page.nextCursor ?? undefined;
-		} while (cursor);
-		assert.deepEqual(
-			ids,
-			all.results.map((r) => r.row.id),
+		const reference = await tx.execute(
+			sql`SELECT id FROM search_fixture WHERE owner = 'a' AND vector @@ websearch_to_tsquery('simple', 'tie') ORDER BY ts_rank_cd(vector, websearch_to_tsquery('simple', 'tie'), 32) DESC, updated_at DESC, id DESC`,
 		);
-		assert.equal(new Set(ids).size, 31);
-		assert.equal(ids[0], "tie-00");
-		assert.equal(ids[1], "tie-30");
-		assert.equal(ids.at(-1), "tie-01");
+		for (const limit of [1, undefined, 100]) {
+			const ids: string[] = [];
+			let cursor: string | undefined;
+			do {
+				const page = await search({
+					query: "tie",
+					...(limit ? { limit } : {}),
+					...(cursor ? { cursor } : {}),
+				});
+				ids.push(...page.results.map((r) => r.row.id));
+				cursor = page.nextCursor ?? undefined;
+			} while (cursor);
+			assert.deepEqual(
+				ids,
+				reference.rows.map((r) => r.id),
+			);
+			assert.equal(new Set(ids).size, 137);
+			assert.equal(ids[0], "tie-000");
+			assert.equal(ids[1], "tie-136");
+			assert.equal(ids.at(-1), "tie-001");
+		}
 		const first = await search({ query: "tie", limit: 1 });
 		assert.ok(first.nextCursor);
 		const decoded = decodeSearchCursor(first.nextCursor);
-		const storedRank = await tx.execute(sql`SELECT ts_rank_cd(vector, websearch_to_tsquery('simple', 'tie'), 32)::text AS rank FROM search_fixture WHERE id = 'tie-00'`);
-		assert.equal(decoded.rank, storedRank.rows[0].rank);
-		assert.notEqual(decoded.rank, "0.5"); // pagination exercises a non-binary-exact B-weight rank
+		const storedRank = await tx.execute(
+			sql`SELECT ts_rank_cd(vector, websearch_to_tsquery('simple', 'tie'), 32)::text AS rank FROM search_fixture WHERE id = 'tie-000'`,
+		);
+		assert.equal(decoded.rank, Math.fround(Number(storedRank.rows[0].rank)));
+		assert.equal(first.results[0].rank, decoded.rank);
+		const rebound = await tx.execute(
+			sql`SELECT ${JSON.parse(JSON.stringify(decoded.rank))}::real::double precision AS rank`,
+		);
+		assert.equal(rebound.rows[0].rank, decoded.rank);
+		assert.notEqual(decoded.rank, 0.5); // pagination exercises a non-binary-exact B-weight rank
 		assert.equal(decoded.updatedAt, "2026-01-01T00:00:00.000123Z");
 		assert.equal(encodeSearchCursor(decoded), first.nextCursor);
 		const asCursor = (value: unknown) =>
@@ -231,7 +240,7 @@ try {
 			first.nextCursor + "A",
 			"a".repeat(2049),
 			asCursor([2, decoded.rank, decoded.updatedAt, decoded.id]),
-			asCursor([1, 0.5, decoded.updatedAt, decoded.id]),
+			asCursor([1, 0.2857143, decoded.updatedAt, decoded.id]),
 			asCursor([1, "0.50", decoded.updatedAt, decoded.id]),
 			asCursor([1, "NaN", decoded.updatedAt, decoded.id]),
 			asCursor([1, "1e-999", decoded.updatedAt, decoded.id]),

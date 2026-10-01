@@ -39,5 +39,19 @@
       "scripts/search-clean-fixture.ts"
     ]
   ],
-  "build": true
+  "build": true,
+  "postBuildVerificationCommands": [
+    [
+      "bun",
+      "scripts/search-clean-fixture.ts",
+      "verify"
+    ]
+  ],
+  "cleanupCommands": [
+    [
+      "bun",
+      "scripts/search-clean-fixture.ts",
+      "cleanup"
+    ]
+  ]
 }
