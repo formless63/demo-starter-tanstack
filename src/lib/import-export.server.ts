@@ -1,8 +1,10 @@
 import { asc, eq } from "drizzle-orm";
-import { db } from "../db";
+import * as transferDatabaseSchema from "../db/schema";
 import { projects, user } from "../db/schema";
+import { env } from "../env";
 import { projectInputSchema } from "../features/projects/project-schema";
 import { insertProjectInTransaction } from "../features/projects/project-write.server";
+import { createTransferTransactions } from "../integrations/import-export/database.server";
 import { createTransferJobs } from "../integrations/import-export/jobs.server";
 import { createTransferRegistry } from "../integrations/import-export/registry.server";
 import { createTransfers } from "../integrations/import-export/service.server";
@@ -53,7 +55,10 @@ const registry = createTransferRegistry([
 	},
 ]);
 export const applicationTransfers = createTransfers({
-	db,
+	transaction: createTransferTransactions(
+		() => env.DATABASE_URL,
+		transferDatabaseSchema,
+	),
 	registry,
 	storage: getStorage,
 	enqueue: (tx, transferId) =>

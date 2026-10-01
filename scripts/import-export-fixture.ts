@@ -1,3 +1,5 @@
+import * as transferDatabaseSchema from "../src/db/schema";
+import { createTransferTransactions } from "../src/integrations/import-export/database.server";
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
@@ -25,7 +27,7 @@ const registry=createTransferRegistry([{
  async importRows(tx,rows,ctx,signal) { for(const raw of rows) {signal.throwIfAborted();const row=z.object({name:z.string(),description:z.string()}).parse(raw);await tx.execute(sql`insert into fixture_project(id,owner_id,name,description) values(${randomUUID()},${ctx.requesterId},${row.name},${row.description})`);if(failSql) throw new Error('private database error');} },
  async *exportRows(tx,ctx) { const result=await tx.execute<{name:string;description:string}>(sql`select name,description from fixture_project where owner_id=${ctx.requesterId} order by id`);for(const row of result.rows)yield[row.name,row.description]; },
 }]);
-const service=createTransfers({db:db as unknown as Parameters<typeof createTransfers>[0]['db'],registry,storage:()=>storage,jobs:async()=>boss,enqueue:async(tx,id)=> { const job=await boss.send(transferQueue,{transferId:id},{retryLimit:5,retryDelay:30,retryBackoff:true,retryDelayMax:900,expireInSeconds:90,deleteAfterSeconds:86400,db:fromDrizzle(tx,sql)});assert(job);return job;}});
+const service=createTransfers({transaction:createTransferTransactions(()=>url.toString(),transferDatabaseSchema),registry,storage:()=>storage,jobs:async()=>boss,enqueue:async(tx,id)=> { const job=await boss.send(transferQueue,{transferId:id},{retryLimit:5,retryDelay:30,retryBackoff:true,retryDelayMax:900,expireInSeconds:90,deleteAfterSeconds:86400,db:fromDrizzle(tx,sql)});assert(job);return job;}});
 const stage=(text:string)=>service.stageImport(owner,{definition:'projects',body:Readable.from(Array.from(Buffer.from(text),b=>Buffer.from([b])))});
 const rejected=(code:string)=>(e:unknown)=>e instanceof TransferError && e.code===code;
 try {

@@ -135,6 +135,7 @@ export function parseImport<T>(
 	const issues: ValidationIssue[] = [];
 	let count = 0;
 	let normalized = 0;
+	let outputNormalized = 0;
 	for (let i = 1; i < records.length; i++) {
 		const record = records[i];
 		if (
@@ -150,8 +151,14 @@ export function parseImport<T>(
 		if (normalized > config.maxBytes * 2)
 			throw new TransferError("limit-exceeded");
 		const result = schema.safeParse(input);
-		if (result.success) rows.push(result.data);
-		else
+		if (result.success) {
+			const encoded = JSON.stringify(result.data);
+			if (encoded === undefined) throw new TransferError("unsupported");
+			outputNormalized += Buffer.byteLength(encoded);
+			if (outputNormalized > config.maxBytes * 2)
+				throw new TransferError("limit-exceeded");
+			rows.push(result.data);
+		} else
 			for (const issue of result.error.issues) {
 				count++;
 				if (issues.length < 100) {
