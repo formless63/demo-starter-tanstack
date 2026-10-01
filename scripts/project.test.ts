@@ -81,7 +81,7 @@ describe("project bootstrap contract", () => {
 		[
 			"planned selected",
 			(d: any) => {
-				d.capabilities.selected.push("realtime");
+				d.capabilities.selected.push("organizations");
 				d.capabilities.deferred = [];
 			},
 			"not implemented",

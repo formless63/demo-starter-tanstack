@@ -29,7 +29,7 @@ try {
 	const journal = JSON.parse(
 		await readFile("drizzle/meta/_journal.json", "utf8"),
 	);
-	assert.equal(journal.entries.length, 5);
+	assert.equal(journal.entries.length, 6);
 	run(["run", "db:migrate"]);
 	run(["run", "api-platform:smoke"]);
 	run(["run", "audit-log:smoke"]);
@@ -37,12 +37,13 @@ try {
 	run(["run", "jobs:migrate"]);
 	run(["run", "jobs:doctor"]);
 	run(["run", "jobs:smoke"]);
+	run(["run", "notifications:smoke"]);
 	const pool = new pg.Pool({ connectionString: url.toString() });
 	try {
 		const result = await pool.query(
 			"SELECT tablename FROM pg_tables WHERE schemaname='public'",
 		);
-		for (const table of ["user", "project", "apikey", "audit_event"])
+		for (const table of ["user", "project", "apikey", "audit_event", "notification"])
 			assert.ok(result.rows.some((row) => row.tablename === table));
 		const vector = await pool.query(
 			"SELECT attgenerated FROM pg_attribute WHERE attrelid = 'project'::regclass AND attname = 'search_vector'",
@@ -56,7 +57,7 @@ try {
 		await pool.end();
 	}
 	console.info(
-		"Reviewed API + Audit + Jobs + Search composition preserved all schemas and migration history",
+		"Reviewed API + Audit + Jobs + Search + Notifications composition preserved all schemas and migration history",
 	);
 } finally {
 	await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);

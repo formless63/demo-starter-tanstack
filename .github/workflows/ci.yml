@@ -57,6 +57,7 @@ jobs:
       BETTER_AUTH_SECRET: ci-only-secret-with-at-least-32-characters
       APP_BASE_URL: http://127.0.0.1:3000
       NODE_ENV: test
+      REALTIME_TRANSPORTS: sse,websocket
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -82,6 +83,7 @@ jobs:
       - run: docker compose run --rm migrate
       - run: docker compose run --rm jobs-migrate
       - run: bun run production:smoke
+      - run: docker compose run --rm worker node .output/notifications-smoke.mjs
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run add-ons:test:composition
@@ -92,6 +94,14 @@ jobs:
           bun run cache:telemetry
           bun build scripts/cache-smoke.ts --target=node --outfile=/tmp/cache-smoke.mjs
           CACHE_COMPAT_NODE_SCRIPT=/tmp/cache-smoke.mjs bun run cache:compat
+          bun run realtime:cache
+      - name: Verify Node realtime transports and private notification delivery
+        run: |
+          bun run realtime:transport
+          bun run notifications:unit
+          bun run notifications:smoke
+          bun run notifications:compat
+          bun run notifications:delivery
       - name: Verify both storage providers, optional reference telemetry and Garage UI
         run: STORAGE_SMOKE_IMAGE=tanstack-launchpad:local STORAGE_SMOKE_SCRIPT=scripts/storage-reference-smoke.ts bun run storage:compat --garage-ui
       - name: Verify SMTP, Chaos, Better Auth and production magic-link delivery

@@ -4,7 +4,7 @@
 	"blank": true,
 	"packageManager": "bun",
 	"toolchain": "biome",
-	"capabilities": ["jobs", "api-platform", "audit-log", "search"],
+	"capabilities": ["jobs", "api-platform", "audit-log", "search", "notifications"],
 	"addOnConfig": { "drizzle": { "database": "postgresql" } },
 	"reviewedSharedFiles": {
 		"drizzle.config.ts": "drizzle.config.ts",
@@ -16,7 +16,8 @@
 	"expectedFiles": [
 		"src/integrations/audit-log/schema.ts",
 		"src/integrations/jobs/lifecycle.server.ts",
-		"src/integrations/search/schema.ts"
+		"src/integrations/search/schema.ts",
+		"src/integrations/notifications/schema.ts"
 	],
 	"verificationCommands": [
 		["bun", "x", "tsc", "--noEmit"],

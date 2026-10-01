@@ -26,7 +26,7 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 
 Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
 
-The ten completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination AI and Search.
+The twelve completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination, AI, Search, Realtime and Notifications.
 
 `defaultInstalled` describes only clean generated consumers. The root reference application's intentionally integrated capabilities are listed separately in `referenceApplication.enabledCapabilities`; disabling an application integration does not require deleting the reusable add-on workspace or its stable catalog identity. Removal retains database data and committed migration history unless a separate destructive change explicitly says otherwise.
 
@@ -76,3 +76,9 @@ Canonical Project mutation input limits are 120 characters for trimmed names and
 ## Search boundary
 
 `src/integrations/search` owns PostgreSQL FTS SQL/schema helpers, bounded query/cursor parsing, exact rank/time keysets and safe errors. Domain tables own searchable rows and authorization; no universal search_documents table. Projects weights name A/description B with explicit simple, STORED generated tsvector and GIN in new migration0004. The session-bound POST server function always applies owner equality. Explicit domain projections exclude vector internals from all Projects returns. No raw query logging/spans/labels, telemetry dependency, external service, extraction or vector search. Retain schema-only helpers, generated declarations and applied history on removal; index/column removal needs a new reviewed migration.
+
+## Realtime and Notifications boundaries
+
+`src/integrations/realtime/` provides bounded process-local publication, SSE and supported Nitro/H3 WebSocket adapters without Cache/auth/DB imports. Application-owned `src/lib/realtime-hub.server.ts` shares the process hub between Nitro and Start module runners; `src/lib/realtime.server.ts` owns human-cookie/exact-channel authorization and `server/routes/api/realtime/` owns adapters. Restart after event-registry edits. Optional `src/lib/realtime-cache.server.ts` uses one non-durable Cache fanout path with explicit subscriptions/recovery. No SSE id/replay; WS has no application commands/RPC.
+
+`src/integrations/notifications/` owns application PostgreSQL schema, strict metadata/plain-text creation, recipient-scoped keyset/read-state queries and Jobs delivery composition. Jobs is its only hard capability edge; Email/Realtime/Audit/Observability/ntfy remain optional. The reference’s Project domain/Audit/notification writes share one transaction, followed by a best-effort ID-only hint after commit. Application Email adapter resolves current address and delegates exactly once to Email; ntfy/current topic configuration are resolved at execution. Payloads contain only notificationId/channel. Browser notification view refetches on connection/reconnection. Worker registry excludes auth/browser routing imports; root HTTP authorization stays in its separate server-only wrapper. Removal retains notification history/schema/migrations and Jobs.
