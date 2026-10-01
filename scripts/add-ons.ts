@@ -41,6 +41,8 @@ interface CleanInstallFixture {
 	expectedFiles: string[];
 	expectedFileText?: Record<string, string[]>;
 	verificationCommands?: string[][];
+	postBuildVerificationCommands?: string[][];
+	cleanupCommands?: string[][];
 	verificationEnvironment?: Record<string, string>;
 	build: boolean;
 }
@@ -257,6 +259,30 @@ async function cleanInstall(
   if (!Object.keys(fixture.reviewedSharedFiles ?? {}).some(path => collision.path === path || collision.path.startsWith(`${path}/`))) throw new Error(`Review shared add-on file before installation: ${collision.path}`);
  }
  let installedAliases = new Map<string, string>();
+	let verificationStarted = false;
+	const verificationEnvironment = () => {
+		const databaseUrl = process.env.ADD_ON_TEST_DATABASE_URL ?? process.env.DATABASE_URL;
+		return {
+			...(databaseUrl ? { DATABASE_URL: databaseUrl } : {}),
+			BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ?? "add-on-test-secret-with-at-least-32-characters",
+			APP_BASE_URL: process.env.APP_BASE_URL ?? "http://127.0.0.1:3000",
+			NODE_ENV: "test",
+			...Object.fromEntries(
+				Object.entries(fixture.verificationEnvironment ?? {}).map(([key, value]) => [
+					key,
+					value.replace(/\$\{([A-Z][A-Z0-9_]*)\}/g, (_match, name: string) =>
+						(name === "DATABASE_URL" ? databaseUrl : process.env[name]) ?? "",
+					),
+				]),
+			),
+		};
+	};
+	const verify = async (commands: string[][] = []) => {
+		for (const [command, ...args] of commands) {
+			if (!command) throw new Error(`${capability.id}: verification command cannot be empty`);
+			await run(command, args, target, verificationEnvironment());
+		}
+	};
 	try {
 		await withAddOnServer(chosen, async (urls, aliases) => {
 			installedAliases = aliases;
@@ -356,41 +382,19 @@ async function cleanInstall(
 				`${dependency.id} scripts`,
 			);
 		}
-		const databaseUrl =
-			process.env.ADD_ON_TEST_DATABASE_URL ?? process.env.DATABASE_URL;
-		for (const [command, ...args] of fixture.verificationCommands ?? []) {
-			if (!command)
-				throw new Error(
-					`${capability.id}: verification command cannot be empty`,
-				);
-			await run(command, args, target, {
-				...(databaseUrl ? { DATABASE_URL: databaseUrl } : {}),
-				BETTER_AUTH_SECRET:
-					process.env.BETTER_AUTH_SECRET ??
-					"add-on-test-secret-with-at-least-32-characters",
-				APP_BASE_URL: process.env.APP_BASE_URL ?? "http://127.0.0.1:3000",
-				NODE_ENV: "test",
-				...Object.fromEntries(
-					Object.entries(fixture.verificationEnvironment ?? {}).map(
-						([key, value]) => [
-							key,
-							value.replace(
-								/\$\{([A-Z][A-Z0-9_]*)\}/g,
-								(_match, name: string) =>
-									(name === "DATABASE_URL" ? databaseUrl : process.env[name]) ??
-									"",
-							),
-						],
-					),
-				),
-			});
-		}
+		verificationStarted = true;
+		await verify(fixture.verificationCommands);
 		if (fixture.build) await run(process.execPath, ["run", "build"], target);
+		await verify(fixture.postBuildVerificationCommands);
 		console.info(
 			`${capability.id}: clean install passed with ${manifest.dependsOn?.join(", ") || "no"} declared add-on dependencies`,
 		);
 	} finally {
-		await rm(temporaryRoot, { recursive: true, force: true });
+		try {
+			if (verificationStarted) await verify(fixture.cleanupCommands);
+		} finally {
+			await rm(temporaryRoot, { recursive: true, force: true });
+		}
 	}
 }
 

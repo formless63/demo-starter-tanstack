@@ -45,6 +45,8 @@ Baseline components are not optional capability modules. Future integrations in 
 | Cache / Coordination | Done | Optional | No capability dependency; Valkey on use | Ephemeral cache, atomic counters, advisory leases and pub/sub | [Cache contract](capabilities/cache-coordination/CAPABILITY.md) |
 | AI | Done | Optional | Baseline Node runtime; model provider only on use | Bounded text, streaming and Zod structured generation | [AI contract](capabilities/ai/CAPABILITY.md) |
 
+| Search | Done | Optional | Baseline PostgreSQL + Drizzle | Application-owned FTS, weighted generated vectors, safe queries and keyset pages | [Search contract](capabilities/search/CAPABILITY.md) |
+
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
 ## Quick start
@@ -271,3 +273,9 @@ PostgreSQL 18 stores PGDATA under `/var/lib/postgresql/18/docker`; Compose mount
 ## AI
 
 Optional lazy server-side OpenAI-compatible model access with text, real streaming, authoritative Zod structured output, 1 MiB output bounds and composed cancellation. No hard capability dependencies or model/configuration required at build/start/health/worker. Configure `AI_MODEL` only when calling an operation; optional `AI_BASE_URL`/`AI_API_KEY`, provider default `openai-compatible`, timeout default 60 seconds (1–300). No automatic retries or content telemetry. `bun run ai:compat` and `ai:reference:smoke` use only a disposable local HTTP fixture. See [contract](capabilities/ai/CAPABILITY.md), [evaluation](AI_MODULE_EVALUATION.md) and [removal](docs/STARTING-A-PROJECT.md#remove-ai).
+
+## Search
+
+[Search](capabilities/search/CAPABILITY.md) uses PostgreSQL 18 native FTS with explicit `simple`, weighted A name/B description, a stored generated Projects vector and GIN index. `searchProjects` is a session-scoped POST server function; every page enforces the existing owner predicate. Query 2–256 after trim, page25/max100, `ts_rank_cd(..., 32)` and descending rank/updatedAt/id keysets. Numeric result ranks are separate from exact database rank text retained in canonical cursors. No external service, universal search table, snippets, vector/semantic search or raw query telemetry.
+
+Apply the new reviewed `drizzle/0004_search.sql` through the existing explicit migration path. `bun run search:smoke` verifies real PostgreSQL 18 with a disposable temporary table. The catalog fixture proves clean installation/removal and retained domain data/migration history. [Evaluation](SEARCH_MODULE_EVALUATION.md) and [removal guide](docs/STARTING-A-PROJECT.md) document the contract; removing code never deletes Projects or applied migrations.

@@ -118,7 +118,7 @@ If the downstream fork will never reinstall or develop API Platform, delete `cap
 
 Apply both recipes together, remove both IDs from `referenceApplication.enabledCapabilities`, regenerate routes once, and update/install dependencies once. Keep the baseline PostgreSQL migration history and `/api/health` container verification.
 
-Webhooks must be removed before removing Jobs. Observability, Object Storage, Email, Audit Log and Cache may remain independently installed; apply their following removal recipes for a capability-free application baseline.
+Webhooks must be removed before removing Jobs. Observability, Object Storage, Email, Audit Log, Cache and Search may remain independently installed; apply their following removal recipes for a capability-free application baseline.
 
 The resulting application retains TanStack Start/React, Bun, PostgreSQL/Drizzle, passwordless Better Auth, the authenticated Projects slice, Tailwind/shadcn/Tabler UI, Docker/Compose, CI, and agent/capability governance. `bun run capabilities:check`, `bun run typecheck`, and `bun run build` must all pass before treating the lean baseline as viable.
 
@@ -187,7 +187,7 @@ Run capability governance, types/build, Jobs smoke, E2E and production health. T
 5. Remove `audit-log` from `referenceApplication.enabledCapabilities`; update docs and run governance/typecheck/build/E2E. Independently packaged consumer fixtures remain usable without root integration.
 6. To prune authoring too, delete `capabilities/audit-log/`, evaluation and skill if unused; retain the catalog ID as deferred and remove implementation metadata, using the standard pruning recipe. Other planned statuses stay unchanged.
 
-Dropping deployed audit history requires a **new explicit destructive migration**, retention/privacy/backup decisions and operator review. Never delete/edit applied migrations. For a never-deployed fresh project only, consolidation may be a separate deliberate action. No v1 retention/purge automation exists. To reach the capability-free lean baseline, apply each of the eight removal recipes, removing Webhooks before Jobs.
+Dropping deployed audit history requires a **new explicit destructive migration**, retention/privacy/backup decisions and operator review. Never delete/edit applied migrations. For a never-deployed fresh project only, consolidation may be a separate deliberate action. No v1 retention/purge automation exists. To reach the capability-free lean baseline, apply each of the nine removal recipes, removing Webhooks before Jobs.
 
 ### Remove Cache / Coordination
 
@@ -208,3 +208,13 @@ Cache callers explicitly decode Buffer reads, use setWithoutExpiry only delibera
 Stop AI callers and optional application Jobs/Storage/Audit/Observability integrations. Remove `src/integrations/ai`, `src/lib/ai.server.ts`, `src/lib/ai.test.ts`, `scripts/ai-*.ts`, package `ai:*` scripts and `openai`. Retain Zod if shared. Remove AI environment/secrets/operator config and the Dockerfile AI smoke bundle line; remove `ai` from reference enablement. No database/data migration exists. Never automatically revoke/delete external provider credentials/accounts. Retain authoring workspace/skill/evaluation by default; pruning is a separate catalog/doc change. Run capability/agent checks, types/tests/backendless build and production startup/health/worker. The independent clean scaffold tests runtime removal and rebuild via `bun run add-ons:test ai`.
 
 To add AI to a lean generated consumer, explicitly select `capabilities/ai/add-on.json` using the official CLI. Set server-only `AI_MODEL` on first operation; compatible HTTPS `AI_BASE_URL` and authentication `AI_API_KEY` are optional. Start with the local `ai:compat` fixture; it never needs external credentials. Call core from server-side application code, or own a safe telemetry wrapper; review endpoint trust and application retry/billing decisions.
+
+### Remove Search
+
+1. Remove Search helper/validation imports and the Search-only Drizzle `sql` import, plus `searchProjectsForOwner` / `searchProjects` from `src/features/projects/projects.server.ts`. Remove only the Search POST server function in `projects.functions.ts`. Keep authentication, owner predicates, the explicit project field projection and all domain mutations.
+2. Delete `src/integrations/search/search.server.ts`, `validation.ts`, Search tests, `src/features/projects/search.integration.test.ts`, and `scripts/search-smoke.ts` / fixture-only `search-clean-fixture.ts`; remove `search:smoke` from package scripts. No Search package/environment/daemon/readiness or bespoke CI job exists to remove.
+3. Retain `src/integrations/search/schema.ts`, its schema import, Projects `searchVector` generated declaration and `project_search_vector_idx`, `drizzle/0004_search.sql`, snapshots/journal and all project records. The schema-only helper has no runtime Search dependency. Keeping declarations prevents accidental drops from later db:generate. A generated clean consumer retains its own domain schema/history; Search ships no production migration.
+4. Remove `search` from `referenceApplication.enabledCapabilities` when present, keeping defaultInstalled false. Update docs and run governance/types/tests/build/E2E and the production migration/container path. Build/start needs no Search operation.
+5. If also pruning authoring, remove `capabilities/search/`, `SEARCH_MODULE_EVALUATION.md` and `.agents/skills/search-change/`, retain stable catalog ID as deferred, remove implementation metadata and update ROADMAP/docs. Planned Realtime/Notifications stay unchanged.
+
+Removing Search code never deletes application records. Dropping the generated column/index later requires a new explicit reviewed migration; preserve applied migration history. There is no CLI uninstall transaction. The clean lifecycle fixture builds before removal and after removal, proving retained domain records, generated vector, schema helper and migration hashes.
