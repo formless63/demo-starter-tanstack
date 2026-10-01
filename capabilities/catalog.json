@@ -55,7 +55,7 @@
 			"integratesWith": ["observability", "ops-admin"],
 			"baselineRequirements": ["postgresql", "drizzle"],
 			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Durable queue storage and advisory-lock coordination." }],
-			"summary": "Typed PostgreSQL-backed jobs with native attempt context, explicit process roles/schema migration, and a standalone worker.",
+			"summary": "Typed PostgreSQL-backed jobs with routing-safe transactional enqueue, native attempt context, explicit process roles/schema migration, and a standalone worker.",
 			"scripts": ["jobs:worker", "jobs:migrate", "jobs:doctor", "jobs:smoke"],
 			"environmentVariables": [
 				{ "name": "PGBOSS_DATABASE_URL", "required": false, "description": "Optional jobs-specific PostgreSQL URL; falls back to DATABASE_URL." },
