@@ -132,3 +132,7 @@ Run storage unit/check/smoke and complete two-provider compatibility, governance
 ## Agent guidance
 
 Use capability-change and storage-change. Preserve private/lazy/server-only behavior, exact signed headers, honest post-upload limits, no hidden hard dependency, bounded telemetry and non-destructive removal. Update source/assets/compiled output/catalog/contract/evaluation together.
+
+## Caller cancellation extension
+
+`getObject(key, {signal})`, `headObject(key, {signal})`, and `putObject(key, body, {...options, signal})` accept an optional AbortSignal forwarded to SDK send. Pre-aborted calls perform no provider I/O. Caller-requested SDK AbortError maps to safe `cancelled`; unrelated provider failures retain ordinary classification. GET cancellation destroys the returned Node body (or cancels a Web body); consumers still own complete consumption/closure. No other primitives changed. `scripts/storage-abort-fixture.ts` proves acquisition GET/PUT/HEAD and streaming GET cancellation in Bun and Node24 against a disposable local HTTP fixture. Real-provider regressions remain required for this change.

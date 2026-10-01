@@ -47,6 +47,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | Search | Done | Optional | Baseline PostgreSQL + Drizzle | Application-owned FTS, weighted generated vectors, safe queries and keyset pages | [Search contract](capabilities/search/CAPABILITY.md) |
 | Realtime | Done | Optional | Baseline Node; human session integration | Authenticated SSE and WebSocket hints, bounded output; optional Cache fanout | [Realtime contract](capabilities/realtime/CAPABILITY.md) |
 | Notifications | Done | Optional | Jobs + baseline PostgreSQL/Drizzle | Durable recipient-scoped in-app records, atomic delivery enqueue, optional Email/ntfy/hints | [Notifications contract](capabilities/notifications/CAPABILITY.md) |
+| Import / Export | Done | Optional | Jobs + Object Storage; baseline PostgreSQL/Drizzle/Node | Scoped durable bounded CSV transfers and personal Projects round-trip | [Import / Export contract](capabilities/import-export/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -280,3 +281,5 @@ Optional lazy server-side OpenAI-compatible model access with text, real streami
 [Search](capabilities/search/CAPABILITY.md) uses PostgreSQL 18 native FTS with explicit `simple`, weighted A name/B description, a stored generated Projects vector and GIN index. `searchProjects` is a session-scoped POST server function; every page enforces the existing owner predicate. Query 2–256 after trim, page25/max100, `ts_rank_cd(..., 32)` and descending rank/updatedAt/id keysets. Numeric result ranks are separate from exact database rank text retained in canonical cursors. No external service, universal search table, snippets, vector/semantic search or raw query telemetry.
 
 Apply the new reviewed `drizzle/0004_search.sql` through the existing explicit migration path. `bun run search:smoke` verifies real PostgreSQL 18 with a disposable temporary table. The catalog fixture proves clean installation/removal and retained domain data/migration history. [Evaluation](SEARCH_MODULE_EVALUATION.md) and [removal guide](docs/STARTING-A-PROJECT.md) document the contract; removing code never deletes Projects or applied migrations.
+
+Import / Export is completed: [contract](capabilities/import-export/CAPABILITY.md) and [evaluation](IMPORT_EXPORT_MODULE_EVALUATION.md). It requires Jobs + Object Storage; Notifications/Audit remain optional composition. Clean consumers remain opt-in.
