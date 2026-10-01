@@ -231,6 +231,8 @@ try {
 			asCursor([1, 0.5, decoded.updatedAt, decoded.id]),
 			asCursor([1, "0.50", decoded.updatedAt, decoded.id]),
 			asCursor([1, "NaN", decoded.updatedAt, decoded.id]),
+			asCursor([1, "1e-999", decoded.updatedAt, decoded.id]),
+			asCursor([1, "1e-46", decoded.updatedAt, decoded.id]),
 			asCursor([1, "0.5", "2026-02-30T00:00:00.000000Z", decoded.id]),
 			asCursor([1, "0.5", decoded.updatedAt, ""]),
 			Buffer.from(
