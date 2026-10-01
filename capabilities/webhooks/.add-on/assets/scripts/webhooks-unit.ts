@@ -66,11 +66,17 @@ export async function webhooksUnit() {
  await assert.rejects(deliverWebhook(delivery, { registry, resolveTarget: () => { throw new Error("private resolver data"); } }), matches("target", true));
  await assert.rejects(deliverWebhook(delivery, { registry, resolveTarget: () => { throw new WebhookDeliveryError("target", false); } }), matches("target", false));
  const originalFetch = globalThis.fetch;
- let cancelled = false, read = false;
+ let cancelled = false, read = false, fetches = 0;
  try {
- globalThis.fetch = (async () => ({ status: 204, body: { cancel: async () => { cancelled = true; }, getReader: () => { read = true; throw new Error(); } } })) as unknown as typeof fetch;
+ globalThis.fetch = (async () => { fetches++; return ({ status: 204, body: { cancel: async () => { cancelled = true; }, getReader: () => { read = true; throw new Error(); } } }); }) as unknown as typeof fetch;
  await deliverWebhook(delivery, { registry, resolveTarget: () => target });
  assert.equal(cancelled, true); assert.equal(read, false);
+ const before = fetches;
+ await assert.rejects(deliverWebhook(delivery, { registry, timeoutMs: 100, resolveTarget: () => {
+ const until = performance.now() + 120; while (performance.now() < until) { /* Synchronous application preparation consumes the same budget. */ }
+ return target;
+ } }), matches("timeout", true));
+ assert.equal(fetches, before);
  } finally { globalThis.fetch = originalFetch; }
 
 	const previous = generateWebhookSecret();
