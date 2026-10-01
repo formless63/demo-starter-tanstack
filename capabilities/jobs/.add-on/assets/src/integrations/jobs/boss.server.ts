@@ -1,6 +1,13 @@
 import { type ConstructorOptions, PgBoss } from "pg-boss";
 
 const SCHEMA_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const ROUTING_QUERY_OPTIONS = new Set([
+	"host",
+	"hostaddr",
+	"port",
+	"dbname",
+	"service",
+]);
 
 export function jobsDatabaseUrl() {
 	const value = process.env.PGBOSS_DATABASE_URL || process.env.DATABASE_URL;
@@ -44,12 +51,20 @@ export function assertTransactionalJobsDatabase() {
 	const identity = (value: string) => {
 		try {
 			const url = new URL(value);
-			if (!["postgres:", "postgresql:"].includes(url.protocol))
+			if (
+				!["postgres:", "postgresql:"].includes(url.protocol) ||
+				!url.hostname ||
+				!url.pathname.slice(1) ||
+				Array.from(url.searchParams.keys()).some((key) =>
+					ROUTING_QUERY_OPTIONS.has(key.toLowerCase()),
+				)
+			)
 				throw new Error();
 			return JSON.stringify([
 				url.hostname.toLowerCase(),
 				url.port || "5432",
-				decodeURIComponent(url.pathname),
+				// Match pg-connection-string's database decoding, including escaped separators.
+				decodeURI(url.pathname),
 			]);
 		} catch {
 			throw new Error("Jobs database configuration is invalid");
@@ -60,13 +75,28 @@ export function assertTransactionalJobsDatabase() {
 			"Transactional Jobs requires the same canonical database host, port and database as DATABASE_URL",
 		);
 }
-export function createJobsBoss(overrides: Partial<ConstructorOptions> = {}) {
+export type JobsRole = "producer" | "admin" | "worker" | "migration";
+
+export function jobsRoleOptions(role: JobsRole) {
+	return {
+		migrate: role === "migration",
+		schedule: role === "worker",
+		supervise: role === "worker",
+	};
+}
+
+export function createJobsBoss(
+	role: JobsRole = "producer",
+	overrides: Partial<
+		Omit<ConstructorOptions, "migrate" | "schedule" | "supervise">
+	> = {},
+) {
 	const boss = new PgBoss({
 		connectionString: jobsDatabaseUrl(),
-		migrate: false,
 		schema: jobsSchema(),
 		useListenNotify: jobsListenNotify(),
 		...overrides,
+		...jobsRoleOptions(role),
 	});
 	boss.on("error", (error) => {
 		console.error(

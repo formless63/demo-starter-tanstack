@@ -25,3 +25,13 @@ export const deleteProject = createServerFn({ method: "POST" })
 	.handler(async ({ data }) =>
 		(await import("./projects.server")).removeProject(data.id),
 	);
+
+// POST keeps raw search strings out of request URLs and access logs. Validation
+// runs inside the server handler so only safe SearchError messages cross the boundary.
+export const searchProjects = createServerFn({ method: "POST" })
+	.validator(
+		(value: import("#/integrations/search/validation").SearchRequest) => value,
+	)
+	.handler(async ({ data }) =>
+		(await import("./projects.server")).searchProjects(data),
+	);

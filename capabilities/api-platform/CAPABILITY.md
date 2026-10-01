@@ -144,3 +144,11 @@ Read `ROADMAP.md`, this file, `.agents/skills/capability-change/SKILL.md`, `.age
 ## Architecture checkpoint corrections
 
 Machine JSON input defaults to 64 KiB and a 10-second complete-read deadline, checks actual bytes and malformed/oversized declared lengths, and cancels unread input. Safe 413 payload_too_large and 408 request_timeout envelopes are declared in OpenAPI. Optional reviewed parser limits are bounded to 1 MiB/30 seconds. The independent lifecycle fixture explicitly typechecks installed/removal states and retains credential schema/migration history on removal.
+
+## Better Auth 1.7.7 maintenance and Project input limits
+
+Better Auth core, its bundled Drizzle adapter, and the API-key plugin resolve to 1.7.7 together. The [official release](https://github.com/better-auth/better-auth/releases/tag/v1.7.7) and [GHSA-965c-763c-88jm](https://github.com/better-auth/better-auth/security/advisories/GHSA-965c-763c-88jm) describe purpose-isolated verification identifiers. Existing hashed Magic Link tokens with global `verification.storeIdentifier` unset match the advisory mitigation; this maintenance upgrade does not establish prior exposure. Preserve those settings, providers, cookies, human sessions and key grants. Upgrade nodes sharing verification storage together, request new Magic Links and restart pending OAuth/SAML flows. No auth database migration is required.
+
+Canonical Project create/update inputs accept trimmed names of 1–120 characters and optional trimmed descriptions up to 1000 characters. Browser/server/API validation and generated OpenAPI request bounds use the same constants. This widens the former 100-character name limit. PostgreSQL columns are already `text`; existing rows and applied migration history remain unchanged, so no new migration is needed. Response schemas retain their historical-data compatibility.
+
+The root manifest pins core and API Key at 1.7.7. Clean scaffolds use the official Better Auth foundation declaration (CLI 0.71.0 currently declares `^1.5.3`) and the API Platform add-on pins API Key at 1.7.7, whose peer contract requires core `^1.7.7`. The lifecycle fixture checks the actual installed core, internal core, Drizzle adapter and API Key versions are all 1.7.7 before migration/runtime checks. No package-rewrite install hook is used.

@@ -1,0 +1,14 @@
+{
+  "reviewedOverrides": [
+    {
+      "path": "src/integrations/jobs/registry.ts",
+      "dependency": "jobs",
+      "reason": "Preserves starter.echo and composes private notifications.deliver; removal retains Jobs."
+    },
+    {
+      "path": "drizzle.config.ts",
+      "dependency": "jobs",
+      "reason": "Keeps baseline schema and adds notification schema for explicit migration commands."
+    }
+  ]
+}

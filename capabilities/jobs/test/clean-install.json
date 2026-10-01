@@ -25,7 +25,8 @@
     "scripts/jobs-smoke.ts",
     "scripts/jobs-worker.ts",
     "capabilities/jobs/CAPABILITY.md",
-    "scripts/jobs-lifecycle-fixture.ts"
+    "scripts/jobs-lifecycle-fixture.ts",
+    "scripts/jobs-transaction-fixture.ts"
   ],
   "build": true,
   "verificationCommands": [
@@ -39,5 +40,21 @@
       "bun",
       "scripts/jobs-lifecycle-fixture.ts"
     ]
-  ]
+  ],
+  "expectedFileText": {
+    "src/integrations/jobs/boss.server.ts": [
+      "role === 'migration'",
+      "role === 'worker'",
+      "ROUTING_QUERY_OPTIONS",
+      "decodeURI(url.pathname)"
+    ],
+    "src/integrations/jobs/worker.server.ts": [
+      "includeMetadata: true",
+      "retryLimit: job.retryLimit",
+      "signal: job.signal"
+    ],
+    "src/integrations/jobs/types.ts": [
+      "context?: JobHandlerContext"
+    ]
+  }
 }

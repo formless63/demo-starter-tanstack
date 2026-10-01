@@ -1,4 +1,5 @@
 import {
+	IconBell,
 	IconFolder,
 	IconKey,
 	IconLogout,
@@ -62,6 +63,13 @@ function AppShell() {
 			<div className="mx-auto grid max-w-6xl md:grid-cols-[190px_1fr]">
 				<aside className="border-r p-4 max-md:border-b">
 					<nav className="space-y-1">
+						<Link
+							to="/app/notifications"
+							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+							activeProps={{ className: "bg-accent" }}
+						>
+							<IconBell size={18} /> Notifications
+						</Link>
 						<Link
 							to="/app/projects"
 							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"

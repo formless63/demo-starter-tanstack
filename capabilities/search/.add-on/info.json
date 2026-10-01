@@ -1,0 +1,24 @@
+{
+  "id": "search",
+  "name": "search",
+  "displayName": "Search",
+  "description": "PostgreSQL-native FTS helpers with application-owned data, authorization and exact keyset pagination.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "database",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [
+    "drizzle"
+  ],
+  "packageAdditions": {
+    "scripts": {
+      "search:smoke": "bun scripts/search-smoke.ts"
+    }
+  },
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "envVars": []
+}
