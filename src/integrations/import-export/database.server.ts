@@ -34,6 +34,17 @@ export function createTransferTransactions(
 		let interrupted = false;
 		let databaseTimedOut = false;
 		let workFailure: unknown;
+		// Observe the owned driver's rejected query before application adapters can erase its closed code.
+		const query = client.query.bind(client);
+		client.query = ((...args: Parameters<typeof client.query>) => {
+			const result = Reflect.apply(query, client, args) as unknown;
+			if (result && typeof (result as Promise<unknown>).catch === "function")
+				return (result as Promise<unknown>).catch((error) => {
+					if (isPostgresTimeout(error)) databaseTimedOut = true;
+					throw error;
+				});
+			return result;
+		}) as typeof client.query;
 		client.on("error", (error) => {
 			if (isPostgresTimeout(error)) databaseTimedOut = true;
 		});

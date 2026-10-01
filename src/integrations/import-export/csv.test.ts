@@ -150,6 +150,32 @@ describe("CSV fixed v1 contract", () => {
 			"value\r\n-65536\r\n",
 		);
 	});
+	test("trusted header text and lone LF/CR data round-trip", () => {
+		const columns = ["=name", "description"];
+		const rowSchema = z.object({
+			"=name": z.string(),
+			description: z.string(),
+		});
+		for (const description of ["line1\nline2", "line1\rline2"]) {
+			const bytes = exportCsv([["=unsafe", description]], columns, config);
+			expect(bytes.toString()).toContain("=name,description\r\n");
+			expect(bytes.toString()).toContain('"' + description + '"');
+			const result = parseImport(bytes, columns, rowSchema, config);
+			expect(result).toEqual([{ "=name": "'=unsafe", description }]);
+			expect(result).toHaveLength(1);
+		}
+		expect(
+			parseImport(exportCsv([], columns, config), columns, rowSchema, config),
+		).toEqual([]);
+		expect(() =>
+			parseImport(
+				Buffer.from("'=name,description\r\nx,y\r\n"),
+				columns,
+				rowSchema,
+				config,
+			),
+		).toThrow(TransferError);
+	});
 	test("validation issues never contain cells and truncate at100", () => {
 		try {
 			csv("name,description\n" + Array(101).fill(",private-cell").join("\n"));
