@@ -1,0 +1,37 @@
+{
+  "id": "ops-admin",
+  "name": "ops-admin",
+  "displayName": "Ops / Admin",
+  "description": "Read-only authenticated operational overview with explicit safe adapters.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [
+    "better-auth",
+    "drizzle"
+  ],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "scripts": {
+      "ops:unit": "vitest run src/integrations/ops-admin/ops.test.ts"
+    },
+    "devDependencies": {
+      "vitest": "3.2.7"
+    }
+  },
+  "envVars": [
+    {
+      "name": "OPS_ADMIN_USER_IDS",
+      "description": "Privileged server operator IDs; empty denies all.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local",
+      "default": ""
+    }
+  ]
+}

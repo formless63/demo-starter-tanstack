@@ -1,8 +1,29 @@
 import { checkCache } from "#/integrations/cache/cache.server";
 import type { OpsAdapter } from "#/integrations/ops-admin/ops.server";
 import { checkStorage } from "#/integrations/storage/storage.server";
+import { inspectOpsJobs } from "./ops-jobs.server";
 // Application composition only. Removing a capability also removes its adapter/import here.
 export const opsAdapters: OpsAdapter[] = [
+	{
+		id: "jobs",
+		title: "Jobs cached counts (sample time unknown)",
+		countNames: ["queued", "active", "failed"],
+		isConfigured: () =>
+			Boolean(process.env.PGBOSS_DATABASE_URL || process.env.DATABASE_URL),
+		inspect: inspectOpsJobs,
+	},
+	{
+		id: "audit",
+		title: "Audit capability present (counts omitted)",
+		isConfigured: () => true,
+		inspect: async () => ({ status: "ok" }),
+	},
+	{
+		id: "webhooks",
+		title: "Webhooks capability present (delivery counts included in Jobs)",
+		isConfigured: () => true,
+		inspect: async () => ({ status: "ok" }),
+	},
 	{
 		id: "storage",
 		title: "Private storage reachability",
@@ -24,11 +45,13 @@ export const opsAdapters: OpsAdapter[] = [
 	{
 		id: "observability",
 		title: "Local instrumentation configuration",
-		countNames: ["enabled"],
+		countNames: ["export-configured"],
 		isConfigured: () => true,
 		inspect: async () => ({
 			status: "ok",
-			counts: { enabled: process.env.OTEL_ENABLED === "true" ? 1 : 0 },
+			counts: {
+				"export-configured": process.env.OTEL_EXPORTER_OTLP_ENDPOINT ? 1 : 0,
+			},
 		}),
 	},
 ];

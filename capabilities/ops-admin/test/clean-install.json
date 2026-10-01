@@ -1,0 +1,59 @@
+{
+  "projectName": "ops-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "addOnConfig": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "expectedOfficialAddOns": [
+    "better-auth",
+    "drizzle"
+  ],
+  "forbiddenOfficialAddOns": [
+    "postgres-jobs",
+    "api-platform",
+    "observability",
+    "object-storage",
+    "cache-coordination"
+  ],
+  "expectedFiles": [
+    "src/integrations/ops-admin/ops.server.ts",
+    "src/lib/ops-adapters.server.ts",
+    "src/routes/admin.ops.tsx",
+    "src/routes/api/ops/summary.ts",
+    "capabilities/ops-admin/CAPABILITY.md"
+  ],
+  "verificationCommands": [
+    [
+      "bun",
+      "run",
+      "ops:unit"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ],
+    [
+      "bun",
+      "scripts/ops-removal-fixture.ts"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ]
+  ],
+  "build": true
+}

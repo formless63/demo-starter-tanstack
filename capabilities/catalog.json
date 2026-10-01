@@ -753,9 +753,53 @@
 			"summary": "Medusa commerce synchronization using reliable background and webhook processing."
 		},
 		{
-			"id": "ops-admin", "displayName": "Ops / Admin", "kind": "operations-ui-infrastructure", "status": "in-progress", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["observability", "jobs", "audit-log", "object-storage", "cache-coordination", "webhooks"], "baselineRequirements": ["authentication", "node-runtime"], "externalRequirements": [],
-			"summary": "Authenticated operational surfaces assembled from installed capability adapters."
+			"id": "ops-admin",
+			"displayName": "Ops / Admin",
+			"kind": "operations-ui-infrastructure",
+			"status": "in-progress",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"observability",
+				"jobs",
+				"audit-log",
+				"object-storage",
+				"cache-coordination",
+				"webhooks"
+			],
+			"baselineRequirements": [
+				"authentication",
+				"node-runtime"
+			],
+			"externalRequirements": [],
+			"summary": "Authenticated operational surfaces assembled from installed capability adapters.",
+			"documentationPath": "capabilities/ops-admin/CAPABILITY.md",
+			"evaluationDocument": "OPS_ADMIN_MODULE_EVALUATION.md",
+			"scripts": [
+				"ops:unit"
+			],
+			"environmentVariables": [
+				{
+					"name": "OPS_ADMIN_USER_IDS",
+					"required": false,
+					"default": "",
+					"description": "Privileged server-only platform-wide operator IDs; empty denies all."
+				}
+			],
+			"migrations": [],
+			"runtimeServices": [],
+			"tanstackAddOn": {
+				"addOnId": "ops-admin",
+				"sourceDirectory": "capabilities/ops-admin/.add-on",
+				"manifestPath": "capabilities/ops-admin/.add-on/info.json",
+				"distributablePath": "capabilities/ops-admin/add-on.json",
+				"cleanInstallFixture": "capabilities/ops-admin/test/clean-install.json",
+				"dependsOn": [
+					"better-auth",
+					"drizzle"
+				],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "command-system", "displayName": "Command System", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
