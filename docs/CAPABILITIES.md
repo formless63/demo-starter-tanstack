@@ -153,3 +153,7 @@ Verification: `bun run add-ons:test audit-log`, `bun run audit-log:smoke`, and r
 Cache / Coordination declares `dependsOn: []`; clean installation needs no database, Auth, Jobs, API, Realtime or Observability add-on. Select `capabilities/cache-coordination/add-on.json` with the same official CLI URL flow above. Backendless build and unit checks run before actual disposable pinned Valkey compatibility and clean removal/rebuild. Its protocol subset is tested on Valkey only; no second Redis implementation is claimed. Optional reference telemetry is application-owned.
 
 Run `bun run add-ons:test cache-coordination`, `bun run cache:unit`, and `bun run cache:compat` for its standalone contract; normal root startup/readiness never requires Cache.
+
+### Shared-file preflight and reviewed composition
+
+Run `bun run add-ons:preflight <id ...>` before combining custom add-ons. It exits nonzero for unreviewed shared files (including journals/config); it never merges files or applies migrations. Webhooks' `installation.json` records its reviewed Jobs registry overlay, permitted only for its hard dependency. Existing customized applications still require manual diff review even when this check passes. `bun run add-ons:test:composition` proves a reviewed API + Audit + Jobs clean consumer using this reference application's unified schema/history; it is a fixture, not an installation or upgrade command for a deployed application. Public semantic upgrade/merge support remains deferred.

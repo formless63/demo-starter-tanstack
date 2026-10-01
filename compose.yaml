@@ -41,7 +41,7 @@ services:
     image: postgres:18.1-alpine
     environment: *database-environment
     ports: ["${POSTGRES_PORT:-5432}:5432"]
-    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    volumes: ["postgres-data:/var/lib/postgresql"]
     healthcheck:
       test:
         [
@@ -88,7 +88,7 @@ services:
   app:
     <<: *app-image
     environment:
-      <<: *observability-environment
+      <<: [*jobs-environment, *observability-environment]
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-starter}:${POSTGRES_PASSWORD:-starter}@postgres:5432/${POSTGRES_DB:-starter}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}

@@ -1,0 +1,5 @@
+{
+  "reviewedOverrides": [
+    { "path": "src/integrations/jobs/registry.ts", "dependency": "jobs", "reason": "The dependent registry preserves starter.echo and composes referenceWebhookJobs; removal retains Jobs." }
+  ]
+}

@@ -135,3 +135,11 @@ Read `ROADMAP.md`, this document, `.agents/skills/capability-change/SKILL.md`, a
 The Jobs installation supplies a PostgreSQL `drizzle.config.ts` that requires/narrows DATABASE_URL for explicit Drizzle commands. This corrects CLI 0.71's possibly-undefined URL template exposed by the Webhooks transitive clean TypeScript fixture. Review/merge this shared config in customized applications. Generic policy types also allow native retryBackoff/retryDelayMax so dependent capabilities compose bounded backoff through the existing worker. Neither change imports Webhooks into independent Jobs assets.
 
 Jobs custom assets run in the CLI example phase, after official Drizzle assets, so its strict configuration is not overwritten by the upstream template. The dependent Webhooks example phase follows Jobs.
+
+## Architecture checkpoint corrections
+
+Enqueue-only clients disable pg-boss scheduling/supervision; the standalone worker owns those roles. Failed initialization cleans up and resets, concurrent calls share startup, and stop/restart is serialized. Empty optional environment values use documented defaults, integers/booleans/schema lengths are validated before resources open.
+
+Transactional enqueue requires DATABASE_URL and PGBOSS_DATABASE_URL to use the same canonical host, port and database (credentials may differ). Alternate DNS aliases must be normalized in configuration; isolated Jobs databases support non-atomic sends only. No cross-database atomicity/outbox is supplied. App and worker Compose receive the same Jobs settings.
+
+The clean Jobs fixture now explicitly typechecks, migrates/diagnoses/smokes and removes runtime packages/files, then typechecks/builds while retaining database schema/history.

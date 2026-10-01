@@ -59,7 +59,11 @@ jobs:
       - run: bun run agents:test
       - run: bun run capabilities:status
       - run: bun run capabilities:check
+      - run: bun run project:check
+      - run: bun run project:status
+      - run: bun run theme:check
       - run: docker compose build app
+      - run: bun run db:persistence:test
       - run: docker compose up -d --wait postgres
       - run: docker compose run --rm migrate
       - run: docker compose run --rm jobs-migrate
@@ -68,6 +72,7 @@ jobs:
       - run: docker compose run --rm worker node .output/webhooks-smoke.mjs
       - run: bun run lint
       - run: bun run typecheck
+      - run: bun run add-ons:test:composition
       - run: bun run observability:smoke
       - name: Verify ephemeral cache on actual Valkey and optional safe telemetry
         run: |
@@ -92,5 +97,7 @@ jobs:
           curl --fail --show-error -D - -o /dev/null -H 'X-Request-ID: container-smoke' http://127.0.0.1:3000/api/health | grep -i 'x-request-id: container-smoke'
       - run: curl --fail --show-error http://127.0.0.1:3000/api/openapi.json | jq -e '.openapi == "3.1.1"'
       - run: curl --fail --show-error --output /dev/null http://127.0.0.1:3000/docs/api
+      - name: Verify production appearance and hydration
+        run: E2E_BASE_URL=http://127.0.0.1:3000 bun run test:e2e
       - if: always()
         run: docker compose down --volumes --remove-orphans

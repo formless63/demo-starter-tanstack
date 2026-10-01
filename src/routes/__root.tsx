@@ -7,7 +7,9 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { Toaster } from "sonner";
+import { ColorModeSync } from "../components/theme-selector";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
+import { initialColorModeScript } from "../lib/color-mode";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
@@ -53,9 +55,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<head>
+				<script>{initialColorModeScript()}</script>
 				<HeadContent />
 			</head>
 			<body>
+				<ColorModeSync />
 				{children}
 				<Toaster richColors />
 				<TanStackDevtools
