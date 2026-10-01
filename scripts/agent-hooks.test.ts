@@ -421,3 +421,34 @@ test("harness checker requires the canonical prompts directory", () => {
 	expect(checkAgents(root)).toContain(".agents/prompts must be a directory");
 	expect(agentHarness(".agents/prompts/example.md")).toBe(true);
 });
+
+test.each([
+ [".project/config.json", ["bun run project:check"]],
+ ["PROJECT.md", ["bun run project:check"]],
+ ["src/theme.css", ["bun run project:check"]],
+ [".agents/schemas/theme.schema.json", ["bun run capabilities:check", "bun run agents:check", "bun run project:check"]],
+ [".agents/skills/project-onboarding/SKILL.md", ["bun run capabilities:check", "bun run agents:check", "bun run project:check"]],
+])("project surfaces select cheap project check for %s", (path, expected)=>{
+ const root=fixture();const runner=recording(false);
+ mkdirSync(resolve(root,path,'..'),{recursive:true});writeFileSync(resolve(root,path),'changed\n');
+ const error=qualityGate(root,runner.execute);
+ expect(runner.calls.filter(call=>call.startsWith('bun'))).toEqual(expected);
+ expect(error).toContain('bun run project:check');
+});
+test('session project summary is bounded and only requested when configured',()=>{
+ const root=fixture();const calls:string[]=[];
+ const execute:Runner=(repo,command,args,timeout)=>{
+  calls.push([command,...args].join(' '));
+  if(command==='bun') return {ok:true,output:args.includes('project:status')?'Project: Field Notes\nCapabilities: jobs, webhooks\nAppearance: theme=modern-minimal; mode=system\nDO_NOT_DUMP_SECRET\n'+ 'Project: '+ 'a'.repeat(500):'jobs\n  status: done'};
+  return run(repo,command,args,timeout);
+ };
+ expect(sessionContext(root,execute)).not.toContain('Field Notes');expect(calls).not.toContain('bun run project:status --session');
+ mkdirSync(resolve(root,'.project'));writeFileSync(resolve(root,'.project/config.json'),'{}');
+ const context=sessionContext(root,execute);expect(context).toContain('Project: Field Notes');expect(context).toContain('theme=modern-minimal');expect(context).not.toContain('DO_NOT_DUMP_SECRET');expect(context.length).toBeLessThan(900);
+});
+test('preserved document names also trigger project validation',()=>{
+ const root=fixture();mkdirSync(resolve(root,'.project'));mkdirSync(resolve(root,'requirements'));
+ writeFileSync(resolve(root,'.project/config.json'),JSON.stringify({documents:{spec:'requirements/Product.md'}}));
+ expect(run(root,'git',['add','.']).ok).toBe(true);expect(run(root,'git',['commit','-m','profile']).ok).toBe(true);
+ writeFileSync(resolve(root,'requirements/Product.md'),'changed\n');const runner=recording(false);qualityGate(root,runner.execute);expect(runner.calls).toContain('bun run project:check');
+});
