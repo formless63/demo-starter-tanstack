@@ -22,7 +22,7 @@ The clean scaffold overlays baseline auth/DB/env files because the official Bett
 
 ## Installation, removal and persistence
 
-Compile `bun run add-ons:compile ops-admin`; install with generic add-on tooling after selecting baseline better-auth/Drizzle. No new dependencies, migrations, table, worker, jobs, provider setup or durable telemetry. `OPS_ADMIN_USER_IDS` belongs only to server environment. Root enables the routes while its catalog stays in-progress pending release proof.
+Compile `bun run add-ons:compile ops-admin`; install with generic add-on tooling after selecting baseline better-auth/Drizzle. No new dependencies, migrations, table, worker, jobs, provider setup or durable telemetry. `OPS_ADMIN_USER_IDS` belongs only to server environment. The root reference enables the completed capability; generated consumers remain opt-in.
 
 To remove an optional capability first remove its entry/import in application-owned ops-adapters and its helper if any. Then follow that capability's existing removal recipe. To remove Ops delete src/integrations/ops-admin, src/lib/ops.server.ts, src/lib/ops-adapters.server.ts, src/lib/ops-jobs.server.ts, src/lib/ops-storage.server.ts, src/routes/admin.ops.tsx and src/routes/api/ops/summary.ts; prune operator env and any application navigation, regenerate routes, typecheck/build/login/health. Keep the authoring workspace unless explicitly removing reusable source. No customer data, provider resources or migration history are cleaned up. This is an explicit file overlay/removal recipe, not a semantic uninstall transaction.
 

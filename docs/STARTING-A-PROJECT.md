@@ -219,4 +219,4 @@ To add AI to a lean generated consumer, explicitly select `capabilities/ai/add-o
 
 Removing Search code never deletes application records. Dropping the generated column/index later requires a new explicit reviewed migration; preserve applied migration history. There is no CLI uninstall transaction. The clean lifecycle fixture builds before removal and after removal, proving retained domain records, generated vector, schema helper and migration hashes.
 
-Ops / Admin is in progress: guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
+Opt-in Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.

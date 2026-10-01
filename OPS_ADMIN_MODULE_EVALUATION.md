@@ -8,6 +8,6 @@ Both implementations must enforce baseline human session plus privileged server 
 
 Storage/Cache older read-only APIs lack signal support. Pending work is bounded/reused rather than falsely labeled cancelled. Import/Export owns any Storage API extension; no unfinished track is consulted. Cached Jobs sample time is unknown; Audit count is intentionally omitted and Webhooks uses Jobs aggregate presence. No claims of live totals, provider certification or semantic installer merging.
 
-Release acceptance remains in progress. Full lifecycle, real protocol canaries, browser privacy/access and production/CI proof are required before done.
+Release acceptance passed: independent baseline consumer install/runtime/removal/rebuild, all existing capability lifecycles, real local read-only protocol canaries, development and production browser boundaries, Node 24 image/app/explicit migration/worker/health gates and exact-head hosted verification. Run evidence lives in the draft PR; parent integration coordination remains separate.
 
 The existing generic `add-ons:verify:reference` entrypoint discovers installed-path reference checks in lifecycle metadata. Root `bun test` invokes it through the capability-wave test, so hosted root verification covers Ops PostgreSQL/socket-abort, ordinary-vs-Ops Storage retries, real RustFS/Garage HEAD and Valkey PING canaries plus all six adapter-removal variants. Only explicit tests provision uniquely named local fixtures; application startup and independent consumer installation do not run these root composition checks.

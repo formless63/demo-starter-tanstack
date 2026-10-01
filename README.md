@@ -35,7 +35,7 @@ Baseline components are not optional capability modules. Future integrations in 
 
 | Capability | Status | Default | Hard requirements | Purpose | Contract |
 | --- | --- | --- | --- | --- | --- |
-| Ops / Admin | In progress | Optional | Baseline Better Auth + Node runtime | Read-only operational overview, explicit safe adapters | [Ops contract](capabilities/ops-admin/CAPABILITY.md) |
+| Ops / Admin | Done | Optional | Baseline Better Auth + Node runtime | Read-only operational overview, explicit safe adapters | [Ops contract](capabilities/ops-admin/CAPABILITY.md) |
 | Jobs | Done | Optional | Baseline PostgreSQL + Drizzle | Typed pg-boss queues, explicit migration, worker, transactional enqueue | [Jobs contract](capabilities/jobs/CAPABILITY.md) |
 | API Platform | Done | Optional | Baseline Better Auth + PostgreSQL/Drizzle + server runtime | User-owned machine keys, typed permissions, native v1 API, OpenAPI 3.1.1, Scalar | [API Platform contract](capabilities/api-platform/CAPABILITY.md) |
 | Observability | Done | Optional | Baseline Start + Node runtime; no capability dependency | Safe JSON logs, request IDs, server traces/metrics, optional OTLP | [Observability contract](capabilities/observability/CAPABILITY.md) |
@@ -282,4 +282,4 @@ Optional lazy server-side OpenAI-compatible model access with text, real streami
 
 Apply the new reviewed `drizzle/0004_search.sql` through the existing explicit migration path. `bun run search:smoke` verifies real PostgreSQL 18 with a disposable temporary table. The catalog fixture proves clean installation/removal and retained domain data/migration history. [Evaluation](SEARCH_MODULE_EVALUATION.md) and [removal guide](docs/STARTING-A-PROJECT.md) document the contract; removing code never deletes Projects or applied migrations.
 
-Ops / Admin is in progress: guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
+Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.

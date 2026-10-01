@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "ai", "search", "realtime", "notifications"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "ai", "search", "realtime", "notifications", "ops-admin"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -756,7 +756,7 @@
 			"id": "ops-admin",
 			"displayName": "Ops / Admin",
 			"kind": "operations-ui-infrastructure",
-			"status": "in-progress",
+			"status": "done",
 			"defaultInstalled": false,
 			"requires": [],
 			"integratesWith": [

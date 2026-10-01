@@ -88,7 +88,7 @@ Starter authentication is a baseline requirement, not a capability edge.
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Ops / Admin | Starter authentication + Node runtime | Observability, Jobs, Audit Log, Object Storage, Cache / Coordination, Webhooks | None | In progress |
+| Ops / Admin | Starter authentication + Node runtime | Observability, Jobs, Audit Log, Object Storage, Cache / Coordination, Webhooks | None | Done |
 | Command System | None | Search, Authorization | None | Planned |
 | Data Table | None | Search, Organizations, Authorization | None | Planned |
 | Markdown / Code Content | None | Object Storage, AI | None | Planned |
