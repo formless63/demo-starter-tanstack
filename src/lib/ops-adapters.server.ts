@@ -1,15 +1,25 @@
 import { checkCache } from "#/integrations/cache/cache.server";
+import { cacheConfig } from "#/integrations/cache/config.server";
 import type { OpsAdapter } from "#/integrations/ops-admin/ops.server";
+import { storageConfig } from "#/integrations/storage/config.server";
 import { checkStorage } from "#/integrations/storage/storage.server";
-import { inspectOpsJobs } from "./ops-jobs.server";
+import { inspectOpsJobs, opsJobsConfigured } from "./ops-jobs.server";
+
+function configured(check: () => unknown) {
+	try {
+		check();
+		return true;
+	} catch {
+		return false;
+	}
+}
 // Application composition only. Removing a capability also removes its adapter/import here.
 export const opsAdapters: OpsAdapter[] = [
 	{
 		id: "jobs",
 		title: "Jobs cached counts (sample time unknown)",
 		countNames: ["queued", "active", "failed"],
-		isConfigured: () =>
-			Boolean(process.env.PGBOSS_DATABASE_URL || process.env.DATABASE_URL),
+		isConfigured: opsJobsConfigured,
 		inspect: inspectOpsJobs,
 	},
 	{
@@ -27,7 +37,7 @@ export const opsAdapters: OpsAdapter[] = [
 	{
 		id: "storage",
 		title: "Private storage reachability",
-		isConfigured: () => Boolean(process.env.STORAGE_BUCKET),
+		isConfigured: () => configured(() => storageConfig()),
 		inspect: async () => {
 			await checkStorage();
 			return { status: "ok" };
@@ -36,7 +46,7 @@ export const opsAdapters: OpsAdapter[] = [
 	{
 		id: "cache",
 		title: "Cache connection",
-		isConfigured: () => Boolean(process.env.CACHE_URL),
+		isConfigured: () => configured(() => cacheConfig()),
 		inspect: async () => {
 			await checkCache();
 			return { status: "ok" };
@@ -45,12 +55,18 @@ export const opsAdapters: OpsAdapter[] = [
 	{
 		id: "observability",
 		title: "Local instrumentation configuration",
-		countNames: ["export-configured"],
+		countNames: ["sdk-enabled", "export-configured"],
 		isConfigured: () => true,
 		inspect: async () => ({
 			status: "ok",
 			counts: {
-				"export-configured": process.env.OTEL_EXPORTER_OTLP_ENDPOINT ? 1 : 0,
+				"sdk-enabled": process.env.OTEL_SDK_DISABLED === "true" ? 0 : 1,
+				"export-configured":
+					process.env.OTEL_EXPORTER_OTLP_ENDPOINT ||
+					process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT ||
+					process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
+						? 1
+						: 0,
 			},
 		}),
 	},
