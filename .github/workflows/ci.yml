@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v5
       - id: catalog
         run: |
-          capability_matrix=$(jq -c '[.capabilities[] | select(.status == "done" and .tanstackAddOn != null) | .id]' capabilities/catalog.json)
+          capability_matrix=$(jq -c '[.capabilities[] | select((.status == "done" or .status == "in-progress") and .tanstackAddOn != null) | .id]' capabilities/catalog.json)
           echo "capabilities=$capability_matrix" >> "$GITHUB_OUTPUT"
 
   custom-add-ons:
@@ -62,6 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgresql://starter:starter@127.0.0.1:5432/starter
+      OPS_ADMIN_USER_IDS: ops-e2e-operator
       BETTER_AUTH_SECRET: ci-only-secret-with-at-least-32-characters
       APP_BASE_URL: http://127.0.0.1:3000
       NODE_ENV: test
@@ -92,6 +93,11 @@ jobs:
       - run: docker compose run --rm jobs-migrate
       - run: bun run production:smoke
       - run: docker compose run --rm worker node .output/notifications-smoke.mjs
+      - name: Verify combined Import and Ops on both real storage providers
+        run: |
+          bun run import-export:unit
+          bun run storage:abort
+          IMPORT_EXPORT_FIXTURE_SCRIPT=scripts/import-export-ops-fixture.ts bun run import-export:compat
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run add-ons:test:composition

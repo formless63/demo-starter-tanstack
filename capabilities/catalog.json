@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "ai", "search", "realtime", "notifications"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "ai", "search", "realtime", "notifications", "import-export", "ops-admin"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -712,9 +712,79 @@
 			}
 		},
 		{
-			"id": "import-export", "displayName": "Import / Export", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": ["jobs", "object-storage"], "integratesWith": ["notifications", "audit-log"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Asynchronous bulk data ingestion and export backed by durable jobs and objects."
+			"id": "import-export",
+			"displayName": "Import / Export",
+			"kind": "application-infrastructure",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [
+				"jobs",
+				"object-storage"
+			],
+			"integratesWith": [
+				"notifications",
+				"audit-log"
+			],
+			"baselineRequirements": [
+				"postgresql",
+				"drizzle",
+				"node-runtime"
+			],
+			"baselineIntegrations": [
+				"authentication"
+			],
+			"externalRequirements": [],
+			"summary": "Asynchronous bulk data ingestion and export backed by durable jobs and objects.",
+			"documentationPath": "capabilities/import-export/CAPABILITY.md",
+			"evaluationDocument": "IMPORT_EXPORT_MODULE_EVALUATION.md",
+			"agentSkill": ".agents/skills/import-export-change/SKILL.md",
+			"scripts": [
+				"import-export:unit",
+				"import-export:compat",
+				"import-export:operator"
+			],
+			"migrations": [
+				"bun run db:migrate"
+			],
+			"runtimeServices": [],
+			"environmentVariables": [
+				{
+					"name": "IMPORT_EXPORT_MAX_BYTES",
+					"required": false,
+					"default": "16777216",
+					"description": "Integer1024\u201367108864; bounded input/output bytes."
+				},
+				{
+					"name": "IMPORT_EXPORT_MAX_ROWS",
+					"required": false,
+					"default": "10000",
+					"description": "Integer1\u2013100000."
+				},
+				{
+					"name": "IMPORT_EXPORT_TIMEOUT_SECONDS",
+					"required": false,
+					"default": "60",
+					"description": "Integer5\u2013300; entire attempt deadline."
+				},
+				{
+					"name": "IMPORT_EXPORT_ARTIFACT_TTL_SECONDS",
+					"required": false,
+					"default": "86400",
+					"description": "Integer300\u2013604800; expiry denies access without physical deletion."
+				}
+			],
+			"tanstackAddOn": {
+				"addOnId": "import-export",
+				"sourceDirectory": "capabilities/import-export/.add-on",
+				"manifestPath": "capabilities/import-export/.add-on/info.json",
+				"distributablePath": "capabilities/import-export/add-on.json",
+				"cleanInstallFixture": "capabilities/import-export/test/clean-install.json",
+				"dependsOn": [
+					"postgres-jobs",
+					"object-storage"
+				],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "organizations", "displayName": "Organizations / Tenancy", "kind": "identity-policy", "status": "planned", "defaultInstalled": false,
@@ -753,9 +823,53 @@
 			"summary": "Medusa commerce synchronization using reliable background and webhook processing."
 		},
 		{
-			"id": "ops-admin", "displayName": "Ops / Admin", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["observability", "jobs", "audit-log", "object-storage", "cache-coordination", "webhooks"], "baselineRequirements": ["authentication"], "externalRequirements": [],
-			"summary": "Authenticated operational surfaces assembled from installed capability adapters."
+			"id": "ops-admin",
+			"displayName": "Ops / Admin",
+			"kind": "operations-ui-infrastructure",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"observability",
+				"jobs",
+				"audit-log",
+				"object-storage",
+				"cache-coordination",
+				"webhooks"
+			],
+			"baselineRequirements": [
+				"authentication",
+				"node-runtime"
+			],
+			"externalRequirements": [],
+			"summary": "Authenticated operational surfaces assembled from installed capability adapters.",
+			"documentationPath": "capabilities/ops-admin/CAPABILITY.md",
+			"evaluationDocument": "OPS_ADMIN_MODULE_EVALUATION.md",
+			"scripts": [
+				"ops:unit"
+			],
+			"environmentVariables": [
+				{
+					"name": "OPS_ADMIN_USER_IDS",
+					"required": false,
+					"default": "",
+					"description": "Privileged server-only platform-wide operator IDs; empty denies all."
+				}
+			],
+			"migrations": [],
+			"runtimeServices": [],
+			"tanstackAddOn": {
+				"addOnId": "ops-admin",
+				"sourceDirectory": "capabilities/ops-admin/.add-on",
+				"manifestPath": "capabilities/ops-admin/.add-on/info.json",
+				"distributablePath": "capabilities/ops-admin/add-on.json",
+				"cleanInstallFixture": "capabilities/ops-admin/test/clean-install.json",
+				"dependsOn": [
+					"better-auth",
+					"drizzle"
+				],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "command-system", "displayName": "Command System", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,

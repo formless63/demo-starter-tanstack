@@ -17,6 +17,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 | ID | TanStack add-on ID | Status | Reference app | Default installed | Official add-on dependencies | Reusable capability requirements | External | Contract |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `ops-admin` | `ops-admin` | Done | Yes | No | `better-auth`, `drizzle` | None | None additional | [Ops / Admin](../capabilities/ops-admin/CAPABILITY.md) |
 | `jobs` | `postgres-jobs` | Done | Enabled | No | `drizzle` | None | PostgreSQL | [Jobs](../capabilities/jobs/CAPABILITY.md) |
 | `api-platform` | `api-platform` | Done | Enabled | No | `better-auth`, `drizzle` | None | None beyond baseline PostgreSQL | [API Platform](../capabilities/api-platform/CAPABILITY.md) |
 | `observability` | `observability` | Done | Enabled | No | None | None | Optional OTLP | [Observability](../capabilities/observability/CAPABILITY.md) |
@@ -182,3 +183,7 @@ Notifications owns durable records/read state and uses caller DB/transaction exe
 `0004_tough_mindworm.sql` is the new additive reviewed root migration; previously applied files remain unchanged. Notifications removal retains schema/validation types, table/data, migrations and Jobs; Realtime removal has no database/external-data effect. See the two contracts and the starting guide for exact limits and removal edits. Generic completed-add-on discovery covers both clean fixtures; root verification additionally tests real cookie auth, optional two-process Valkey fanout and Node-worker SMTP/ntfy delivery.
 
 The integrated migration journal retains both original additive SQL files and timestamps: Search is entry 4 (`0004_search`) and Notifications entry 5 (`0004_tough_mindworm`). Snapshot 0004 remains Search; snapshot 0005 combines both schemas and links to snapshot 0004. Applied baseline migrations are unchanged. Branch-specific deployed databases must be reviewed against their recorded migration history before upgrade.
+
+Import / Export is completed: [contract](../capabilities/import-export/CAPABILITY.md) and [evaluation](../IMPORT_EXPORT_MODULE_EVALUATION.md). It requires Jobs + Object Storage; Notifications/Audit remain optional composition. Clean consumers remain opt-in.
+
+Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
