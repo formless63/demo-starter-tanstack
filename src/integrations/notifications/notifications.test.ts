@@ -1,3 +1,4 @@
+import vectors from "../../../fixtures/notifications-contract.json";
 import { describe, expect, it } from "vitest";
 import {
 	createNotificationJobs,
@@ -7,6 +8,7 @@ import {
 	decodeNotificationCursor,
 	encodeNotificationCursor,
 	notificationValues,
+	queryNotifications,
 } from "./notifications.server";
 import { ntfyConfig, publishNtfy } from "./ntfy.server";
 import { validateNotificationMetadata } from "./validation";
@@ -18,6 +20,39 @@ const input = {
 	body: "Plain text",
 };
 describe("notification canonical contracts", () => {
+	it("shares strict create/list type, preserved plain-title and metadata-key vectors", async () => {
+		const executor = {
+			select: () => ({
+				from: () => ({
+					where: () => ({ orderBy: () => ({ limit: async () => [] }) }),
+				}),
+			}),
+		} as unknown as Parameters<typeof queryNotifications>[0];
+		for (const type of vectors.types.accepted) {
+			expect(notificationValues({ ...input, type }).type).toBe(type);
+			await expect(
+				queryNotifications(executor, input.recipientId, { type }),
+			).resolves.toMatchObject({ notifications: [] });
+		}
+		await expect(
+			queryNotifications(executor, input.recipientId, { type: undefined }),
+		).resolves.toMatchObject({ notifications: [] });
+		for (const type of vectors.types.rejected) {
+			expect(() => notificationValues({ ...input, type })).toThrow();
+			await expect(
+				queryNotifications(executor, input.recipientId, { type }),
+			).rejects.toMatchObject({ code: "invalid-input" });
+		}
+		for (const title of vectors.titles.accepted)
+			expect(notificationValues({ ...input, title }).title).toBe(title);
+		for (const title of vectors.titles.rejected)
+			expect(() => notificationValues({ ...input, title })).toThrow();
+		for (const key of vectors.metadataKeys.accepted)
+			expect(validateNotificationMetadata({ [key]: 1 })).toEqual({ [key]: 1 });
+		for (const key of vectors.metadataKeys.rejected)
+			expect(() => validateNotificationMetadata({ [key]: 1 })).toThrow();
+	});
+
 	it("preserves plain text and the exact metadata 8KiB/1024-node ceilings", () => {
 		expect(
 			notificationValues({ ...input, title: "  plain text  " }).title,
@@ -71,7 +106,6 @@ describe("notification canonical contracts", () => {
 			{ type: "Upper" },
 			{ type: "single" },
 			{ type: "fixture..created" },
-			{ title: "<b>Title</b>" },
 		])
 			expect(() => notificationValues({ ...input, ...extra })).toThrow();
 	});

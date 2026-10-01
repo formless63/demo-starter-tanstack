@@ -1,5 +1,6 @@
+import vectors from "../fixtures/notifications-contract.json";
 import assert from "node:assert/strict";
-import { notificationValues, decodeNotificationCursor, encodeNotificationCursor } from "../src/integrations/notifications/notifications.server";
+import { queryNotifications, notificationValues, decodeNotificationCursor, encodeNotificationCursor } from "../src/integrations/notifications/notifications.server";
 import { notificationDeliveryPayload, createNotificationJobs } from "../src/integrations/notifications/jobs.server";
 import { validateNotificationMetadata } from "../src/integrations/notifications/validation";
 import { ntfyConfig } from "../src/integrations/notifications/ntfy.server";
@@ -13,3 +14,13 @@ assert.throws(() => ntfyConfig({})); assert.equal(ntfyConfig({ NODE_ENV: "test",
 const jobs = createNotificationJobs({ load: async () => row, adapters: {} }); assert.equal(jobs["notifications.deliver"].queue.retryLimit, 5);
 assert.deepEqual(await jobs["notifications.deliver"].handler({ notificationId: row.id, channel: "email" }), { outcome: "permanent", category: "disabled" });
 console.info("Backendless Notifications contracts verified without Email, Realtime, Audit or ntfy");
+
+const executor = {select: () => ({from: () => ({where: () => ({orderBy: () => ({limit: async () => []})})})})} as unknown as Parameters<typeof queryNotifications>[0];
+for(const type of vectors.types.accepted) {assert.equal(notificationValues({...input,type}).type,type);await queryNotifications(executor,input.recipientId,{type});}
+await queryNotifications(executor,input.recipientId,{type:undefined});
+for(const type of vectors.types.rejected) {assert.throws(() => notificationValues({...input,type}));await assert.rejects(queryNotifications(executor,input.recipientId,{type}));}
+for(const title of vectors.titles.accepted) assert.equal(notificationValues({...input,title}).title,title);
+for(const title of vectors.titles.rejected) assert.throws(() => notificationValues({...input,title}));
+for(const key of vectors.metadataKeys.accepted) assert.deepEqual(validateNotificationMetadata({[key]:1}),{[key]:1});
+for(const key of vectors.metadataKeys.rejected) assert.throws(() => validateNotificationMetadata({[key]:1}));
+console.info("Shared create/list type, exact title and whitespace metadata-key regression vectors passed");
