@@ -65,9 +65,16 @@ jobs:
       - run: docker compose run --rm jobs-migrate
       - run: docker compose run --rm worker node .output/jobs-doctor.mjs
       - run: docker compose run --rm worker node .output/jobs-smoke.mjs
+      - run: docker compose run --rm worker node .output/webhooks-smoke.mjs
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run observability:smoke
+      - name: Verify ephemeral cache on actual Valkey and optional safe telemetry
+        run: |
+          bun run cache:unit
+          bun run cache:telemetry
+          bun build scripts/cache-smoke.ts --target=node --outfile=/tmp/cache-smoke.mjs
+          CACHE_COMPAT_NODE_SCRIPT=/tmp/cache-smoke.mjs bun run cache:compat
       - name: Verify both storage providers, optional reference telemetry and Garage UI
         run: STORAGE_SMOKE_IMAGE=tanstack-launchpad:local STORAGE_SMOKE_SCRIPT=scripts/storage-reference-smoke.ts bun run storage:compat --garage-ui
       - name: Verify SMTP, Chaos, Better Auth and production magic-link delivery

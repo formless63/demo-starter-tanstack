@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -285,16 +285,113 @@
 			}
 		},
 		{
-			"id": "webhooks", "displayName": "Webhooks", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
-			"requires": ["jobs"], "integratesWith": ["audit-log", "observability", "api-platform"], "baselineRequirements": [],
-			"externalRequirements": [{ "name": "Remote webhook endpoints", "required": true, "description": "Inbound senders and outbound consumers configured by an application." }],
-			"summary": "Reliable signed inbound and outbound webhook processing with durable retries."
+			"id": "webhooks",
+			"displayName": "Webhooks",
+			"kind": "foundational-backend",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [
+				"jobs"
+			],
+			"integratesWith": [
+				"audit-log",
+				"observability",
+				"api-platform"
+			],
+			"baselineRequirements": ["node-runtime"],
+			"externalRequirements": [
+				{
+					"name": "Remote webhook endpoints",
+					"required": true,
+					"description": "Inbound senders and outbound consumers configured by an application."
+				}
+			],
+			"summary": "Standard Webhooks signed raw-byte verification and stable Jobs-backed delivery with application-owned targets and idempotency.",
+			"scripts": [
+				"webhooks:unit",
+				"webhooks:smoke"
+			],
+			"environmentVariables": [
+				{
+					"name": "WEBHOOK_REFERENCE_URL",
+					"required": false,
+					"description": "Application-owned HTTPS reference target, resolved only on explicit delivery."
+				},
+				{
+					"name": "WEBHOOK_REFERENCE_SECRET",
+					"required": false,
+					"description": "Application-owned primary Standard Webhooks whsec_ secret; never queued."
+				}
+			],
+			"migrations": [],
+			"runtimeServices": [],
+			"documentationPath": "capabilities/webhooks/CAPABILITY.md",
+			"agentSkill": ".agents/skills/webhooks-change/SKILL.md",
+			"evaluationDocument": "WEBHOOKS_MODULE_EVALUATION.md",
+			"tanstackAddOn": {
+				"addOnId": "webhooks",
+				"sourceDirectory": "capabilities/webhooks/.add-on",
+				"manifestPath": "capabilities/webhooks/.add-on/info.json",
+				"distributablePath": "capabilities/webhooks/add-on.json",
+				"cleanInstallFixture": "capabilities/webhooks/test/clean-install.json",
+				"dependsOn": [
+					"postgres-jobs"
+				],
+				"conflictsWith": []
+			}
 		},
 		{
-			"id": "audit-log", "displayName": "Audit Log", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["api-platform", "organizations", "jobs", "invoice-ninja", "stripe", "medusa"], "baselineRequirements": ["postgresql"], "baselineIntegrations": ["authentication"],
-			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Durable append-oriented audit records." }],
-			"summary": "Application audit events with actor, subject, action, and context."
+			"id": "audit-log",
+			"displayName": "Audit Log",
+			"kind": "foundational-backend",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"api-platform",
+				"organizations",
+				"jobs",
+				"invoice-ninja",
+				"stripe",
+				"medusa"
+			],
+			"baselineRequirements": [
+				"postgresql",
+				"drizzle"
+			],
+			"baselineIntegrations": [
+				"authentication"
+			],
+			"externalRequirements": [
+				{
+					"name": "PostgreSQL",
+					"required": true,
+					"description": "Durable append-oriented audit records."
+				}
+			],
+			"summary": "Application audit events with actor, subject, action, and context.",
+			"documentationPath": "capabilities/audit-log/CAPABILITY.md",
+			"evaluationDocument": "AUDIT_LOG_MODULE_EVALUATION.md",
+			"agentSkill": ".agents/skills/audit-log-change/SKILL.md",
+			"scripts": [
+				"audit-log:smoke"
+			],
+			"environmentVariables": [],
+			"runtimeServices": [],
+			"migrations": [
+				"bun run db:migrate"
+			],
+			"tanstackAddOn": {
+				"addOnId": "audit-log",
+				"sourceDirectory": "capabilities/audit-log/.add-on",
+				"manifestPath": "capabilities/audit-log/.add-on/info.json",
+				"distributablePath": "capabilities/audit-log/add-on.json",
+				"cleanInstallFixture": "capabilities/audit-log/test/clean-install.json",
+				"dependsOn": [
+					"drizzle"
+				],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "ai", "displayName": "AI", "kind": "foundational-backend", "status": "planned", "defaultInstalled": false,
@@ -303,10 +400,95 @@
 			"summary": "Provider-configurable model invocation, streaming, tools, and durable workload patterns."
 		},
 		{
-			"id": "cache-coordination", "displayName": "Cache / Coordination", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["realtime", "api-platform", "jobs"], "baselineRequirements": [],
-			"externalRequirements": [{ "name": "Valkey/Redis-compatible service", "required": true, "description": "Shared cache, ephemeral coordination, and distributed signaling." }],
-			"summary": "Optional shared caching and coordination without displacing PostgreSQL durability."
+			"id": "cache-coordination",
+			"displayName": "Cache / Coordination",
+			"kind": "application-infrastructure",
+			"status": "done",
+			"defaultInstalled": false,
+			"requires": [],
+			"integratesWith": [
+				"realtime",
+				"api-platform",
+				"jobs",
+				"observability"
+			],
+			"baselineRequirements": [
+				"node-runtime"
+			],
+			"externalRequirements": [
+				{
+					"name": "Valkey/Redis-compatible service",
+					"required": true,
+					"description": "Only required on first use; tested Valkey 9.1.2, common Redis protocol subset."
+				}
+			],
+			"summary": "Ephemeral server-only cache, atomic counters, advisory token-checked leases and pub/sub; tested on Valkey.",
+			"scripts": [
+				"cache:check",
+				"cache:smoke",
+				"cache:unit",
+				"cache:compat",
+				"cache:dev:valkey",
+				"cache:dev:down"
+			],
+			"environmentVariables": [
+				{
+					"name": "CACHE_URL",
+					"required": false,
+					"description": "Server-only redis/rediss URL; required lazily on use; may contain credentials; never log."
+				},
+				{
+					"name": "CACHE_KEY_PREFIX",
+					"required": false,
+					"description": "Validated 1–64 character namespace.",
+					"default": "app:"
+				},
+				{
+					"name": "CACHE_DEFAULT_TTL_SECONDS",
+					"required": false,
+					"description": "Integer 1–604800.",
+					"default": "300"
+				},
+				{
+					"name": "CACHE_MAX_VALUE_BYTES",
+					"required": false,
+					"description": "Integer 1–16777216; encoded values/messages.",
+					"default": "1048576"
+				},
+				{
+					"name": "CACHE_CONNECT_TIMEOUT_MS",
+					"required": false,
+					"description": "Integer 100–10000; complete connect bound.",
+					"default": "3000"
+				},
+				{
+					"name": "CACHE_COMMAND_TIMEOUT_MS",
+					"required": false,
+					"description": "Integer 100–10000; operation acknowledgement bound.",
+					"default": "2000"
+				}
+			],
+			"migrations": [],
+			"runtimeServices": [
+				{
+					"id": "cache-valkey",
+					"type": "compose-service",
+					"command": "bun run cache:dev:valkey",
+					"description": "Optional loopback ephemeral Valkey; separate Compose, no persistence."
+				}
+			],
+			"documentationPath": "capabilities/cache-coordination/CAPABILITY.md",
+			"agentSkill": ".agents/skills/cache-change/SKILL.md",
+			"evaluationDocument": "CACHE_COORDINATION_MODULE_EVALUATION.md",
+			"tanstackAddOn": {
+				"addOnId": "cache-coordination",
+				"sourceDirectory": "capabilities/cache-coordination/.add-on",
+				"manifestPath": "capabilities/cache-coordination/.add-on/info.json",
+				"distributablePath": "capabilities/cache-coordination/add-on.json",
+				"cleanInstallFixture": "capabilities/cache-coordination/test/clean-install.json",
+				"dependsOn": [],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "search", "displayName": "Search", "kind": "application-infrastructure", "status": "planned", "defaultInstalled": false,

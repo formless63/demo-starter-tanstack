@@ -18,9 +18,15 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 - `src/integrations/storage`: private server-only S3 primitives, streaming bodies, safe keys/errors, presigning, multipart and HEAD verification; no persistence or auth model.
 - `src/integrations/api-platform`: machine principals and permissions, lifecycle boundaries, external API contracts/handlers, errors, and OpenAPI generation.
 - `src/integrations/observability`: server-only Pino safety/context and explicit OTel SDK/runtime, Start middleware, finite HTTP labels, optional API/Jobs wrappers. `src/start.ts` registers telemetry before explicit CSRF protection; request bodies/URLs/payloads are never implicit log input.
+- `src/integrations/email`: lazy bounded SMTP primitives; `src/lib/email.server.ts` owns optional telemetry and Better Auth awaits delivery.
+- `src/integrations/webhooks`: exact raw-byte signing/verification and Jobs-backed delivery with application-owned targets/replay storage.
+- `src/integrations/audit-log`: PostgreSQL append/query schema and safe context; root Projects mutations share the caller transaction.
+- `src/integrations/cache`: ephemeral strings/bytes, atomic counters, advisory leases and pub/sub; optional application telemetry.
 - `capabilities`: catalog governance plus one self-contained official TanStack custom add-on workspace per implemented capability. Each workspace owns `.add-on` source, `.cta.json`, `CAPABILITY.md`, a retained `add-on.json`, and a clean-install fixture.
 
 Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
+
+The eight completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log and Cache / Coordination.
 
 `defaultInstalled` describes only clean generated consumers. The root reference application's intentionally integrated capabilities are listed separately in `referenceApplication.enabledCapabilities`; disabling an application integration does not require deleting the reusable add-on workspace or its stable catalog identity. Removal retains database data and committed migration history unless a separate destructive change explicitly says otherwise.
 
@@ -44,3 +50,13 @@ Root TypeScript excludes `.add-on/assets` templates; each clean fixture owns con
 ## Agent automation
 
 `AGENTS.md` and `.agents/skills` are canonical. `.agents/hooks` holds shared read-only context, minimal tool guards and cheap completion checks; `.claude`, `.codex` and `.gemini` contain client adapters. See `docs/AGENT-AUTOMATION.md` for trust and controls.
+
+Webhooks owns server-only raw signing/verification and Jobs-backed delivery under src/integrations/webhooks. Domain schemas/targets live in src/lib/webhooks.server.ts and compose into the existing Jobs registry. Jobs is hard-required; no optional telemetry/API/Audit imports. No startup receiver or migration.
+
+## Audit Log boundary
+
+`src/integrations/audit-log` owns a generic PostgreSQL append/query primitive and schema. Projects create/update/delete pass their existing transaction to the required audit insert; root API wiring maps safe verified key IDs to machine actors. No payload/session/header copying, consumer imports, UI, tenancy, purge automation or database immutability claim. Query authorization belongs to applications. Keep schema registrations and applied migrations during removal.
+
+## Cache boundary
+
+`src/integrations/cache` owns lazy server-only ephemeral data/atomic counters/advisory leases/pubsub, with separate validated data/lease/channel namespaces and bounded inputs. No DB/Auth/Jobs/Realtime/API/Observability import. `src/lib/cache.server.ts` is optional application telemetry and shutdown wiring. Explicit tools own connection checks; startup and database readiness never contact Valkey. Separate `compose.cache.yaml` is loopback-only and non-persistent.

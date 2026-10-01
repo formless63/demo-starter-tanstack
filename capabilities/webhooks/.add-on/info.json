@@ -1,0 +1,43 @@
+{
+  "id": "webhooks",
+  "name": "webhooks",
+  "displayName": "Webhooks",
+  "description": "Standard Webhooks signed raw-byte verification and stable Jobs-backed delivery with application-owned targets and idempotency.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [
+    "postgres-jobs"
+  ],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "zod": "^4.3.6"
+    },
+    "scripts": {
+      "webhooks:unit": "bun scripts/webhooks-unit.ts",
+      "webhooks:smoke": "bun scripts/webhooks-smoke.ts"
+    }
+  },
+  "envVars": [
+    {
+      "name": "WEBHOOK_REFERENCE_URL",
+      "description": "Application-owned HTTPS reference target, resolved only on explicit delivery.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "WEBHOOK_REFERENCE_SECRET",
+      "description": "Application-owned primary Standard Webhooks whsec_ secret; never queued.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local"
+    }
+  ]
+}

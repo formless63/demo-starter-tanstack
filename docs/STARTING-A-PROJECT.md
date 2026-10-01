@@ -16,6 +16,7 @@ bun run db:migrate
 bun run jobs:migrate
 bun run jobs:doctor
 bun run jobs:smoke
+bun run webhooks:smoke
 bun run api-platform:smoke
 bun run observability:smoke
 bun run dev
@@ -28,6 +29,8 @@ For production, apply both explicit migration jobs before starting `app` and `wo
 Remove only what you know the application does not need. Removing a capability from the application and pruning its reusable add-on authoring source are separate decisions.
 
 The procedures below are intentionally manual because shared TypeScript may have accumulated application changes. They never drop PostgreSQL tables/schemas or rewrite an already-applied migration.
+
+When deliberately changing the reference capability set in a downstream application, update or remove the root-only `src/integrations/capability-wave.test.ts` expectation. Keep the generic agent evaluation discovery and catalog matrix.
 
 After each recipe:
 
@@ -43,6 +46,9 @@ bun run build
 Use `bun install --frozen-lockfile` for subsequent reproducible installs after committing the updated lockfile.
 
 ### Remove Jobs
+
+Remove Webhooks first: it hard-requires Jobs. Audit Log, Cache, Email, Storage and API Platform may remain independently installed.
+
 
 First stop workers and prevent producers from adding new work. Decide whether queued jobs must be drained or archived.
 
@@ -95,7 +101,7 @@ If the downstream fork will never reinstall or develop API Platform, delete `cap
 
 Apply both recipes together, remove both IDs from `referenceApplication.enabledCapabilities`, regenerate routes once, and update/install dependencies once. Keep the baseline PostgreSQL migration history and `/api/health` container verification.
 
-Observability, Object Storage and Email may remain independently installed; apply their following removal recipes for a capability-free application baseline.
+Webhooks must be removed before removing Jobs. Observability, Object Storage, Email, Audit Log and Cache may remain independently installed; apply their following removal recipes for a capability-free application baseline.
 
 The resulting application retains TanStack Start/React, Bun, PostgreSQL/Drizzle, passwordless Better Auth, the authenticated Projects slice, Tailwind/shadcn/Tabler UI, Docker/Compose, CI, and agent/capability governance. `bun run capabilities:check`, `bun run typecheck`, and `bun run build` must all pass before treating the lean baseline as viable.
 
@@ -105,13 +111,14 @@ The resulting application retains TanStack Start/React, Bun, PostgreSQL/Drizzle,
 2. In `src/routes/api/v1/projects.ts`, remove `observeApi` and telemetry-only operation imports; restore direct `listProjectsApi(request)` / `createProjectApi(request)` calls.
 3. In `src/routes/api/health.ts`, remove telemetry imports/capture/metadata and keep the original database check with `{ status: 'ok' }` or `{ status: 'unhealthy' }` and HTTP 503 on failure.
 4. In `scripts/jobs-worker.ts`, remove Observability imports/init/flush; call `startJobsWorker()` with no execution hook and restore safe standalone lifecycle logs. In the Jobs integration test, remove `observeJob` and call `startJobsWorker()` directly. Keep Jobs' optional hook; it imports no telemetry package.
-5. Delete `src/integrations/observability/` and `scripts/observability-smoke.ts`; remove `observability:smoke`, Pino, and the declared direct `@opentelemetry/*` additions from `package.json` when unused elsewhere.
-6. Remove `x-observability-environment` and its app/worker merges from Compose, preserving `*jobs-environment`. Remove telemetry variables from application env examples. No service/database/migration deletion is needed.
-7. Remove the explicit Observability smoke and request-ID container probe from main CI, and the request-ID/metadata E2E test plus the API test's request-ID assertion. Keep existing API/auth/health probes.
-8. Remove `observability` from `referenceApplication.enabledCapabilities`. Keep authoring source/catalog status unless separately pruning it; use the standard `deferred` pruning recipe if needed.
-9. Update the lockfile, regenerate routes, and run governance/types/tests/build and the production health path.
+5. Remove application-owned Email telemetry (`src/lib/email.server.ts`) and Cache telemetry (`src/lib/cache.server.ts`, `scripts/cache-telemetry.ts`, `cache:telemetry` and its CI command); use the core Email/Cache clients directly.
+6. Delete `src/integrations/observability/` and `scripts/observability-smoke.ts`; remove `observability:smoke`, Pino, and the declared direct `@opentelemetry/*` additions from `package.json` when unused elsewhere.
+7. Remove `x-observability-environment` and its app/worker merges from Compose, preserving `*jobs-environment`. Remove telemetry variables from application env examples. No service/database/migration deletion is needed.
+8. Remove the explicit Observability smoke and request-ID container probe from main CI, and the request-ID/metadata E2E test plus the API test's request-ID assertion. Keep existing API/auth/health probes.
+9. Remove `observability` from `referenceApplication.enabledCapabilities`. Keep authoring source/catalog status unless separately pruning it; use the standard `deferred` pruning recipe if needed.
+10. Update the lockfile, regenerate routes, and run governance/types/tests/build and the production health path.
 
-Apply this recipe alongside Jobs/API removal if none of those three are needed; apply Storage's recipe as well to remove all four; apply Email’s recipe to remove the fifth. No remaining application import should point at a removed integration. Observability authoring assets can remain independently installable even when the reference application no longer enables telemetry.
+Apply the relevant removal recipes for every unwanted capability; remove Webhooks before Jobs. No remaining application import should point at a removed integration. Observability authoring assets can remain independently installable even when the reference application no longer enables telemetry.
 
 ### Remove Object Storage
 
@@ -145,3 +152,34 @@ For authoring pruning, additionally delete `capabilities/email/`, `EMAIL_MODULE_
 TanStack custom add-ons do not currently provide an uninstall transaction. Jobs is mostly additive, but API Platform edits shared Better Auth and Drizzle source that may already be customized. A generic deletion/codemod would either miss integration changes or overwrite application work.
 
 The per-capability `CAPABILITY.md` files remain the technical source of truth; this guide is the user-facing sequence. No removal step automatically drops schemas, tables, or data.
+
+### Remove Webhooks, keep Jobs
+
+Stop webhook producers and coordinate worker deployment; decide whether existing deliveries should drain or be archived. Delete `src/integrations/webhooks/`, `src/lib/webhooks.server.ts`, `scripts/webhooks-*.ts`, the reference import/spread in `src/integrations/jobs/registry.ts` and any application-owned inbound processing definitions/routes. Keep the rest of the Jobs registry and its worker.
+
+Remove `webhooks:*` scripts, the Webhooks smoke Docker bundle, WEBHOOK_REFERENCE_* env/Compose entries and any Webhooks-only dependencies when unused. Keep Jobs, pg-boss, Drizzle and baseline Zod. Remove `webhooks` from referenceApplication.enabledCapabilities when present. Retain queue history by default; do not automatically delete jobs or mutate/delete remote endpoints.
+
+Run capability governance, types/build, Jobs smoke, E2E and production health. The clean fixture applies this removal, rebuilds and proves Jobs remains usable. To abandon authoring too, prune `capabilities/webhooks/`, evaluation and skill; keep stable catalog ID as deferred, remove implementation metadata, update roadmap/docs consistently. There is no CLI uninstall transaction.
+
+### Remove Audit Log
+
+1. In `src/features/projects/projects.server.ts`, remove Audit Log/identity imports, the optional actor argument/default from `insertProjectForOwner`, and the three `appendAuditEvent` calls. Domain transactions may remain. Preserve owner predicates, authentication and return/error behavior.
+2. In root `src/integrations/api-platform/projects-api.server.ts`, remove `createAuditActor` import and the third argument from `insertProjectForOwner`. API Platform remains optional and independently packaged.
+3. Delete `src/integrations/audit-log/audit.server.ts`, `validation.ts`, their tests, `src/features/projects/audit.integration.test.ts`, and `scripts/audit-log-smoke.ts`; remove `audit-log:smoke` from package scripts. Root has no Audit Log-only package/environment/service to remove. The fixture-only `audit-log-clean-fixture.ts` may be deleted in a generated consumer after verification.
+4. **Retain** `src/integrations/audit-log/schema.ts`, its root `src/db/schema.ts` re-export (or installed config registration), `drizzle/0003_audit_log.sql`, snapshots/journal and table/data. A clean consumer retains its initial `0000_audit_log.sql` instead. Keeping schema registration prevents later generation from proposing a drop. Code removal does not authorize deletion of history.
+5. Remove `audit-log` from `referenceApplication.enabledCapabilities`; update docs and run governance/typecheck/build/E2E. Independently packaged consumer fixtures remain usable without root integration.
+6. To prune authoring too, delete `capabilities/audit-log/`, evaluation and skill if unused; retain the catalog ID as deferred and remove implementation metadata, using the standard pruning recipe. Other planned statuses stay unchanged.
+
+Dropping deployed audit history requires a **new explicit destructive migration**, retention/privacy/backup decisions and operator review. Never delete/edit applied migrations. For a never-deployed fresh project only, consolidation may be a separate deliberate action. No v1 retention/purge automation exists. To reach the capability-free lean baseline, apply each of the eight removal recipes, removing Webhooks before Jobs.
+
+### Remove Cache / Coordination
+
+1. Stop cache producers, subscriptions and advisory work; call `closeCache()` / `closeApplicationCache()` on shutdown. Account for in-flight leases expiring; Cache is ephemeral and owns no durable data.
+2. Delete `src/integrations/cache/`, `src/lib/cache.server.ts`, and `scripts/cache-*.ts`; remove all `cache:*` scripts and `redis` if unused elsewhere. Independent Jobs/API/Realtime/Observability behavior remains unchanged.
+3. Remove `CACHE_*` application env entries and `compose.cache.yaml`. `bun run cache:dev:down` disposes only the development ephemeral stack before removing tooling; do not flush/delete any remote service. Normal Compose has no Cache wiring.
+4. Remove the explicit Cache compatibility/telemetry step from main CI. The catalog-driven authoring fixture can remain while source is retained. Remove `cache-coordination` from `referenceApplication.enabledCapabilities`, keeping `defaultInstalled: false`.
+5. Update lockfile/docs and run governance, types/tests/build/E2E and production startup without Cache configured. No migrations/schema/UI/readiness edit is required.
+
+If keeping Cache but removing Observability, delete only `src/lib/cache.server.ts` and `scripts/cache-telemetry.ts`, remove `cache:telemetry` and its CI command, and use core `getCache()` directly. Reusable Cache assets import no Observability.
+
+Authoring pruning is separate: remove `capabilities/cache-coordination/`, `CACHE_COORDINATION_MODULE_EVALUATION.md`, `.agents/skills/cache-change/`, and retain the stable catalog ID as `deferred` without implementation metadata; update ROADMAP/docs. TanStack provides no automatic uninstall transaction. The clean fixture proves runtime removal and rebuild without Redis packages or a service.

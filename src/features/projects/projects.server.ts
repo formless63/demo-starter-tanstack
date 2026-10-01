@@ -2,6 +2,12 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "#/db";
 import { projects } from "#/db/schema";
+import {
+	appendAuditEvent,
+	createAuditActor,
+	createAuditSubject,
+} from "#/integrations/audit-log/audit.server";
+import type { AuditIdentity } from "#/integrations/audit-log/validation";
 import { auth } from "#/lib/auth";
 import type { ProjectData } from "./project-schema";
 
@@ -32,45 +38,73 @@ export async function insertProject(data: ProjectData) {
 export async function insertProjectForOwner(
 	ownerId: string,
 	data: ProjectData,
+	actor: AuditIdentity = createAuditActor("user", ownerId),
 ) {
-	const [project] = await db
-		.insert(projects)
-		.values({
-			id: crypto.randomUUID(),
-			ownerId,
-			name: data.name.trim(),
-			description: data.description?.trim() || null,
-		})
-		.returning();
-	return project;
+	return db.transaction(async (tx) => {
+		const [project] = await tx
+			.insert(projects)
+			.values({
+				id: crypto.randomUUID(),
+				ownerId,
+				name: data.name.trim(),
+				description: data.description?.trim() || null,
+			})
+			.returning();
+		await appendAuditEvent(tx, {
+			actor,
+			action: "projects.create",
+			subject: createAuditSubject("project", project.id),
+			outcome: "success",
+			metadata: { source: actor.type === "machine" ? "api" : "application" },
+		});
+		return project;
+	});
 }
 export async function changeProjectForOwner(
 	ownerId: string,
 	data: ProjectData & { id: string },
 ) {
-	const [project] = await db
-		.update(projects)
-		.set({
-			name: data.name.trim(),
-			description: data.description?.trim() || null,
-			updatedAt: new Date(),
-		})
-		.where(and(eq(projects.id, data.id), eq(projects.ownerId, ownerId)))
-		.returning();
-	if (!project) throw new Error("NOT_FOUND");
-	return project;
+	return db.transaction(async (tx) => {
+		const [project] = await tx
+			.update(projects)
+			.set({
+				name: data.name.trim(),
+				description: data.description?.trim() || null,
+				updatedAt: new Date(),
+			})
+			.where(and(eq(projects.id, data.id), eq(projects.ownerId, ownerId)))
+			.returning();
+		if (!project) throw new Error("NOT_FOUND");
+		await appendAuditEvent(tx, {
+			actor: createAuditActor("user", ownerId),
+			action: "projects.update",
+			subject: createAuditSubject("project", project.id),
+			outcome: "success",
+			metadata: { fields: ["name", "description"] },
+		});
+		return project;
+	});
 }
 export async function changeProject(data: ProjectData & { id: string }) {
 	const user = await requireUser();
 	return changeProjectForOwner(user.id, data);
 }
 export async function removeProjectForOwner(ownerId: string, id: string) {
-	const [project] = await db
-		.delete(projects)
-		.where(and(eq(projects.id, id), eq(projects.ownerId, ownerId)))
-		.returning({ id: projects.id });
-	if (!project) throw new Error("NOT_FOUND");
-	return project;
+	return db.transaction(async (tx) => {
+		const [project] = await tx
+			.delete(projects)
+			.where(and(eq(projects.id, id), eq(projects.ownerId, ownerId)))
+			.returning({ id: projects.id });
+		if (!project) throw new Error("NOT_FOUND");
+		await appendAuditEvent(tx, {
+			actor: createAuditActor("user", ownerId),
+			action: "projects.delete",
+			subject: createAuditSubject("project", project.id),
+			outcome: "success",
+			metadata: {},
+		});
+		return project;
+	});
 }
 export async function removeProject(id: string) {
 	const user = await requireUser();
