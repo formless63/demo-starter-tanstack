@@ -185,7 +185,7 @@
 				"jobs",
 				"observability"
 			],
-			"baselineRequirements": [],
+			"baselineRequirements": ["node-runtime"],
 			"baselineIntegrations": [
 				"authentication"
 			],
@@ -440,32 +440,20 @@
 				{
 					"name": "CACHE_KEY_PREFIX",
 					"required": false,
-					"description": "Validated 1–64 character namespace.",
-					"default": "app:"
+					"description": "1–128 ASCII alphanumeric/underscore/hyphen, starts alphanumeric.",
+					"default": "app"
 				},
 				{
 					"name": "CACHE_DEFAULT_TTL_SECONDS",
 					"required": false,
-					"description": "Integer 1–604800.",
+					"description": "Integer 1–86400.",
 					"default": "300"
 				},
 				{
 					"name": "CACHE_MAX_VALUE_BYTES",
 					"required": false,
-					"description": "Integer 1–16777216; encoded values/messages.",
+					"description": "Integer 1–1048576; encoded values/messages.",
 					"default": "1048576"
-				},
-				{
-					"name": "CACHE_CONNECT_TIMEOUT_MS",
-					"required": false,
-					"description": "Integer 100–10000; complete connect bound.",
-					"default": "3000"
-				},
-				{
-					"name": "CACHE_COMMAND_TIMEOUT_MS",
-					"required": false,
-					"description": "Integer 100–10000; operation acknowledgement bound.",
-					"default": "2000"
 				}
 			],
 			"migrations": [],

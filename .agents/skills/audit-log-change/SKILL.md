@@ -16,3 +16,5 @@ Read the Audit Log contract and evaluation, capability-change, and database-migr
 - Audit Log is distinct from Observability, analytics, telemetry, UI activity feeds and compliance certification. No database immutability claim without an actual administration/retention design.
 - API Platform, Jobs, Organizations and other consumers remain optional. Do not add tenant schema or consumer dependencies speculatively.
 - Schema/migration tests against clean real PostgreSQL and transaction commit/rollback/query tests are required. Recompile and verify the clean add-on installation/removal and production migration path after relevant changes.
+
+- The primitive owns UUID/time. Runtime bounds are independent of historical column widths; metadata keys64/string1024, normalized credential/container keys rejected. Query from inclusive/until exclusive; from >= until invalid. Never rewrite applied migrations.

@@ -8,7 +8,6 @@ export { CacheError, cacheError } from "./errors.server";
 export const cacheOperations = [
 	"check",
 	"get",
-	"getBytes",
 	"set",
 	"setWithoutExpiry",
 	"delete",
@@ -23,18 +22,16 @@ export const cacheOperations = [
 export type CacheOperation = (typeof cacheOperations)[number];
 export interface CacheSignal {
 	operation: CacheOperation;
-	outcome: "success" | "failure";
-	durationMs: number;
+	outcome: "success" | "error";
+	durationSeconds: number;
 	hit?: boolean;
-	valueBytes?: number;
 }
 export type CacheObserver = (
 	signal: Readonly<CacheSignal>,
 ) => void | Promise<void>;
 export interface Lease {
-	readonly name: string;
+	readonly key: string;
 	readonly token: string;
-	readonly ttlMs: number;
 }
 export type MessageHandler = (message: Buffer) => void | Promise<void>;
 
@@ -65,7 +62,11 @@ interface Connection {
 }
 // No config validation or network until the first operation, including createCache().
 export function createCache(
-	options: { env?: NodeJS.ProcessEnv; observe?: CacheObserver } = {},
+	options: {
+		env?: NodeJS.ProcessEnv;
+		observe?: CacheObserver;
+		onError?: (error: CacheError) => void;
+	} = {},
 ) {
 	let config: ReturnType<typeof cacheConfig> | undefined;
 	let main: Connection | undefined;
@@ -73,12 +74,21 @@ export function createCache(
 	let closing: Promise<void> | undefined;
 	const connections = new Set<Connection>();
 	const active = new Set<Promise<unknown>>();
+	function reportCallback() {
+		try {
+			void Promise.resolve(
+				options.onError?.(new CacheError("callback-failed")),
+			).catch(() => {});
+		} catch {
+			/* isolated diagnostic */
+		}
+	}
 	function settings() {
 		config ??= cacheConfig(options.env);
 		return config;
 	}
-	function key(name: string, kind: "data" | "lease" | "channel") {
-		return `${settings().prefix}${kind}:${logicalName(name)}`;
+	function key(name: string, kind: "value" | "lease" | "channel") {
+		return `${settings().prefix}:${kind}:${logicalName(name)}`;
 	}
 	function bytes(value: string | Uint8Array) {
 		invalid(typeof value === "string" || value instanceof Uint8Array);
@@ -88,10 +98,10 @@ export function createCache(
 		return Buffer.from(value);
 	}
 	function ttl(value?: number) {
-		return boundedInteger(value ?? settings().ttlSeconds, 1, 604800);
+		return boundedInteger(value ?? settings().ttlSeconds, 1, 86400);
 	}
 	function leaseTtl(value: number) {
-		return boundedInteger(value, 100, 300000);
+		return boundedInteger(value, 2, 300) * 1000;
 	}
 	function token(lease: Lease) {
 		invalid(
@@ -115,16 +125,16 @@ export function createCache(
 					? { tls: true as const, rejectUnauthorized: true }
 					: { tls: false as const }),
 				connectTimeout: cfg.connectTimeoutMs,
-				reconnectStrategy: (retries, cause) =>
-					cacheError(cause).code === "authentication" || retries >= 6
-						? false
-						: Math.min(100 * 2 ** retries, 1000),
+				reconnectStrategy: false,
 			},
 		});
 		const result: Connection = { client };
 		// Required error listener; raw client errors are never logged.
 		client.on("error", (error) => {
 			result.lastError = error;
+		});
+		client.on("end", () => {
+			if (result !== main) connections.delete(result);
 		});
 		connections.add(result);
 		return result;
@@ -150,7 +160,7 @@ export function createCache(
 		}
 	}
 	async function ready(conn: Connection) {
-		if (closed) throw new CacheError("unavailable");
+		if (closed) throw new CacheError("closed");
 		if (conn.client.isReady) return conn.client;
 		if (!conn.connecting) {
 			conn.lastError = undefined;
@@ -174,10 +184,14 @@ export function createCache(
 				});
 		}
 		await conn.connecting;
-		if (closed) throw new CacheError("unavailable");
+		if (closed) throw new CacheError("closed");
 		return conn.client;
 	}
 	async function client() {
+		if (main && !main.client.isOpen && !main.connecting) {
+			connections.delete(main);
+			main = undefined;
+		}
 		main ??= connection();
 		return ready(main);
 	}
@@ -200,17 +214,17 @@ export function createCache(
 		const signal: CacheSignal = {
 			operation: name,
 			outcome: "success",
-			durationMs: 0,
+			durationSeconds: 0,
 		};
 		const work = (async () => {
 			try {
-				if (closed) throw new CacheError("unavailable");
+				if (closed) throw new CacheError("closed");
 				return await run(signal);
 			} catch (error) {
-				signal.outcome = "failure";
+				signal.outcome = "error";
 				throw cacheError(error);
 			} finally {
-				signal.durationMs = performance.now() - start;
+				signal.durationSeconds = (performance.now() - start) / 1000;
 				try {
 					void Promise.resolve(options.observe?.(Object.freeze(signal))).catch(
 						() => {},
@@ -227,7 +241,7 @@ export function createCache(
 	async function dispose(conn: Connection) {
 		try {
 			if (conn.client.isOpen)
-				await bound(conn.client.close(), 2000, () => {
+				await bound(conn.client.close(), 5000, () => {
 					if (conn.client.isOpen) conn.client.destroy();
 				});
 		} catch {
@@ -244,22 +258,14 @@ export function createCache(
 			}),
 		get: (name: string) =>
 			operation("get", async (signal) => {
-				const physical = key(name, "data");
-				const result = await command((client) => client.get(physical));
-				signal.hit = result !== null;
-				if (result !== null) signal.valueBytes = Buffer.byteLength(result);
-				return result;
-			}),
-		getBytes: (name: string) =>
-			operation("getBytes", async (signal) => {
-				const physical = key(name, "data");
+				const physical = key(name, "value");
 				const result = await command((client) =>
 					client
 						.withTypeMapping({ [RESP_TYPES.BLOB_STRING]: Buffer })
 						.get(physical),
 				);
 				signal.hit = result !== null;
-				if (result !== null) signal.valueBytes = result.byteLength;
+
 				return result;
 			}),
 		set: (
@@ -267,14 +273,14 @@ export function createCache(
 			value: string | Uint8Array,
 			opts: { ttlSeconds?: number; ifAbsent?: boolean } = {},
 		) =>
-			operation("set", async (signal) => {
-				const physical = key(name, "data"),
+			operation("set", async () => {
+				const physical = key(name, "value"),
 					encoded = bytes(value),
 					seconds = ttl(opts.ttlSeconds);
 				invalid(
 					opts.ifAbsent === undefined || typeof opts.ifAbsent === "boolean",
 				);
-				signal.valueBytes = encoded.byteLength;
+
 				return (
 					(await command((client) =>
 						client.set(physical, encoded, {
@@ -285,28 +291,41 @@ export function createCache(
 				);
 			}),
 		// Explicit escape hatch for ephemeral data whose lifetime is application-managed.
-		setWithoutExpiry: (name: string, value: string | Uint8Array) =>
-			operation("setWithoutExpiry", async (signal) => {
-				const physical = key(name, "data"),
+		setWithoutExpiry: (
+			name: string,
+			value: string | Uint8Array,
+			opts: { ifAbsent?: boolean } = {},
+		) =>
+			operation("setWithoutExpiry", async () => {
+				const physical = key(name, "value"),
 					encoded = bytes(value);
-				signal.valueBytes = encoded.byteLength;
-				await command((client) => client.set(physical, encoded));
+
+				invalid(
+					opts.ifAbsent === undefined || typeof opts.ifAbsent === "boolean",
+				);
+				return (
+					(await command((client) =>
+						client.set(physical, encoded, opts.ifAbsent ? { NX: true } : {}),
+					)) === "OK"
+				);
 			}),
 		delete: (name: string) =>
 			operation("delete", async () => {
-				const physical = key(name, "data");
+				const physical = key(name, "value");
 				return (await command((client) => client.del(physical))) === 1;
 			}),
-		increment: (name: string, opts: { by?: number; ttlSeconds: number }) =>
+		increment: (
+			name: string,
+			opts: { by?: number; ttlSeconds?: number } = {},
+		) =>
 			operation("increment", async () => {
-				const physical = key(name, "data"),
+				const physical = key(name, "value"),
 					by = boundedInteger(
 						opts.by ?? 1,
 						-Number.MAX_SAFE_INTEGER,
 						Number.MAX_SAFE_INTEGER,
 					),
 					seconds = ttl(opts.ttlSeconds);
-				invalid(opts.ttlSeconds !== undefined);
 				return (await command((client) =>
 					client.eval(incrementScript, {
 						keys: [physical],
@@ -315,17 +334,17 @@ export function createCache(
 				)) as number;
 			}),
 		publish: (name: string, message: string | Uint8Array) =>
-			operation("publish", async (signal) => {
+			operation("publish", async () => {
 				const channel = key(name, "channel"),
 					encoded = bytes(message);
-				signal.valueBytes = encoded.byteLength;
+
 				return command((client) => client.publish(channel, encoded));
 			}),
 		subscribe: (name: string, handler: MessageHandler) =>
 			operation("subscribe", async () => {
 				const channel = key(name, "channel");
 				invalid(typeof handler === "function");
-				invalid(connections.size < 33);
+				invalid([...connections].filter((conn) => conn !== main).length < 32);
 				const conn = connection();
 				let subscribed = true;
 				const listener = (message: Buffer) => {
@@ -337,9 +356,11 @@ export function createCache(
 						return;
 					// Consumer owns handler error reporting; never expose message/channel in errors.
 					try {
-						void Promise.resolve(handler(message)).catch(() => {});
+						void Promise.resolve(handler(message)).catch(() =>
+							reportCallback(),
+						);
 					} catch {
-						/* isolated consumer */
+						reportCallback();
 					}
 				};
 				try {
@@ -376,41 +397,40 @@ export function createCache(
 								})),
 				};
 			}),
-		acquireLease: (name: string, opts: { ttlMs: number }) =>
+		acquireLease: (name: string, ttlSeconds = 30) =>
 			operation("acquireLease", async () => {
 				const physical = key(name, "lease"),
-					ttlMs = leaseTtl(opts.ttlMs),
+					ttlMs = leaseTtl(ttlSeconds),
 					token = randomBytes(32).toString("hex");
 				const acquired = await command((client) =>
 					client.set(physical, token, { NX: true, PX: ttlMs }),
 				);
-				return acquired === "OK" ? Object.freeze({ name, token, ttlMs }) : null;
+				return acquired === "OK" ? Object.freeze({ key: name, token }) : null;
 			}),
-		renewLease: (lease: Lease, opts: { ttlMs: number }) =>
+		renewLease: (lease: Lease, ttlSeconds = 30) =>
 			operation("renewLease", async () => {
 				const ownership = token(lease),
-					physical = key(lease.name, "lease"),
-					ttlMs = leaseTtl(opts.ttlMs);
+					physical = key(lease.key, "lease"),
+					ttlMs = leaseTtl(ttlSeconds);
 				const result = await command((client) =>
 					client.eval(renewScript, {
 						keys: [physical],
 						arguments: [ownership, String(ttlMs)],
 					}),
 				);
-				if (result !== 1) throw new CacheError("lease_not_owned");
-				return Object.freeze({ ...lease, ttlMs });
+				return result === 1;
 			}),
 		releaseLease: (lease: Lease) =>
 			operation("releaseLease", async () => {
 				const ownership = token(lease),
-					physical = key(lease.name, "lease");
+					physical = key(lease.key, "lease");
 				const result = await command((client) =>
 					client.eval(releaseScript, {
 						keys: [physical],
 						arguments: [ownership],
 					}),
 				);
-				if (result !== 1) throw new CacheError("lease_not_owned");
+				return result === 1;
 			}),
 		close: () =>
 			(closing ??= (async () => {
@@ -418,7 +438,7 @@ export function createCache(
 				// Stop pending connects/reconnects; drain commands already accepted, bounded.
 				for (const conn of connections)
 					if (!conn.client.isReady && conn.client.isOpen) conn.client.destroy();
-				await bound(Promise.allSettled([...active]), 2000).catch(() => {});
+				await bound(Promise.allSettled([...active]), 5000).catch(() => {});
 				await Promise.all([...connections].map(dispose));
 			})()),
 	};

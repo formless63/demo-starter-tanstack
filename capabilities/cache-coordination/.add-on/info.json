@@ -36,15 +36,15 @@
     },
     {
       "name": "CACHE_KEY_PREFIX",
-      "description": "Validated 1\u201364 character namespace.",
+      "description": "1–128 ASCII alphanumeric/underscore/hyphen, starts alphanumeric.",
       "required": false,
       "secret": false,
       "file": ".env.local",
-      "default": "app:"
+      "default": "app"
     },
     {
       "name": "CACHE_DEFAULT_TTL_SECONDS",
-      "description": "Integer 1\u2013604800.",
+      "description": "Integer 1–86400.",
       "required": false,
       "secret": false,
       "file": ".env.local",
@@ -52,27 +52,11 @@
     },
     {
       "name": "CACHE_MAX_VALUE_BYTES",
-      "description": "Integer 1\u201316777216; encoded values/messages.",
+      "description": "Integer 1–1048576; encoded values/messages.",
       "required": false,
       "secret": false,
       "file": ".env.local",
       "default": "1048576"
-    },
-    {
-      "name": "CACHE_CONNECT_TIMEOUT_MS",
-      "description": "Integer 100\u201310000; complete connect bound.",
-      "required": false,
-      "secret": false,
-      "file": ".env.local",
-      "default": "3000"
-    },
-    {
-      "name": "CACHE_COMMAND_TIMEOUT_MS",
-      "description": "Integer 100\u201310000; operation acknowledgement bound.",
-      "required": false,
-      "secret": false,
-      "file": ".env.local",
-      "default": "2000"
     }
   ]
 }

@@ -4,8 +4,8 @@ export type EmailErrorCode =
 	| "timeout"
 	| "tls"
 	| "authentication"
-	| "temporary_rejection"
-	| "permanent_rejection"
+	| "temporary-rejection"
+	| "permanent-rejection"
 	| "message"
 	| "unknown";
 export class EmailError extends Error {
@@ -43,19 +43,19 @@ export function emailError(error: unknown): EmailError {
 		].includes(code)
 	)
 		return new EmailError("tls", false, error);
+	if (code === "EAUTH") return new EmailError("authentication", false, error);
 	if (
 		value?.responseCode &&
 		value.responseCode >= 400 &&
 		value.responseCode < 500
 	)
-		return new EmailError("temporary_rejection", true, error);
-	if (code === "EAUTH") return new EmailError("authentication", false, error);
+		return new EmailError("temporary-rejection", true, error);
 	if (
 		value?.responseCode &&
 		value.responseCode >= 500 &&
 		value.responseCode < 600
 	)
-		return new EmailError("permanent_rejection", false, error);
+		return new EmailError("permanent-rejection", false, error);
 	if (code === "ETIMEDOUT" || code === "ESOCKETTIMEDOUT")
 		return new EmailError("timeout", false, error);
 	if (

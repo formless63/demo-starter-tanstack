@@ -21,28 +21,24 @@ export const observeCache: CacheObserver = (signal) => {
 	meter.createCounter("app.cache.operation.count").add(1, attributes);
 	meter
 		.createHistogram("app.cache.operation.duration", { unit: "s" })
-		.record(signal.durationMs / 1000, attributes);
+		.record(signal.durationSeconds, attributes);
 	if (signal.hit !== undefined)
 		meter
 			.createCounter("app.cache.lookup.count")
 			.add(1, { ...attributes, "app.cache.hit": signal.hit });
-	if (signal.valueBytes !== undefined)
-		meter
-			.createHistogram("app.cache.value.size", { unit: "By" })
-			.record(signal.valueBytes, attributes);
 	// Only safe finite metadata, no arguments/results/raw error enter this span.
 	const span = getTracer().startSpan(`app.cache.${signal.operation}`, {
 		attributes,
-		startTime: Date.now() - signal.durationMs,
+		startTime: Date.now() - signal.durationSeconds * 1000,
 	});
-	if (signal.outcome === "failure")
+	if (signal.outcome === "error")
 		span.setStatus({ code: SpanStatusCode.ERROR });
 	span.end();
 	getLogger().info(
 		{
 			operation: signal.operation,
 			outcome: signal.outcome,
-			durationMs: Math.round(signal.durationMs),
+			durationSeconds: signal.durationSeconds,
 		},
 		"Cache operation completed",
 	);

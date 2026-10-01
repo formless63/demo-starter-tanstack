@@ -11,8 +11,8 @@ initObservability({ destination: { write: (line) => logs.push(line) }, registerS
 const cache = createCache({ env: { CACHE_URL: "rediss://private-user:private-password@private-host", CACHE_KEY_PREFIX: "private-prefix", CACHE_MAX_VALUE_BYTES: "1" }, observe: observeCache });
 await assert.rejects(cache.set("private-key", "private-value"));
 await assert.rejects(cache.publish("private-channel", "private-message"));
-await assert.rejects(cache.releaseLease({ name: "private-lease", token: "private-token", ttlMs: 1000 }));
-observeCache({ operation: "get", outcome: "success", durationMs: 2, hit: false, valueBytes: 5 });
+await assert.rejects(cache.releaseLease({ key: "private-lease", token: "private-token" }));
+observeCache({ operation: "get", outcome: "success", durationSeconds: 2, hit: false });
 await cache.close();
 await flushObservability();
 const exported = JSON.stringify({ logs: logs.map((line) => JSON.parse(line)), spans: spans.getFinishedSpans().map((span) => ({ name: span.name, attributes: span.attributes, events: span.events })), metrics: metrics.getMetrics() });
@@ -20,7 +20,7 @@ for (const secret of ["private-user", "private-password", "private-host", "priva
 assert.ok(exported.includes("app.cache.operation.count"));
 assert.ok(exported.includes("app.cache.operation.duration"));
 assert.ok(exported.includes("app.cache.lookup.count"));
-assert.ok(exported.includes("app.cache.value.size"));
+assert.ok(!exported.includes("app.cache.value.size"));
 for (const resource of metrics.getMetrics()) for (const scope of resource.scopeMetrics) for (const metric of scope.metrics) for (const point of metric.dataPoints) assert.ok(Object.keys(point.attributes).every((key) => ["app.cache.operation", "app.cache.outcome", "app.cache.hit"].includes(key)));
 await shutdownObservability();
-console.info("Cache telemetry contains only bounded operations/outcomes, durations, hit/miss and numeric sizes");
+console.info("Cache telemetry contains only bounded operations/outcomes, durations, hit/miss");

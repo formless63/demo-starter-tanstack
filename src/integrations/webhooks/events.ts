@@ -10,7 +10,7 @@ const typeSchema = z
 	.string()
 	.min(1)
 	.max(128)
-	.regex(/^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*$/);
+	.regex(/^[a-z][a-z0-9._-]{0,127}$/);
 export const webhookEnvelopeSchema = z.strictObject({
 	id: z
 		.string()
@@ -38,6 +38,34 @@ export function defineWebhookEvents<const R extends WebhookRegistry>(
 			throw new WebhookVerificationError("configuration");
 	return registry;
 }
+function assertJson(value: unknown, seen = new Set<object>()): void {
+	if (value === null || typeof value === "boolean" || typeof value === "string")
+		return;
+	if (typeof value === "number" && Number.isFinite(value)) return;
+	if (typeof value !== "object" || value === null || seen.has(value))
+		throw new Error();
+	const array = Array.isArray(value);
+	if (
+		Object.getPrototypeOf(value) !==
+			(array ? Array.prototype : Object.prototype) &&
+		!(Object.getPrototypeOf(value) === null && !array)
+	)
+		throw new Error();
+	if (Object.getOwnPropertySymbols(value).length) throw new Error();
+	const descriptors = Object.getOwnPropertyDescriptors(value);
+	if (
+		array &&
+		Object.keys(descriptors).length !== (value as unknown[]).length + 1
+	)
+		throw new Error();
+	seen.add(value);
+	for (const [key, descriptor] of Object.entries(descriptors)) {
+		if (array && key === "length") continue;
+		if (!("value" in descriptor) || !descriptor.enumerable) throw new Error();
+		assertJson(descriptor.value, seen);
+	}
+	seen.delete(value);
+}
 export function parseWebhookEvent<R extends WebhookRegistry>(
 	value: unknown,
 	registry: R,
@@ -48,6 +76,7 @@ export function parseWebhookEvent<R extends WebhookRegistry>(
 			throw new WebhookVerificationError("event");
 		const data = registry[result.data.type]?.safeParse(result.data.data);
 		if (!data?.success) throw new WebhookVerificationError("event");
+		assertJson(data.data);
 		return { ...result.data, data: data.data } as WebhookEvent<R>;
 	} catch {
 		throw new WebhookVerificationError("event");

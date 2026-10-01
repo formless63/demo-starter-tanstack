@@ -1,4 +1,5 @@
-import { basename, isAbsolute, resolve, sep } from "node:path";
+import { realpathSync } from "node:fs";
+import { basename, dirname, relative, isAbsolute, resolve, sep } from "node:path";
 import { object, text, type Payload } from "./common.ts";
 
 export interface GuardResult {
@@ -74,8 +75,28 @@ function secretFile(path: string): boolean {
 	const name = basename(path);
 	return (
 		(name === ".env" || name.startsWith(".env.")) &&
-		!/\.(example|sample)$/.test(name)
+		!name
+			.split(".")
+			.slice(2)
+			.some((part) => ["example", "sample", "template"].includes(part))
 	);
+}
+function canonical(path: string): string {
+	try {
+		return realpathSync(path);
+	} catch {
+		const parent = dirname(path);
+		return parent === path ? path : resolve(canonical(parent), basename(path));
+	}
+}
+function protectedWrite(path: string, cwd: string, root: string) {
+	const lexical = resolve(root, cwd, path);
+	const target = canonical(lexical);
+	const inside = (file: string) => {
+		const distance = relative(canonical(root), file);
+		return distance !== ".." && !distance.startsWith(`..${sep}`) && !isAbsolute(distance);
+	};
+	return (inside(lexical) || inside(target)) && (secretFile(lexical) || secretFile(target));
 }
 function protectedRemoval(target: string, cwd: string, root: string): boolean {
 	const path = resolve(cwd, target);
@@ -91,14 +112,14 @@ export function guard(payload: Payload, root: string): GuardResult {
 	if (["Write", "Edit", "MultiEdit", "write_file", "replace"].includes(name)) {
 		const path = text(input.file_path) ?? text(input.path);
 		if (!path) return uncertain;
-		return secretFile(path)
+		return protectedWrite(path, cwd, root)
 			? {
 					deny: "Direct edits to secret .env files are blocked. Use a template or secure environment configuration.",
 				}
 			: {};
 	}
 	if (name === "apply_patch") {
-		const patch = text(input.command);
+		const patch = text(input.command) ?? text(input.patch);
 		if (!patch) return uncertain;
 		const paths = [
 			...patch.matchAll(
@@ -106,7 +127,7 @@ export function guard(payload: Payload, root: string): GuardResult {
 			),
 		].map((match) => match[1]);
 		if (!paths.length) return uncertain;
-		return paths.some(secretFile)
+		return paths.some((path) => protectedWrite(path, cwd, root))
 			? {
 					deny: "Direct patching of secret .env files is blocked. Templates such as .env.example are allowed.",
 				}

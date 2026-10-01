@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { z } from "zod";
+import { createWebhookJobs } from "../src/integrations/webhooks/jobs.server";
 import {
 	createWebhookEvent,
 	defineWebhookEvents,
 } from "../src/integrations/webhooks/events";
-import { validateWebhookTarget } from "../src/integrations/webhooks/delivery.server";
+import { deliverWebhook, WebhookDeliveryError, validateWebhookTarget } from "../src/integrations/webhooks/delivery.server";
 import {
 	handoffWebhookRequest,
 	verifyWebhookRequest,
@@ -42,7 +43,36 @@ export async function webhooksUnit() {
 	const { event, body } = createWebhookEvent(registry, "fixture.ping", {
 		message: "private-body-🦀",
 	});
-	const secret = generateWebhookSecret();
+	for (const type of ["UPPER", "1bad", "Mixed.event"]) assert.throws(() => defineWebhookEvents({ [type]: z.unknown() }));
+ defineWebhookEvents({ "lower_event-name.v1": z.unknown() });
+ for (const invalid of [new Date(), () => 1, new (class Value {})()]) {
+ const transformed = defineWebhookEvents({ "fixture.transform": z.unknown().transform(() => invalid) });
+ assert.throws(() => createWebhookEvent(transformed, "fixture.transform", {}), /event/);
+ }
+ const secret = generateWebhookSecret();
+ const policy = createWebhookJobs({ registry, resolveTarget: () => ({ url: "https://example.test", signingSecret: secret }) })["webhooks.deliver"].queue;
+ assert.deepEqual(policy, { deleteAfterSeconds: 86400, expireInSeconds: 60, retryLimit: 5, retryDelay: 30, retryBackoff: true, retryDelayMax: 900 });
+ const delivery = { targetRef: "fixture", eventId: event.id, eventType: event.type, body };
+ const target = { url: "https://example.test", signingSecret: secret };
+ const matches = (category: string, retryable: boolean) => (error: unknown) => error instanceof WebhookDeliveryError && error.category === category && error.retryable === retryable;
+ for (const phase of ["resolver", "policy"]) {
+ let signal: AbortSignal | undefined;
+ const hang = (passed?: AbortSignal) => { signal = passed; return new Promise<never>(() => {}); };
+ const started = performance.now();
+ await assert.rejects(deliverWebhook(delivery, { registry, timeoutMs: 100,
+ resolveTarget: (_ref, passed) => phase === "resolver" ? hang(passed) : { ...target, policy: { validate: (_url, passed) => hang(passed) } } }), matches("timeout", true));
+ assert.ok(performance.now() - started < 1000); assert.ok(signal?.aborted);
+ }
+ await assert.rejects(deliverWebhook(delivery, { registry, resolveTarget: () => { throw new Error("private resolver data"); } }), matches("target", true));
+ await assert.rejects(deliverWebhook(delivery, { registry, resolveTarget: () => { throw new WebhookDeliveryError("target", false); } }), matches("target", false));
+ const originalFetch = globalThis.fetch;
+ let cancelled = false, read = false;
+ try {
+ globalThis.fetch = (async () => ({ status: 204, body: { cancel: async () => { cancelled = true; }, getReader: () => { read = true; throw new Error(); } } })) as unknown as typeof fetch;
+ await deliverWebhook(delivery, { registry, resolveTarget: () => target });
+ assert.equal(cancelled, true); assert.equal(read, false);
+ } finally { globalThis.fetch = originalFetch; }
+
 	const previous = generateWebhookSecret();
 	const now = Math.floor(Date.now() / 1000);
 	const request = (
@@ -288,7 +318,7 @@ export async function webhooksUnit() {
 		/body-size/,
 	);
 	assert.throws(
-		() => defineWebhookEvents({ "invalid-type": z.unknown() }),
+		() => defineWebhookEvents({ "Invalid-type": z.unknown() }),
 		/configuration/,
 	);
 	console.info(

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, eq, gte, lte, type SQL, sql } from "drizzle-orm";
+import { and, eq, gte, lt, type SQL, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { auditEvents } from "./schema";
 import {
@@ -27,7 +27,6 @@ export interface AuditEventInput {
 	actor: AuditIdentity;
 	action: string;
 	subject: AuditIdentity;
-	createdAt?: Date;
 	outcome?: string | null;
 	requestId?: string | null;
 	metadata?: unknown;
@@ -36,17 +35,31 @@ export async function appendAuditEvent(
 	dbOrTx: AuditWriter,
 	event: AuditEventInput,
 ) {
+	if (
+		Object.keys(event).some(
+			(key) =>
+				![
+					"actor",
+					"action",
+					"subject",
+					"outcome",
+					"requestId",
+					"metadata",
+				].includes(key),
+		)
+	)
+		throw new AuditLogError("INVALID_EVENT");
 	const actor = createAuditActor(event.actor?.type, event.actor?.id);
 	const subject = createAuditSubject(event.subject?.type, event.subject?.id);
 	const values = {
 		id: randomUUID(),
-		createdAt: auditDate(event.createdAt ?? new Date()),
+		createdAt: new Date(),
 		actorType: actor.type,
 		actorId: actor.id,
 		subjectType: subject.type,
 		subjectId: subject.id,
 		action: actionIdentifier(event.action),
-		outcome: event.outcome == null ? null : identifier(event.outcome),
+		outcome: event.outcome == null ? null : identifier(event.outcome, 32),
 		requestId: optionalId(event.requestId, 128),
 		metadata: validateAuditMetadata(event.metadata),
 	};
@@ -65,7 +78,7 @@ export interface AuditQuery {
 	action?: string;
 	outcome?: string;
 	from?: Date;
-	to?: Date;
+	until?: Date;
 	limit?: number;
 	cursor?: string;
 }
@@ -118,17 +131,19 @@ export async function queryAuditEvents(
 					"action",
 					"outcome",
 					"from",
-					"to",
+					"until",
 					"limit",
 					"cursor",
 				].includes(key)
 			)
 				throw new AuditLogError("INVALID_QUERY");
 		if (filters.actorType !== undefined)
-			conditions.push(eq(auditEvents.actorType, identifier(filters.actorType)));
+			conditions.push(
+				eq(auditEvents.actorType, identifier(filters.actorType, 32)),
+			);
 		if (filters.actorId !== undefined)
 			conditions.push(
-				eq(auditEvents.actorId, boundedString(filters.actorId, 256)),
+				eq(auditEvents.actorId, boundedString(filters.actorId, 128)),
 			);
 		if (filters.subjectType !== undefined)
 			conditions.push(
@@ -136,17 +151,17 @@ export async function queryAuditEvents(
 			);
 		if (filters.subjectId !== undefined)
 			conditions.push(
-				eq(auditEvents.subjectId, boundedString(filters.subjectId, 256)),
+				eq(auditEvents.subjectId, boundedString(filters.subjectId, 128)),
 			);
 		if (filters.action !== undefined)
 			conditions.push(eq(auditEvents.action, actionIdentifier(filters.action)));
 		if (filters.outcome !== undefined)
-			conditions.push(eq(auditEvents.outcome, identifier(filters.outcome)));
+			conditions.push(eq(auditEvents.outcome, identifier(filters.outcome, 32)));
 		if (filters.from !== undefined)
 			conditions.push(gte(auditEvents.createdAt, auditDate(filters.from)));
-		if (filters.to !== undefined)
-			conditions.push(lte(auditEvents.createdAt, auditDate(filters.to)));
-		if (filters.from && filters.to && filters.from > filters.to)
+		if (filters.until !== undefined)
+			conditions.push(lt(auditEvents.createdAt, auditDate(filters.until)));
+		if (filters.from && filters.until && filters.from >= filters.until)
 			throw new AuditLogError("INVALID_QUERY");
 		if (filters.cursor !== undefined) {
 			const cursor = decodeCursor(filters.cursor);

@@ -32,6 +32,14 @@ describe("audit input safety", () => {
 		"cookie",
 		"sessionToken",
 		"credentials",
+		"cReDeN-tial",
+		"passwd",
+		"pwd",
+		"request",
+		"session",
+		"body",
+		"header",
+		"headers",
 	])("rejects recursive sensitive key %s", (key) => {
 		expect(() =>
 			validateAuditMetadata({ nested: [{ [key]: "never persist" }] }),
@@ -73,6 +81,9 @@ describe("audit input safety", () => {
 	it("bounds bytes, keys, arrays, depth, and total nodes", () => {
 		for (const value of [
 			{ value: "é".repeat(4096) },
+			Object.fromEntries(
+				Array.from({ length: 9 }, (_, i) => [`safe${i}`, "x".repeat(1024)]),
+			),
 			Object.fromEntries(Array.from({ length: 51 }, (_, i) => [`k${i}`, i])),
 			{ values: Array(101).fill(1) },
 			{ values: Array.from({ length: 100 }, () => Array(100).fill(1)) },
@@ -83,13 +94,28 @@ describe("audit input safety", () => {
 		for (let i = 0; i < 7; i++) nested = { nested };
 		expect(() => validateAuditMetadata(nested)).toThrow();
 		expect(() =>
-			validateAuditMetadata({ value: "x".repeat(8170) }),
+			validateAuditMetadata({ value: "x".repeat(1024) }),
 		).not.toThrow();
+	});
+	it("enforces canonical identity and metadata boundaries", () => {
+		expect(() =>
+			createAuditActor("a".repeat(32), "i".repeat(128)),
+		).not.toThrow();
+		expect(() => createAuditActor("a".repeat(33))).toThrow();
+		expect(() =>
+			createAuditSubject("a".repeat(64), "i".repeat(128)),
+		).not.toThrow();
+		expect(() => createAuditSubject("a".repeat(65))).toThrow();
+		expect(() =>
+			validateAuditMetadata({ ["k".repeat(64)]: "x".repeat(1024) }),
+		).not.toThrow();
+		expect(() => validateAuditMetadata({ ["k".repeat(65)]: 1 })).toThrow();
+		expect(() => validateAuditMetadata({ safe: "x".repeat(1025) })).toThrow();
 	});
 	it("validates controls, lengths, action namespaces, IDs, and times", () => {
 		for (const type of ["", "User", "user\n", "x".repeat(65)])
 			expect(() => createAuditActor(type)).toThrow();
-		for (const id of ["", "x".repeat(257), "\u0000", "\ud800", " space "])
+		for (const id of ["", "x".repeat(129), "\u0000", "\ud800", " space "])
 			expect(() => createAuditActor("user", id)).toThrow();
 		for (const action of [
 			"create",
