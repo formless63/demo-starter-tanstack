@@ -17,7 +17,7 @@ export function opsJobsConfigured() {
 	}
 }
 /** Supported cached metadata only; never start the producer/worker or create queues.
- * Connection teardown cancels the current query, while PostgreSQL statement_timeout is a second bound.
+ * Abort closes the actual PostgreSQL connection; statement_timeout independently bounds server-side work.
  */
 export async function inspectOpsJobs({ signal }: { signal: AbortSignal }) {
 	const names = Object.keys(jobRegistry);

@@ -25,6 +25,7 @@ try{
   process.env.OPS_ADMIN_USER_IDS='';if((await call()).status!==403)throw new Error('Default deny failed');
   process.env.OPS_ADMIN_USER_IDS=userId;const allowed=await call();const summary=await allowed.json();if(allowed.status!==200||summary.adapters.length!==0)throw new Error('Baseline-only operator failed');
   process.env.OPS_ADMIN_USER_IDS='bad\u0000';if((await call()).status!==503)throw new Error('Malformed configuration failed open');
+  process.env.OPS_ADMIN_USER_IDS=userId;
   console.info('Baseline-only human session/operator/API-key boundaries and empty registry runtime passed');
   // Fixture-only baseline health route; not shipped as Ops runtime or migration.
   mkdirSync('src/routes/api',{recursive:true});
@@ -32,10 +33,10 @@ try{
   const removed=spawnSync('bun',['scripts/ops-removal-fixture.ts'],{stdio:'inherit',env:process.env});if(removed.status!==0)throw new Error('Ops code removal failed');
   const portServer=createServer();await new Promise<void>(resolve=>portServer.listen(0,'127.0.0.1',resolve));const address=portServer.address();if(!address||typeof address==='string')throw new Error();await new Promise<void>(resolve=>portServer.close(()=>resolve()));
   const base=`http://127.0.0.1:${address.port}`;
-  const child=spawn('bun',['run','dev','--','--port',String(address.port)],{stdio:'ignore',detached:true,env:{...process.env,NODE_ENV:'development',APP_BASE_URL:base}});
+  const child=spawn('bun',['x','vite','dev','--host','127.0.0.1','--port',String(address.port),'--strictPort'],{stdio:'ignore',detached:true,env:{...process.env,NODE_ENV:'development',APP_BASE_URL:base}});
   try{
    const deadline=Date.now()+30000;let ready=false;
-   while(Date.now()<deadline){try{if((await fetch(`${base}/api/health`)).status===200){ready=true;break;}}catch{}await new Promise(resolve=>setTimeout(resolve,100));}
+   while(Date.now()<deadline){try{if((await fetch(`${base}/api/health`,{signal:AbortSignal.timeout(2000)})).status===200){ready=true;break;}}catch{}await new Promise(resolve=>setTimeout(resolve,100));}
    if(!ready)throw new Error('Removed consumer failed baseline health');
    for(const path of ['/api/ops/summary','/admin/ops'])if((await fetch(base+path)).status!==404)throw new Error('Ops route survived removal');
    const restored=await fetch(`${base}/api/auth/get-session`,{headers:{cookie}});if(restored.status!==200||(await restored.json()).user?.id!==userId)throw new Error('Human login/session failed after Ops removal');

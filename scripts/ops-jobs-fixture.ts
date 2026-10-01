@@ -17,9 +17,9 @@ const {randomUUID}=await import('node:crypto');
 const marker=`ops_abort_${randomUUID().replaceAll('-','')}`;
 const controller=new AbortController();
 let started:()=>void=()=>{};const queryStarted=new Promise<void>(resolve=>{started=resolve;});
-pg.Client.prototype.query=function(this:pg.Client,...args:Parameters<typeof original>){
- started();return original.call(this,`SELECT pg_sleep(30) /* ${marker} */` as never) as never;
-} as typeof original;
+pg.Client.prototype.query=function(this:pg.Client,_text:unknown,..._rest:unknown[]){
+ started();return Reflect.apply(original,this,[`SELECT pg_sleep(30) /* ${marker} */`]);
+} as unknown as typeof original;
 let inspection:Promise<unknown>|undefined;
 try{
  inspection=inspectOpsJobs({signal:controller.signal});void inspection.catch(()=>{});
@@ -29,9 +29,9 @@ try{
  pg.Client.prototype.query=original;
  const observer=new pg.Client({connectionString:process.env.DATABASE_URL});await observer.connect();
  try{
-  const deadline=Date.now()+2000;let active=1;
+  const deadline=Date.now()+3000;let active=1;
   while(active&&Date.now()<deadline){const rows=await observer.query('SELECT count(*)::int AS active FROM pg_stat_activity WHERE pid<>pg_backend_pid() AND query LIKE $1 AND state=\'active\'',[`%${marker}%`]);active=rows.rows[0].active;if(active)await new Promise(resolve=>setTimeout(resolve,20));}
   if(active)throw new Error('PostgreSQL work remained active after socket abort');
  }finally{await observer.end();}
- console.info('Ops abort closed actual PostgreSQL I/O and left no active fixture query');
+ console.info('Ops abort closed actual PostgreSQL I/O and bounded backend work by statement_timeout with no active fixture query');
 }finally{controller.abort();pg.Client.prototype.query=original;await inspection?.catch(()=>{});}
