@@ -75,7 +75,7 @@ describe("transactional jobs", () => {
 					{ notificationId: row.id, channel: "email" },
 					{ retryLimit: 0, expireInSeconds: phase === "expiration" ? 1 : 60 },
 				);
-				expect(id).toBeTruthy();
+				if (!id) throw new Error("Missing notification fixture job");
 				await running;
 				if (phase === "close")
 					await worker.stop({ graceful: false, close: true });
@@ -85,7 +85,7 @@ describe("transactional jobs", () => {
 				await Promise.resolve();
 				expect(adapter).not.toHaveBeenCalled();
 				expect(
-					(await waitForJob(id!, "failed", "notifications.deliver")).retryCount,
+					(await waitForJob(id, "failed", "notifications.deliver")).retryCount,
 				).toBe(0);
 			} finally {
 				release(row);
