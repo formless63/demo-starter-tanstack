@@ -25,6 +25,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 | `webhooks` | `webhooks` | Done | Enabled | No | `postgres-jobs` | Jobs | Remote endpoints when used | [Webhooks](../capabilities/webhooks/CAPABILITY.md) |
 | `audit-log` | `audit-log` | Done | Enabled | No | `drizzle` | None | PostgreSQL | [Audit Log](../capabilities/audit-log/CAPABILITY.md) |
 | `cache-coordination` | `cache-coordination` | Done | Enabled | No | None | None | Valkey/Redis-compatible service on use | [Cache / Coordination](../capabilities/cache-coordination/CAPABILITY.md) |
+| `ai` | `ai` | Done | Enabled | No | None | None | Model endpoint only on use | [AI](../capabilities/ai/CAPABILITY.md) |
 
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
@@ -60,7 +61,7 @@ For an existing TanStack CLI-created application, run from its root:
 bunx @tanstack/cli@0.71.0 add https://raw.githubusercontent.com/formless63/demo-starter-tanstack/main/capabilities/jobs/add-on.json
 ```
 
-Replace the URL with the API Platform, Observability, Storage, Email, Audit Log or Cache distributable (Webhooks uses the dependency transport described below) to select that capability. Review the resulting diff, configure its environment, apply any declared migrations, and run its `CAPABILITY.md` verification. Observability has no migrations or database dependency. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
+Replace the URL with the API Platform, Observability, Storage, Email, Audit Log, Cache or AI distributable (Webhooks uses the dependency transport described below) to select that capability. Review the resulting diff, configure its environment, apply any declared migrations, and run its `CAPABILITY.md` verification. Observability has no migrations or database dependency. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
 
 Official TanStack add-on dependencies are resolved by the CLI:
 
@@ -72,6 +73,7 @@ Official TanStack add-on dependencies are resolved by the CLI:
 - Webhooks declares `dependsOn: ["postgres-jobs"]`; the generic transport resolves custom Jobs and transitive official Drizzle dependencies.
 - Audit Log declares `dependsOn: ["drizzle"]`; the fixture proves real migrations, coupled transactions and retained history on removal.
 - Cache declares `dependsOn: []`; the fixture proves backendless installation, actual Valkey and removal without touching external data.
+- AI declares `dependsOn: []`; the fixture proves backendless installation/build, actual local OpenAI-compatible HTTP generation/streaming/structured/cancellation and clean runtime removal/rebuild. Application telemetry remains outside the assets.
 
 These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Webhooks requires Jobs; optional integrations remain independent.
 

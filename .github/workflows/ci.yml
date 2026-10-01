@@ -81,9 +81,7 @@ jobs:
       - run: docker compose up -d --wait postgres
       - run: docker compose run --rm migrate
       - run: docker compose run --rm jobs-migrate
-      - run: docker compose run --rm worker node .output/jobs-doctor.mjs
-      - run: docker compose run --rm worker node .output/jobs-smoke.mjs
-      - run: docker compose run --rm worker node .output/webhooks-smoke.mjs
+      - run: bun run production:smoke
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run add-ons:test:composition

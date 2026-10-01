@@ -26,7 +26,7 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 
 Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
 
-The eight completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log and Cache / Coordination.
+The nine completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination and AI.
 
 `defaultInstalled` describes only clean generated consumers. The root reference application's intentionally integrated capabilities are listed separately in `referenceApplication.enabledCapabilities`; disabling an application integration does not require deleting the reusable add-on workspace or its stable catalog identity. Removal retains database data and committed migration history unless a separate destructive change explicitly says otherwise.
 
@@ -68,3 +68,7 @@ Baseline authoring workflows live in project-onboarding/appearance-change skills
 `appearance/default-theme.json` is the reference normalized source; downstream `.project/theme.json` is vendored data. Explicit tooling generates dedicated `src/theme.css` and `src/appearance-policy.ts`, never registry installers, arbitrary CSS, assets or font downloads. React external-store subscriptions plus a trusted early head script own persisted/system-aware mode; no backend startup work. Nuxt's companion should retain native color-mode using the same conceptual contract, not this React store.
 
 Canonical Project mutation input limits are 120 characters for trimmed names and 1000 for optional trimmed descriptions, shared by browser/server/API validation and OpenAPI. Existing PostgreSQL text columns and migrations remain unchanged. Jobs roles are explicit and handlers may consume native optional attempt context; doctor remains a separate structural-drift release gate.
+
+## AI boundary
+
+`src/integrations/ai` owns lazy server-only bounded generation/stream/structured primitives; sole SDK adapter is provider.server.ts. No Jobs/Storage/Observability/Audit dependency or provider startup/readiness network. `src/lib/ai.server.ts` owns optional safe metadata-only telemetry; reference CLI smoke is explicit and local. Caller/timeout/consumer cancellation abort transport; no automatic retries.
