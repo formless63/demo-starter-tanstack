@@ -105,6 +105,7 @@ services:
     environment:
       <<: [*jobs-environment, *observability-environment]
       NODE_ENV: production
+      OPS_ADMIN_USER_IDS: ${OPS_ADMIN_USER_IDS:-}
       REALTIME_TRANSPORTS: ${REALTIME_TRANSPORTS:-sse}
       DATABASE_URL: postgresql://${POSTGRES_USER:-starter}:${POSTGRES_PASSWORD:-starter}@postgres:5432/${POSTGRES_DB:-starter}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}

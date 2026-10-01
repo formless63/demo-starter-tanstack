@@ -218,3 +218,5 @@ To add AI to a lean generated consumer, explicitly select `capabilities/ai/add-o
 5. If also pruning authoring, remove `capabilities/search/`, `SEARCH_MODULE_EVALUATION.md` and `.agents/skills/search-change/`, retain stable catalog ID as deferred, remove implementation metadata and update ROADMAP/docs. Other capability statuses stay unchanged.
 
 Removing Search code never deletes application records. Dropping the generated column/index later requires a new explicit reviewed migration; preserve applied migration history. There is no CLI uninstall transaction. The clean lifecycle fixture builds before removal and after removal, proving retained domain records, generated vector, schema helper and migration hashes.
+
+Ops / Admin is in progress: guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.

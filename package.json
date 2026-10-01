@@ -84,7 +84,8 @@
     "notifications:smoke": "bun scripts/notifications-smoke.ts",
     "notifications:compat": "bun scripts/notifications-compat.ts",
     "realtime:cache": "bun build scripts/realtime-cache-fixture.ts --target=node --outfile=/tmp/realtime-cache-fixture.mjs && node /tmp/realtime-cache-fixture.mjs",
-    "notifications:delivery": "bun build scripts/jobs-worker.ts --target=node --outfile=/tmp/notification-worker-fixture.mjs && NOTIFICATION_WORKER_SCRIPT=/tmp/notification-worker-fixture.mjs bun scripts/notifications-delivery-fixture.ts"
+    "notifications:delivery": "bun build scripts/jobs-worker.ts --target=node --outfile=/tmp/notification-worker-fixture.mjs && NOTIFICATION_WORKER_SCRIPT=/tmp/notification-worker-fixture.mjs bun scripts/notifications-delivery-fixture.ts",
+    "ops:unit": "vitest run src/integrations/ops-admin/ops.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",

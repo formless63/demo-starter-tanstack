@@ -1,0 +1,11 @@
+# Ops/Admin evaluation
+
+Read-only v1 uses existing Start server routes/functions and React without new dependency or durable service. Rechecked official [Start server routes](https://tanstack.com/start/latest/docs/framework/react/guide/server-routes) and pinned [pg-boss 12.35.0 queues](https://github.com/timgit/pg-boss/blob/12.35.0/docs/api/queues.md) on 2026-10-01. Installed pg-boss source confirms getQueues reads queue metadata directly; producer lifecycle cannot be reused because it creates queues. Ops supplies a separate read-only DB connection and does not start pg-boss runtime loops.
+
+## Cross-framework v1 contract
+
+Both implementations must enforce baseline human session plus privileged server operator allowlist; no API-key/organization promotion. Static maximum-16 adapter registry, eight registered counts, closed card schema, 64 KiB bound, 3-second card/5-second summary deadlines and three concurrent inspections. No optional hard dependencies or startup inspection. Manual refresh; partial infrastructure failure returns 200 sanitized cards. Denials map 401/403 and safe local configuration 503. No mutation console or Ops persistence. Removal preserves provider/customer state. TanStack supplies native route/server function transports, React accessible cards and application-owned optional adapters.
+
+Storage/Cache older read-only APIs lack signal support. Pending work is bounded/reused rather than falsely labeled cancelled. Import/Export owns any Storage API extension; no unfinished track is consulted. Cached Jobs sample time is unknown; Audit count is intentionally omitted and Webhooks uses Jobs aggregate presence. No claims of live totals, provider certification or semantic installer merging.
+
+Release acceptance remains in progress. Full lifecycle, real protocol canaries, browser privacy/access and production/CI proof are required before done.
