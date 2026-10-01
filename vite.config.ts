@@ -7,6 +7,19 @@ import { defineConfig } from "vite";
 
 const config = defineConfig({
 	resolve: { tsconfigPaths: true },
+	environments: {
+		client: {
+			// Prevent late auth/docs discovery from replacing shared chunks during hydration.
+			optimizeDeps: {
+				include: [
+					"better-auth/react",
+					"better-auth/client/plugins",
+					"@scalar/api-reference-react",
+					"zod",
+				],
+			},
+		},
+	},
 	plugins: [nitro(), devtools(), tailwindcss(), tanstackStart(), viteReact()],
 });
 
