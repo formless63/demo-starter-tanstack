@@ -1,8 +1,19 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import {
+	Area,
+	AreaChart,
+	Bar,
+	BarChart,
+	CartesianGrid,
+	Line,
+	LineChart,
+	ResponsiveContainer,
+	XAxis,
+	YAxis,
+} from "recharts";
 
-export type ChartDatum = { label: string; value: number };
+export type ChartDatum = { label: string; value: number | null | undefined };
 export type ChartKind = "bar" | "line" | "area";
-
 export interface ChartProps {
 	data: readonly ChartDatum[];
 	kind?: ChartKind;
@@ -11,7 +22,12 @@ export interface ChartProps {
 	className?: string;
 }
 
-/** SSR-safe, dependency-light chart primitive. The SVG frame is deterministic; ResizeObserver only enhances sizing. */
+function validData(data: readonly ChartDatum[]) {
+	return data.filter((item): item is { label: string; value: number } =>
+		Number.isFinite(item.value),
+	);
+}
+
 export function Chart({
 	data,
 	kind = "line",
@@ -21,65 +37,80 @@ export function Chart({
 }: ChartProps) {
 	const titleId = useId();
 	const descriptionId = useId();
-	const frame = useRef<HTMLDivElement>(null);
-	const [width, setWidth] = useState(640);
+	const [enhanced, setEnhanced] = useState(false);
+	const chartData = validData(data);
 	useEffect(() => {
-		const element = frame.current;
-		if (!element || typeof ResizeObserver === "undefined") return;
-		const observer = new ResizeObserver(([entry]) => {
-			if (entry) setWidth(Math.max(280, Math.round(entry.contentRect.width)));
-		});
-		observer.observe(element);
-		return () => observer.disconnect();
+		setEnhanced(true);
+		return () => setEnhanced(false);
 	}, []);
-	const max = Math.max(1, ...data.map((item) => item.value));
-	const points = data.map(
-		(item, index) =>
-			`${(index / Math.max(1, data.length - 1)) * 100},${100 - (item.value / max) * 88}`,
-	);
+	const common = {
+		data: chartData,
+		margin: { top: 8, right: 12, bottom: 8, left: 0 },
+	} as const;
+	const content =
+		kind === "bar" ? (
+			<BarChart {...common}>
+				<CartesianGrid vertical={false} />
+				<XAxis dataKey="label" />
+				<YAxis />
+				<Bar dataKey="value" fill="currentColor" isAnimationActive={false} />
+			</BarChart>
+		) : kind === "area" ? (
+			<AreaChart {...common}>
+				<CartesianGrid vertical={false} />
+				<XAxis dataKey="label" />
+				<YAxis />
+				<Area
+					dataKey="value"
+					type="monotone"
+					fill="currentColor"
+					fillOpacity={0.14}
+					stroke="currentColor"
+					isAnimationActive={false}
+				/>
+			</AreaChart>
+		) : (
+			<LineChart {...common}>
+				<CartesianGrid vertical={false} />
+				<XAxis dataKey="label" />
+				<YAxis />
+				<Line
+					dataKey="value"
+					type="monotone"
+					stroke="currentColor"
+					strokeWidth={2}
+					dot={false}
+					isAnimationActive={false}
+				/>
+			</LineChart>
+		);
 	return (
-		<div ref={frame} className={className}>
-			<svg
+		<div className={className} aria-busy={!enhanced}>
+			<div
 				role="img"
-				aria-label={title}
-				aria-labelledby={`${titleId} ${description ? descriptionId : ""}`}
-				viewBox="0 0 100 100"
-				preserveAspectRatio="none"
-				width="100%"
-				height="240"
-				className="block overflow-visible"
+				aria-labelledby={`${titleId}${description ? ` ${descriptionId}` : ""}`}
 			>
-				<title id={titleId}>{title}</title>
-				{description && <desc id={descriptionId}>{description}</desc>}
-				{kind === "area" && (
-					<polygon
-						points={`0,100 ${points.join(" ")} 100,100`}
-						fill="currentColor"
-						opacity=".14"
+				<h2 id={titleId} className="sr-only">
+					{title}
+				</h2>
+				{description && (
+					<p id={descriptionId} className="sr-only">
+						{description}
+					</p>
+				)}
+				{enhanced ? (
+					<ResponsiveContainer width="100%" height={240}>
+						{content}
+					</ResponsiveContainer>
+				) : (
+					<svg
+						aria-hidden="true"
+						viewBox="0 0 100 40"
+						width="100%"
+						height="240"
 					/>
 				)}
-				{kind !== "bar" && (
-					<polyline
-						points={points.join(" ")}
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="1.8"
-						vectorEffect="non-scaling-stroke"
-					/>
-				)}
-				{kind === "bar" &&
-					data.map((item, index) => (
-						<rect
-							key={item.label}
-							x={`${(index / data.length) * 100 + 1}%`}
-							y={`${100 - (item.value / max) * 88}`}
-							width={`${Math.max(1, 92 / data.length)}%`}
-							height={`${(item.value / max) * 88}%`}
-							rx="1"
-							fill="currentColor"
-						/>
-					))}
-			</svg>
+			</div>
 			<table className="sr-only">
 				<caption>{title}</caption>
 				<thead>
@@ -90,14 +121,15 @@ export function Chart({
 				</thead>
 				<tbody>
 					{data.map((item) => (
-						<tr key={item.label}>
+						<tr key={`${item.label}-${String(item.value)}`}>
 							<th scope="row">{item.label}</th>
-							<td>{item.value}</td>
+							<td>
+								{Number.isFinite(item.value) ? item.value : "Not available"}
+							</td>
 						</tr>
 					))}
 				</tbody>
 			</table>
-			<span className="sr-only">Chart width {width}px</span>
 		</div>
 	);
 }
