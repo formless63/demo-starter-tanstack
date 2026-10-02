@@ -12,12 +12,17 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as ChartsTestRouteImport } from './routes/charts-test'
+import { Route as AdminOpsRouteImport } from './routes/admin.ops'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiOpenapiDotjsonRouteImport } from './routes/api/openapi[.]json'
+import { Route as ApiTransfersStageRouteImport } from './routes/api/transfers-stage'
 import { Route as AppApiKeysRouteImport } from './routes/app.api-keys'
+import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppProjectsRouteImport } from './routes/app.projects'
+import { Route as AppTransfersRouteImport } from './routes/app.transfers'
 import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiOpsSummaryRouteImport } from './routes/api/ops/summary'
 import { Route as ApiV1ProjectsRouteImport } from './routes/api/v1/projects'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +40,11 @@ const ChartsTestRoute = ChartsTestRouteImport.update({
   path: '/charts-test',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminOpsRoute = AdminOpsRouteImport.update({
+  id: '/admin/ops',
+  path: '/admin/ops',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
@@ -45,14 +55,29 @@ const ApiOpenapiDotjsonRoute = ApiOpenapiDotjsonRouteImport.update({
   path: '/api/openapi.json',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTransfersStageRoute = ApiTransfersStageRouteImport.update({
+  id: '/api/transfers-stage',
+  path: '/api/transfers-stage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppApiKeysRoute = AppApiKeysRouteImport.update({
   id: '/api-keys',
   path: '/api-keys',
   getParentRoute: () => AppRoute,
 } as any)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProjectsRoute = AppProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTransfersRoute = AppTransfersRouteImport.update({
+  id: '/transfers',
+  path: '/transfers',
   getParentRoute: () => AppRoute,
 } as any)
 const DocsApiRoute = DocsApiRouteImport.update({
@@ -65,6 +90,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOpsSummaryRoute = ApiOpsSummaryRouteImport.update({
+  id: '/api/ops/summary',
+  path: '/api/ops/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1ProjectsRoute = ApiV1ProjectsRouteImport.update({
   id: '/api/v1/projects',
   path: '/api/v1/projects',
@@ -75,24 +105,34 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
+  '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
+  '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
 }
 export interface FileRoutesById {
@@ -100,12 +140,17 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
+  '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
 }
 export interface FileRouteTypes {
@@ -114,36 +159,51 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/charts-test'
+    | '/admin/ops'
     | '/api/health'
     | '/api/openapi.json'
+    | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/notifications'
     | '/app/projects'
+    | '/app/transfers'
     | '/docs/api'
     | '/api/auth/$'
+    | '/api/ops/summary'
     | '/api/v1/projects'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/app'
     | '/charts-test'
+    | '/admin/ops'
     | '/api/health'
     | '/api/openapi.json'
+    | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/notifications'
     | '/app/projects'
+    | '/app/transfers'
     | '/docs/api'
     | '/api/auth/$'
+    | '/api/ops/summary'
     | '/api/v1/projects'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/charts-test'
+    | '/admin/ops'
     | '/api/health'
     | '/api/openapi.json'
+    | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/notifications'
     | '/app/projects'
+    | '/app/transfers'
     | '/docs/api'
     | '/api/auth/$'
+    | '/api/ops/summary'
     | '/api/v1/projects'
   fileRoutesById: FileRoutesById
 }
@@ -151,10 +211,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   ChartsTestRoute: typeof ChartsTestRoute
+  AdminOpsRoute: typeof AdminOpsRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiOpenapiDotjsonRoute: typeof ApiOpenapiDotjsonRoute
+  ApiTransfersStageRoute: typeof ApiTransfersStageRoute
   DocsApiRoute: typeof DocsApiRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiOpsSummaryRoute: typeof ApiOpsSummaryRoute
   ApiV1ProjectsRoute: typeof ApiV1ProjectsRoute
 }
 
@@ -181,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChartsTestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/ops': {
+      id: '/admin/ops'
+      path: '/admin/ops'
+      fullPath: '/admin/ops'
+      preLoaderRoute: typeof AdminOpsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/health': {
       id: '/api/health'
       path: '/api/health'
@@ -195,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOpenapiDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/transfers-stage': {
+      id: '/api/transfers-stage'
+      path: '/api/transfers-stage'
+      fullPath: '/api/transfers-stage'
+      preLoaderRoute: typeof ApiTransfersStageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/api-keys': {
       id: '/app/api-keys'
       path: '/api-keys'
@@ -202,11 +279,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppApiKeysRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/notifications': {
+      id: '/app/notifications'
+      path: '/notifications'
+      fullPath: '/app/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/projects': {
       id: '/app/projects'
       path: '/projects'
       fullPath: '/app/projects'
       preLoaderRoute: typeof AppProjectsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/transfers': {
+      id: '/app/transfers'
+      path: '/transfers'
+      fullPath: '/app/transfers'
+      preLoaderRoute: typeof AppTransfersRouteImport
       parentRoute: typeof AppRoute
     }
     '/docs/api': {
@@ -223,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ops/summary': {
+      id: '/api/ops/summary'
+      path: '/api/ops/summary'
+      fullPath: '/api/ops/summary'
+      preLoaderRoute: typeof ApiOpsSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/projects': {
       id: '/api/v1/projects'
       path: '/api/v1/projects'
@@ -235,12 +333,16 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppApiKeysRoute: typeof AppApiKeysRoute
+  AppNotificationsRoute: typeof AppNotificationsRoute
   AppProjectsRoute: typeof AppProjectsRoute
+  AppTransfersRoute: typeof AppTransfersRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppApiKeysRoute: AppApiKeysRoute,
+  AppNotificationsRoute: AppNotificationsRoute,
   AppProjectsRoute: AppProjectsRoute,
+  AppTransfersRoute: AppTransfersRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -249,10 +351,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   ChartsTestRoute: ChartsTestRoute,
+  AdminOpsRoute: AdminOpsRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiOpenapiDotjsonRoute: ApiOpenapiDotjsonRoute,
+  ApiTransfersStageRoute: ApiTransfersStageRoute,
   DocsApiRoute: DocsApiRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiOpsSummaryRoute: ApiOpsSummaryRoute,
   ApiV1ProjectsRoute: ApiV1ProjectsRoute,
 }
 export const routeTree = rootRouteImport

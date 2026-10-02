@@ -1,0 +1,13 @@
+# Optional disposable cache only; normal compose.yaml remains unchanged.
+services:
+  valkey:
+    image: valkey/valkey:9.1.2-alpine@sha256:48332870af354a799964c0012ae1194a0bf2bf894eb508f945810596dc2d8d11
+    command: ["valkey-server", "--save", "", "--appendonly", "no"]
+    ports: ["127.0.0.1:${CACHE_DEV_PORT:-6379}:6379"]
+    # Image declares /data as a volume; override it with ephemeral memory.
+    tmpfs: ["/data"]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 1s
+      timeout: 2s
+      retries: 30

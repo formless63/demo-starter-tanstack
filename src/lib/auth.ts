@@ -1,11 +1,15 @@
 import { apiKey } from "@better-auth/api-key";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { APIError } from "better-auth/api";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";
 import { magicLink } from "better-auth/plugins/magic-link";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db } from "#/db";
 import { env } from "#/env";
+import { resolveEmailConfig } from "#/integrations/email/config.server";
+import { renderMagicLinkEmail } from "#/integrations/email/magic-link.server";
+import { getApplicationEmail } from "./email.server";
 
 const plugins = [] as ReturnType<
 	| typeof apiKey
@@ -54,16 +58,29 @@ if (env.OIDC_DISCOVERY_URL && env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
 }
 
 if (env.MAGIC_LINK_ENABLED === "true") {
+	// Validate structure before exposing the flow; never contact SMTP at startup.
+	resolveEmailConfig();
 	plugins.push(
 		magicLink({
 			storeToken: "hashed",
 			async sendMagicLink({ email, url }) {
-				// Development-safe transport: replace with a provider integration in production.
-				if (env.NODE_ENV === "production")
-					throw new Error(
-						"Configure an email transport before enabling magic links in production",
-					);
-				console.info(`[magic-link] ${email}: ${url}`);
+				try {
+					const content = renderMagicLinkEmail({
+						appName: "Launchpad",
+						url,
+						appBaseUrl: env.APP_BASE_URL,
+					});
+					const result = await getApplicationEmail().sendEmail({
+						to: [{ address: email }],
+						...content,
+					});
+					if (result.outcome !== "accepted")
+						throw new Error("Delivery incomplete");
+				} catch {
+					throw new APIError("SERVICE_UNAVAILABLE", {
+						message: "Email delivery unavailable. Please try again later.",
+					});
+				}
 			},
 		}),
 	);

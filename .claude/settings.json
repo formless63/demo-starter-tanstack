@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/.agents/hooks/run.sh\" session claude \"$CLAUDE_PROJECT_DIR\"",
+            "timeout": 15
+          }
+        ],
+        "matcher": "startup|resume|clear|compact"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/.agents/hooks/run.sh\" guard claude \"$CLAUDE_PROJECT_DIR\"",
+            "timeout": 15
+          }
+        ],
+        "matcher": "Bash|Write|Edit|MultiEdit|apply_patch"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/.agents/hooks/run.sh\" quality claude \"$CLAUDE_PROJECT_DIR\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

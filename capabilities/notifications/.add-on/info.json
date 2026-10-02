@@ -1,0 +1,53 @@
+{
+  "id": "notifications",
+  "name": "notifications",
+  "displayName": "Notifications",
+  "description": "Persistent recipient-scoped in-app notifications with private Jobs delivery and optional Email, ntfy, and Realtime adapters.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [
+    "postgres-jobs"
+  ],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "zod": "^4.3.6",
+      "drizzle-orm": "^0.45.1"
+    },
+    "scripts": {
+      "notifications:unit": "bun scripts/notifications-unit.ts",
+      "notifications:smoke": "bun scripts/notifications-smoke.ts",
+      "notifications:compat": "bun scripts/notifications-compat.ts"
+    }
+  },
+  "envVars": [
+    {
+      "name": "NTFY_BASE_URL",
+      "description": "Optional lazy ntfy server HTTPS URL; no public default.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "NTFY_TOKEN",
+      "description": "Optional private ntfy token resolved at execution.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local"
+    },
+    {
+      "name": "NTFY_TIMEOUT_SECONDS",
+      "default": "10",
+      "description": "Integer 1\u201330 seconds.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    }
+  ]
+}

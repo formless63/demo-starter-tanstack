@@ -1,49 +1,68 @@
 {
-	"projectName": "api-platform-addon-clean-install",
-	"framework": "React",
-	"blank": true,
-	"packageManager": "bun",
-	"toolchain": "biome",
-	"addOnConfig": {
-		"drizzle": {
-			"database": "postgresql"
-		}
-	},
-	"expectedOfficialAddOns": ["better-auth", "drizzle"],
-	"expectedFiles": [
-		"src/db/index.ts",
-		"src/db/schema.ts",
-		"src/integrations/api-platform/principal.server.ts",
-		"src/integrations/api-platform/openapi.ts",
-		"src/routes/api/v1/projects.ts",
-		"src/routes/api/openapi[.]json.ts",
-		"src/routes/docs.api.tsx",
-		"src/routes/app.api-keys.tsx",
-		"scripts/api-platform-smoke.ts",
-		"drizzle/0001_pretty_kat_farrell.sql",
-		"drizzle/0002_even_nighthawk.sql",
-		"capabilities/api-platform/CAPABILITY.md"
-	],
-	"expectedFileText": {
-		"src/lib/auth.ts": [
-			"apiKeyHeaders: 'x-api-key'",
-			"defaultKeyLength: 64",
-			"defaultPrefix: 'app_'",
-			"disableKeyHashing: false",
-			"enableSessionForAPIKeys: false",
-			"keyExpiration: { defaultExpiresIn: null }",
-			"references: 'user'",
-			"timeWindow: 60 * 1000",
-			"maxRequests: 1_000"
-		],
-		"src/db/schema.ts": [
-			"rateLimitTimeWindow: integer('rate_limit_time_window').default(60_000)",
-			"rateLimitMax: integer('rate_limit_max').default(1_000)"
-		]
-	},
-	"verificationCommands": [
-		["bun", "run", "db:migrate"],
-		["bun", "run", "api-platform:smoke"]
-	],
-	"build": true
+  "projectName": "api-platform-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "addOnConfig": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "expectedOfficialAddOns": [
+    "better-auth",
+    "drizzle"
+  ],
+  "expectedFiles": [
+    "src/db/index.ts",
+    "src/db/schema.ts",
+    "src/integrations/api-platform/principal.server.ts",
+    "src/integrations/api-platform/openapi.ts",
+    "src/routes/api/v1/projects.ts",
+    "src/routes/api/openapi[.]json.ts",
+    "src/routes/docs.api.tsx",
+    "src/routes/app.api-keys.tsx",
+    "scripts/api-platform-smoke.ts",
+    "drizzle/0001_pretty_kat_farrell.sql",
+    "drizzle/0002_even_nighthawk.sql",
+    "capabilities/api-platform/CAPABILITY.md",
+    "scripts/api-platform-lifecycle-fixture.ts"
+  ],
+  "expectedFileText": {
+    "src/lib/auth.ts": [
+      "apiKeyHeaders: 'x-api-key'",
+      "defaultKeyLength: 64",
+      "defaultPrefix: 'app_'",
+      "disableKeyHashing: false",
+      "enableSessionForAPIKeys: false",
+      "keyExpiration: { defaultExpiresIn: null }",
+      "references: 'user'",
+      "timeWindow: 60 * 1000",
+      "maxRequests: 1_000"
+    ],
+    "src/db/schema.ts": [
+      "rateLimitTimeWindow: integer('rate_limit_time_window').default(60_000)",
+      "rateLimitMax: integer('rate_limit_max').default(1_000)"
+    ],
+    "src/features/projects/project-schema.ts": [
+      "PROJECT_NAME_MAX_LENGTH = 120",
+      "PROJECT_DESCRIPTION_MAX_LENGTH = 1000"
+    ],
+    "package.json": [
+      "\"@better-auth/api-key\": \"1.7.7\""
+    ]
+  },
+  "verificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "scripts/api-platform-lifecycle-fixture.ts"
+    ]
+  ],
+  "build": true
 }

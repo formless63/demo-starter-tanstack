@@ -6,6 +6,7 @@ import {
 } from "@tabler/icons-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
+import { ThemeSelector } from "#/components/theme-selector";
 import { authClient } from "#/lib/auth-client";
 import { safeInternalRedirect } from "#/lib/safe-redirect";
 
@@ -34,7 +35,7 @@ function Landing() {
 				<div className="flex items-center gap-2 font-semibold">
 					<IconSparkles size={20} /> Launchpad
 				</div>
-				<ThemeButton />
+				<ThemeSelector />
 			</nav>
 			<section className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:py-32">
 				<div>
@@ -104,31 +105,5 @@ function Landing() {
 				</div>
 			</section>
 		</main>
-	);
-}
-
-function ThemeButton() {
-	return (
-		<button
-			type="button"
-			className="rounded-lg border px-3 py-2 text-sm"
-			onClick={() => {
-				const current = localStorage.theme || "system";
-				const next =
-					current === "system"
-						? "light"
-						: current === "light"
-							? "dark"
-							: "system";
-				localStorage.theme = next;
-				const dark =
-					next === "dark" ||
-					(next === "system" &&
-						matchMedia("(prefers-color-scheme: dark)").matches);
-				document.documentElement.classList.toggle("dark", dark);
-			}}
-		>
-			Theme: light / dark / system
-		</button>
 	);
 }

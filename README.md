@@ -4,6 +4,12 @@ A deployable, provider-neutral TanStack Start and React starter with Bun, Postgr
 
 The root repository is also a reference application. It intentionally enables every completed capability so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
 
+## Start your application
+
+Provide existing requirements, design artifacts and skill libraries, then ask your coding agent to **onboard this project** using the [onboarding workflow](docs/PROJECT-ONBOARDING.md). Review the proposed docs, capability choices, appearance and skill adaptations before approving customization. The [starting guide](docs/STARTING-A-PROJECT.md) retains manual setup and removal paths.
+
+Versioned `.project` metadata describes downstream decisions; the reference remains uninitialized. `bun run project:check` and `project:status` validate/summarize it without network calls. [Appearance tooling](docs/APPEARANCE.md) safely vendors TweakCN/shadcn style JSON, generates semantic CSS, and supports persisted Light/Dark/System. It never executes a registry installer or silently downloads fonts. Bootstrap and appearance are baseline authoring tooling, not catalog capabilities. See [evaluation](PROJECT_BOOTSTRAP_EVALUATION.md) for contracts and verification.
+
 ## Why this starter
 
 - Production-sensible defaults without a cloud-provider contract.
@@ -29,11 +35,20 @@ Baseline components are not optional capability modules. Future integrations in 
 
 | Capability | Status | Default | Hard requirements | Purpose | Contract |
 | --- | --- | --- | --- | --- | --- |
+| Ops / Admin | Done | Optional | Baseline Better Auth + Node runtime | Read-only operational overview, explicit safe adapters | [Ops contract](capabilities/ops-admin/CAPABILITY.md) |
 | Jobs | Done | Optional | Baseline PostgreSQL + Drizzle | Typed pg-boss queues, explicit migration, worker, transactional enqueue | [Jobs contract](capabilities/jobs/CAPABILITY.md) |
 | API Platform | Done | Optional | Baseline Better Auth + PostgreSQL/Drizzle + server runtime | User-owned machine keys, typed permissions, native v1 API, OpenAPI 3.1.1, Scalar | [API Platform contract](capabilities/api-platform/CAPABILITY.md) |
 | Observability | Done | Optional | Baseline Start + Node runtime; no capability dependency | Safe JSON logs, request IDs, server traces/metrics, optional OTLP | [Observability contract](capabilities/observability/CAPABILITY.md) |
 | Object Storage | Done | Optional | No database/auth/capability dependency; S3 when used | Private streaming, signed PUT/GET, multipart and post-upload verification | [Storage contract](capabilities/object-storage/CAPABILITY.md) |
-| Charts / Visualization | Done | Optional | None beyond the baseline client | SSR-safe accessible line, bar, and area primitives with data-table fallback | [Charts contract](capabilities/charts-visualization/CAPABILITY.md) |
+| Email | Done | Optional | No database/auth/capability dependency; SMTP when used | Bounded SMTP delivery, safe errors and awaited magic links | [Email contract](capabilities/email/CAPABILITY.md) |
+| Webhooks | Done | Optional | Jobs + baseline Node 24 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
+| Audit Log | Done | Optional | Baseline PostgreSQL + Drizzle | Append-oriented events, bounded safe context, atomic domain writes, keyset queries | [Audit Log contract](capabilities/audit-log/CAPABILITY.md) |
+| Cache / Coordination | Done | Optional | No capability dependency; Valkey on use | Ephemeral cache, atomic counters, advisory leases and pub/sub | [Cache contract](capabilities/cache-coordination/CAPABILITY.md) |
+| AI | Done | Optional | Baseline Node runtime; model provider only on use | Bounded text, streaming and Zod structured generation | [AI contract](capabilities/ai/CAPABILITY.md) |
+| Search | Done | Optional | Baseline PostgreSQL + Drizzle | Application-owned FTS, weighted generated vectors, safe queries and keyset pages | [Search contract](capabilities/search/CAPABILITY.md) |
+| Realtime | Done | Optional | Baseline Node; human session integration | Authenticated SSE and WebSocket hints, bounded output; optional Cache fanout | [Realtime contract](capabilities/realtime/CAPABILITY.md) |
+| Notifications | Done | Optional | Jobs + baseline PostgreSQL/Drizzle | Durable recipient-scoped in-app records, atomic delivery enqueue, optional Email/ntfy/hints | [Notifications contract](capabilities/notifications/CAPABILITY.md) |
+| Import / Export | Done | Optional | Jobs + Object Storage; baseline PostgreSQL/Drizzle/Node | Scoped durable bounded CSV transfers and personal Projects round-trip | [Import / Export contract](capabilities/import-export/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -74,7 +89,7 @@ For a development Pocket ID admin API, set `DEV_OIDC_ADMIN_URL`, `DEV_OIDC_API_K
 bun run auth:provision
 ```
 
-The command uses Pocket ID's current `/api/oidc/clients` and `/secrets` APIs, updates callback/logout URLs, creates a secret only when the ignored `.env.local` lacks one, and is safe to rerun. Missing or unavailable configuration produces a clear error. Optional `MAGIC_LINK_ENABLED=true` prints links only in development; production intentionally refuses until a mail transport is implemented.
+The command uses Pocket ID's current `/api/oidc/clients` and `/secrets` APIs, updates callback/logout URLs, creates a secret only when the ignored `.env.local` lacks one, and is safe to rerun. Missing or unavailable configuration produces a clear error. Optional `MAGIC_LINK_ENABLED=true` delivers links through configured SMTP in development and production; local development reads Mailpit rather than console output.
 
 ## Machine API and OpenAPI
 
@@ -140,12 +155,22 @@ Both starters share AWS SDK client/presigner 3.1143.0, GET + PUT presigning (600
 
 Presigned Content-Type headers must match exactly. Validate proposed metadata before signing and actual size/type after upload; signed PUT has no universal pre-ingest byte policy. Keep URLs/credentials out of logs, consume or close download streams, and authorize server-chosen keys in application code. Optional application-owned telemetry records only finite operation/outcome/duration dimensions. See [evaluation](OBJECT_STORAGE_MODULE_EVALUATION.md) for provider scope and limitations, and [removal](docs/STARTING-A-PROJECT.md#remove-object-storage) for non-destructive unwiring.
 
+## Email
+
+[Email](capabilities/email/CAPABILITY.md) is a lazy, server-only Nodemailer 10.0.13 SMTP primitive with explicit TLS modes, bounded structured messages and safe errors. It makes one delivery attempt and returns partial acceptance without blind retries. No database, auth, telemetry or Jobs dependency is installed for clean consumers.
+
+Start optional loopback-only Mailpit v1.31.3 with `bun run email:dev:mailpit`; configure ignored local SMTP/From settings from the contract. `email:check` verifies without sending; `EMAIL_SMOKE_TO=person@example.test bun run email:smoke` sends one explicitly addressed message. `email:compat` verifies real SMTP/MIME and deterministic Chaos in disposable stacks. `email:dev:down` stops the temporary sink, which never relays.
+
+`MAGIC_LINK_ENABLED=true` requires structurally complete Email settings and delivers awaited text/HTML links through SMTP in development and production. Links/tokens are never console-logged; retrieve local links from Mailpit. Disabled magic links leave Email unused/unconfigured. Root optional telemetry records only bounded operation metadata. Domain DNS/deliverability remains the operator's responsibility.
+
 ## Verification
 
 ```bash
 bun install --frozen-lockfile
 bun run capabilities:status
 bun run capabilities:check
+bun run webhooks:unit
+bun run webhooks:smoke
 bun run add-ons:test jobs
 bun run add-ons:test api-platform
 bun run add-ons:test observability
@@ -163,7 +188,9 @@ bun run test:e2e
 
 Playwright covers the public landing page, anonymous protected-route redirect, OpenAPI endpoint, machine-auth boundary, and Scalar rendering. CI runs the static, unit, build, and browser checks, then proves the production artifact by building the image, migrating a clean Compose PostgreSQL database, starting the worker/application, and probing health, OpenAPI, and docs. Authenticated CRUD and cross-user isolation are enforced by owner predicates in every server query; live OAuth requires provider credentials.
 
-The fourth catalog-driven clean add-on job additionally proves Storage's backendless installation, both real provider suites and runtime removal. Main CI repeats both providers with optional telemetry and the actual Node production-image Storage entrypoint. Normal app health still works with no Storage configuration/service.
+The catalog-driven Storage clean add-on job additionally proves Storage's backendless installation, both real provider suites and runtime removal. Main CI repeats both providers with optional telemetry and the actual Node production-image Storage entrypoint. Normal app health still works with no Storage configuration/service.
+
+Email has a catalog-driven independent clean fixture. Main CI proves real Better Auth and production-image SMTP delivery, while normal production health also runs with Email unconfigured. Full SMTP/Docker tests remain task/CI checks, never agent-turn hooks.
 
 ## Capability/add-on development
 
@@ -224,4 +251,38 @@ For registries, set `APP_IMAGE` to the immutable image reference and use that sa
 
 ## Repository conventions
 
-`AGENTS.md` is concise canonical agent context. Architecture, stack, and commands use progressive disclosure under `.agents/context`; narrow workflow skills and reusable prompts support cross-tool work. Reusable capability status and dependency governance live in `ROADMAP.md` and `capabilities/catalog.json`. Server-only dependencies belong behind server functions/routes, and authorization is always enforced next to the database mutation.
+`AGENTS.md` is concise canonical agent context. [Agent automation](docs/AGENT-AUTOMATION.md) describes shared project hooks and normal client trust controls. Architecture, stack, and commands use progressive disclosure under `.agents/context`; narrow workflow skills and reusable prompts support cross-tool work. Reusable capability status and dependency governance live in `ROADMAP.md` and `capabilities/catalog.json`. Server-only dependencies belong behind server functions/routes, and authorization is always enforced next to the database mutation.
+
+Webhooks provides a signed Standard Webhooks primitive with Jobs as its only hard capability dependency. See [Webhooks contract](capabilities/webhooks/CAPABILITY.md) and [evaluation](WEBHOOKS_MODULE_EVALUATION.md). Explicit `bun run webhooks:unit` and `bun run webhooks:smoke` use a disposable receiver; normal startup needs no external endpoint.
+
+The Webhooks catalog fixture proves transitive Jobs installation, signed real HTTP delivery and worker retries, then removes Webhooks while retaining Jobs. Main CI also runs its Node production-image smoke; no receiver is needed for normal application health. CLI 0.71 custom dependency IDs require the generic local transport (`bun scripts/add-ons.ts serve webhooks`) rather than direct raw-JSON installation; external publication is deferred.
+
+## Audit Log
+
+Audit Log records Projects create/update/delete in the same Drizzle transaction as the mutation. Signed-in users map to stable user IDs; optional API wiring maps verified machine key IDs, never credentials. Context contains static source/field names, not project values or request/session dumps. The reusable primitive has no consumer capability dependencies, UI, tenancy, logging or retention automation. Run `bun run audit-log:smoke` against a migrated test database. See its [contract](capabilities/audit-log/CAPABILITY.md) and [evaluation](AUDIT_LOG_MODULE_EVALUATION.md) for metadata bounds, keysets, operator authority and privacy/removal responsibilities.
+
+## Cache / Coordination
+
+Optional server-only ephemeral cache, atomic counters, advisory leases and pub/sub, independently packaged as [cache-coordination](capabilities/cache-coordination/CAPABILITY.md). No database/auth/Jobs/Realtime/Observability requirement; lazy config means normal build/start needs no Valkey. No cache UI or automatic readiness dependency.
+
+| Capability | Requires | Optional integrations | External | Default installed |
+| --- | --- | --- | --- | --- |
+| Cache / Coordination | None | Realtime, API Platform, Jobs, Observability | Valkey 9.1.2 / common Redis protocol subset | No |
+
+Use `bun run cache:dev:valkey` for separate loopback ephemeral Valkey, configure server-only `CACHE_URL=redis://127.0.0.1:6379`, then `bun run cache:check` (PING only), `bun run cache:smoke` (unique prefix/exact cleanup), and `bun run cache:dev:down`. `bun run cache:compat` creates and tears down disposable real Valkey; `cache:unit` and `cache:telemetry` verify backendless behavior/safe optional signals. Values expire by default; advisory leases have no fencing/Redlock guarantees; pub/sub has no persistence/replay. See [evaluation](CACHE_COORDINATION_MODULE_EVALUATION.md) and [removal](docs/STARTING-A-PROJECT.md#remove-cache--coordination).
+
+PostgreSQL 18 stores PGDATA under `/var/lib/postgresql/18/docker`; Compose mounts its named volume at `/var/lib/postgresql`. Existing installations using the previous `/var/lib/postgresql/data` mount must preserve/restore their actual anonymous-volume cluster before changing mounts. See [database volume migration](docs/POSTGRES-VOLUME-MIGRATION.md). `bun run db:persistence:test` verifies fresh named-volume data survives container recreation.
+
+## AI
+
+Optional lazy server-side OpenAI-compatible model access with text, real streaming, authoritative Zod structured output, 1 MiB output bounds and composed cancellation. No hard capability dependencies or model/configuration required at build/start/health/worker. Configure `AI_MODEL` only when calling an operation; optional `AI_BASE_URL`/`AI_API_KEY`, provider default `openai-compatible`, timeout default 60 seconds (1–300). No automatic retries or content telemetry. `bun run ai:compat` and `ai:reference:smoke` use only a disposable local HTTP fixture. See [contract](capabilities/ai/CAPABILITY.md), [evaluation](AI_MODULE_EVALUATION.md) and [removal](docs/STARTING-A-PROJECT.md#remove-ai).
+
+## Search
+
+[Search](capabilities/search/CAPABILITY.md) uses PostgreSQL 18 native FTS with explicit `simple`, weighted A name/B description, a stored generated Projects vector and GIN index. `searchProjects` is a session-scoped POST server function; every page enforces the existing owner predicate. Query 2–256 after trim, page25/max100, `ts_rank_cd(..., 32)` and descending rank/updatedAt/id keysets. Numeric result ranks are separate from exact database rank text retained in canonical cursors. No external service, universal search table, snippets, vector/semantic search or raw query telemetry.
+
+Apply the new reviewed `drizzle/0004_search.sql` through the existing explicit migration path. `bun run search:smoke` verifies real PostgreSQL 18 with a disposable temporary table. The catalog fixture proves clean installation/removal and retained domain data/migration history. [Evaluation](SEARCH_MODULE_EVALUATION.md) and [removal guide](docs/STARTING-A-PROJECT.md) document the contract; removing code never deletes Projects or applied migrations.
+
+Import / Export is completed: [contract](capabilities/import-export/CAPABILITY.md) and [evaluation](IMPORT_EXPORT_MODULE_EVALUATION.md). It requires Jobs + Object Storage; Notifications/Audit remain optional composition. Clean consumers remain opt-in.
+
+Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.

@@ -1,0 +1,62 @@
+{
+  "id": "cache-coordination",
+  "name": "cache-coordination",
+  "displayName": "Cache / Coordination",
+  "description": "Ephemeral cache, atomic counters, advisory leases and pub/sub; tested Valkey.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "redis": "6.3.0"
+    },
+    "scripts": {
+      "cache:check": "bun scripts/cache-check.ts",
+      "cache:smoke": "bun scripts/cache-smoke.ts",
+      "cache:unit": "bun scripts/cache-unit.ts",
+      "cache:compat": "bun scripts/cache-compat.ts",
+      "cache:dev:valkey": "bun scripts/cache-dev.ts valkey",
+      "cache:dev:down": "bun scripts/cache-dev.ts down"
+    }
+  },
+  "envVars": [
+    {
+      "name": "CACHE_URL",
+      "description": "Server-only redis/rediss URL; required lazily on use; may contain credentials; never log.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local"
+    },
+    {
+      "name": "CACHE_KEY_PREFIX",
+      "description": "1–128 ASCII alphanumeric/underscore/hyphen, starts alphanumeric.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local",
+      "default": "app"
+    },
+    {
+      "name": "CACHE_DEFAULT_TTL_SECONDS",
+      "description": "Integer 1–86400.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local",
+      "default": "300"
+    },
+    {
+      "name": "CACHE_MAX_VALUE_BYTES",
+      "description": "Integer 1–1048576; encoded values/messages.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local",
+      "default": "1048576"
+    }
+  ]
+}

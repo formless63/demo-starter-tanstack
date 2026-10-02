@@ -1,4 +1,5 @@
 import {
+	IconBell,
 	IconFolder,
 	IconKey,
 	IconLogout,
@@ -10,6 +11,7 @@ import {
 	Outlet,
 	redirect,
 } from "@tanstack/react-router";
+import { ThemeSelector } from "#/components/theme-selector";
 import { getCurrentUser } from "#/features/projects/projects.functions";
 import { authClient } from "#/lib/auth-client";
 import { safeInternalRedirect } from "#/lib/safe-redirect";
@@ -40,6 +42,7 @@ function AppShell() {
 						<IconSparkles size={20} /> Launchpad
 					</Link>
 					<div className="flex items-center gap-3">
+						<ThemeSelector />
 						<span className="hidden text-sm text-muted-foreground sm:block">
 							{user.email}
 						</span>
@@ -60,6 +63,19 @@ function AppShell() {
 			<div className="mx-auto grid max-w-6xl md:grid-cols-[190px_1fr]">
 				<aside className="border-r p-4 max-md:border-b">
 					<nav className="space-y-1">
+						<Link
+							to="/app/transfers"
+							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+						>
+							Import / Export
+						</Link>
+						<Link
+							to="/app/notifications"
+							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+							activeProps={{ className: "bg-accent" }}
+						>
+							<IconBell size={18} /> Notifications
+						</Link>
 						<Link
 							to="/app/projects"
 							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
