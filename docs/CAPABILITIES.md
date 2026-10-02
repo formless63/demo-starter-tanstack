@@ -15,7 +15,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 ## Completed capabilities
 
-All twenty-three completed capabilities are reference-enabled and opt-in for clean consumers.
+All twenty-five completed capabilities are reference-enabled and opt-in for clean consumers.
 
 | ID | TanStack add-on ID | Status | Reference app | Default installed | Official add-on dependencies | Reusable capability requirements | External | Contract |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -26,6 +26,8 @@ All twenty-three completed capabilities are reference-enabled and opt-in for cle
 | `object-storage` | `object-storage` | Done | Enabled | No | None | None | S3 only when used | [Object Storage](../capabilities/object-storage/CAPABILITY.md) |
 | `command-system` | `command-system` | Done | Enabled | No | None | None | None | [Command System](../capabilities/command-system/CAPABILITY.md) |
 | `markdown-code` | `markdown-code` | Done | Enabled | No | None | None | None | [Markdown / Code Content](../capabilities/markdown-code/CAPABILITY.md) |
+| `flow-canvas` | `flow-canvas` | Done | Enabled | No | None | None | None | [Flow / Canvas](../capabilities/flow-canvas/CAPABILITY.md) |
+| `internationalization` | `internationalization` | Done | Enabled | No | None | None | None | [Internationalization](../capabilities/internationalization/CAPABILITY.md) |
 | `data-table` | `data-table` | Done | Enabled | No | None | None | None | [Data Table](../capabilities/data-table/CAPABILITY.md) |
 | `rich-text` | `rich-text` | Done | Enabled | No | None | None | None | [Rich Text](../capabilities/rich-text/CAPABILITY.md) |
 | `file-ui` | `file-ui` | Done | Enabled | No | `object-storage` | Object Storage | S3 only when used | [File UI](../capabilities/file-ui/CAPABILITY.md) |
@@ -210,7 +212,7 @@ Stripe is an optional authored/compiled add-on (`stripe`, default installed: No)
 
 ## Medusa
 
-Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](../capabilities/medusa/CAPABILITY.md). All twenty-three completed capabilities remain opt-in for clean consumers.
+Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](../capabilities/medusa/CAPABILITY.md). All twenty-five completed capabilities remain opt-in for clean consumers.
 
 ## Integrated provider migration history
 
@@ -234,3 +236,15 @@ Markdown / Code Content is completed and reference-enabled with no hard dependen
 ## Combined content-module acceptance
 
 Both independently reviewed source heads passed full hosted CI: Rich Text `4754559bba71c36c357325f9b4d1231d3808d0cf` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37034217024)) and File UI `73c442b9b8729e17c8cb30a6879d87da80f31c5b` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37036091357)). This combined integration retains their accepted runtime and all inherited gates. The published combined head still requires its own complete hosted CI before merge; source success is not a combined-CI claim.
+
+## Flow / Canvas (completed)
+
+The independent `flow-canvas` add-on pins @xyflow/react 12.12.0. Closed, server-safe graph v1 validation and HTML-safe serialization are separate from the client-only native visual editor. Root `/flow-test` composes two independent editors and application-owned async persistence races. No schema, migration, database, service or environment variable is added. Realtime, Object Storage and Audit Log remain optional application wiring. See [contract](../capabilities/flow-canvas/CAPABILITY.md) and [evaluation](../FLOW_CANVAS_MODULE_EVALUATION.md). Its reviewed source passed real hosted Chromium and full CI; combined-head CI remains mandatory before merge.
+
+## Internationalization (completed)
+
+No hard capability edges. The reference `/i18n-test` resolves a server locale once and supplies canonical resources and initial formatted values; application routing/document attributes remain application-owned. Opt-in native i18next/react-i18next, no detection, persistence, backend loader or HTML translation. See [contract](../capabilities/internationalization/CAPABILITY.md) and [evaluation](../INTERNATIONALIZATION_MODULE_EVALUATION.md). The reviewed source passed generated install/production/removal and native browser gates; the combined head must pass them independently before merge.
+
+## Flow / Canvas and Internationalization acceptance
+
+Flow / Canvas source `a1a020cf7e75340e4f833c62db0d0b0e6b38d117` passed all 26 hosted jobs ([run 37051676575](https://github.com/formless63/demo-starter-tanstack/actions/runs/37051676575)); Internationalization source `d422d4b24d9ea4a5904870564041465d8e050ef2` passed all 26 hosted jobs ([run 37052978536](https://github.com/formless63/demo-starter-tanstack/actions/runs/37052978536)). Both sources and their composition were independently reviewed. The combined integration preserves accepted main ancestry, both exact source parents, runtime source bytes, authored/compiled parity, migrations and all inherited gates. There are now twenty-five completed, reference-enabled capabilities; every generated-consumer default remains false. The new combined head still requires its own complete hosted CI, including native development/production Chromium, provider verification and all generated-consumer install/removal lifecycles, before merge. Source CI success is not a combined-CI result.

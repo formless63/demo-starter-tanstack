@@ -1,0 +1,97 @@
+{
+  "projectName": "internationalization-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [],
+  "forbiddenOfficialAddOns": [
+    "drizzle",
+    "better-auth",
+    "postgres-jobs",
+    "ai",
+    "object-storage"
+  ],
+  "expectedFiles": [
+    "src/integrations/internationalization/i18n.ts",
+    "src/integrations/internationalization/I18nProvider.tsx",
+    "capabilities/internationalization/CAPABILITY.md",
+    "scripts/internationalization-browser.tsx",
+    "scripts/internationalization-remove.ts",
+    "scripts/internationalization-fixture-route.ts",
+    "scripts/internationalization-production.mjs",
+    "src/integrations/internationalization/I18nExample.tsx"
+  ],
+  "build": true,
+  "verificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "run",
+      "internationalization:unit"
+    ],
+    [
+      "bun",
+      "x",
+      "playwright",
+      "install",
+      "chromium"
+    ],
+    [
+      "bun",
+      "run",
+      "internationalization:browser"
+    ],
+    [
+      "bun",
+      "scripts/internationalization-fixture-route.ts"
+    ]
+  ],
+  "postBuildVerificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "node",
+      "scripts/internationalization-production.mjs"
+    ],
+    [
+      "bun",
+      "scripts/internationalization-remove.ts"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ]
+  ],
+  "referenceVerification": {
+    "installedPath": "src/integrations/internationalization/i18n.ts",
+    "commands": [
+      [
+        "bun",
+        "run",
+        "internationalization:unit"
+      ],
+      [
+        "bun",
+        "run",
+        "internationalization:browser"
+      ]
+    ]
+  }
+}

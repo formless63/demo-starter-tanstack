@@ -1,0 +1,97 @@
+{
+  "projectName": "flow-canvas-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [],
+  "forbiddenOfficialAddOns": [
+    "drizzle",
+    "better-auth",
+    "postgres-jobs",
+    "ai",
+    "object-storage"
+  ],
+  "expectedFiles": [
+    "src/integrations/flow-canvas/FlowCanvas.tsx",
+    "src/integrations/flow-canvas/graph.ts",
+    "src/integrations/flow-canvas/flow-canvas.css",
+    "capabilities/flow-canvas/CAPABILITY.md",
+    "scripts/flow-canvas-browser.tsx",
+    "scripts/flow-canvas-remove.ts",
+    "scripts/flow-canvas-fixture-route.ts",
+    "scripts/flow-canvas-production.mjs"
+  ],
+  "build": true,
+  "verificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "run",
+      "flow-canvas:unit"
+    ],
+    [
+      "bun",
+      "x",
+      "playwright",
+      "install",
+      "chromium"
+    ],
+    [
+      "bun",
+      "run",
+      "flow-canvas:browser"
+    ],
+    [
+      "bun",
+      "scripts/flow-canvas-fixture-route.ts"
+    ]
+  ],
+  "postBuildVerificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "node",
+      "scripts/flow-canvas-production.mjs"
+    ],
+    [
+      "bun",
+      "scripts/flow-canvas-remove.ts"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ]
+  ],
+  "referenceVerification": {
+    "installedPath": "src/integrations/flow-canvas/FlowCanvas.tsx",
+    "commands": [
+      [
+        "bun",
+        "run",
+        "flow-canvas:unit"
+      ],
+      [
+        "bun",
+        "run",
+        "flow-canvas:browser"
+      ]
+    ]
+  }
+}
