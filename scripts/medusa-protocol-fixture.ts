@@ -6,7 +6,7 @@ import { adminGet,exactJson,validateEndpoint } from '../src/integrations/medusa/
 import { bridgeEvent,encodeCursor,localCursor,MedusaError,pageCursor,parse,scopeSchema } from '../src/integrations/medusa/contract';
 import { exactTotal,projection } from '../src/integrations/medusa/projection';
 import { medusaJobPayload } from '../src/integrations/medusa/jobs.server';
-import { signWebhook,verifyWebhookSignature } from '../src/integrations/webhooks/protocol.server';
+import { signWebhook,verifyWebhookSignature,WebhookVerificationError } from '../src/integrations/webhooks/protocol.server';
 import { deliverBridge } from '../src/integrations/medusa/producer.server';
 process.env.NODE_ENV='test';
 const id=randomUUID(),bindingId=randomUUID();
@@ -19,7 +19,25 @@ assert.equal((exactJson('{"total":9007199254740993.1234,"email":"private@example
 const p=projection('order',bindingId,'order_1',exactJson('{"order":{"id":"order_1","status":"secret-state","total":9007199254740993.1234,"currency_code":"usd","email":"private@example.test","metadata":{"token":"private"}}}'));
 assert.equal(p.status,'unknown');assert.ok(!JSON.stringify(p).includes('private'));assert.equal('total' in p?p.total:null,'9007199254740993.1234');
 assert.throws(()=>projection('product',bindingId,'p',{product:{id:'p',title:'a'.repeat(257)}}));assert.throws(()=>medusaJobPayload.parse({operationId:id,token:'private'}));
-const secret=`whsec_${Buffer.alloc(32,1).toString('base64')}`,previous=`whsec_${Buffer.alloc(32,2).toString('base64')}`;const timestamp=Math.floor(Date.now()/1000);const event={version:1 as const,id,type:'product.updated' as const,resourceKind:'product' as const,resourceId:'product_1'};const bytes=Buffer.from(JSON.stringify(event));const headers=new Headers({'webhook-id':id,'webhook-timestamp':String(timestamp),'webhook-signature':signWebhook(id,timestamp,bytes,previous)});assert.equal(verifyWebhookSignature(bytes,headers,{secrets:[secret,previous]}),id);assert.throws(()=>verifyWebhookSignature(Buffer.from('tampered'),headers,{secrets:[secret,previous]}));for(const t of [timestamp-301,timestamp+301]){headers.set('webhook-timestamp',String(t));headers.set('webhook-signature',signWebhook(id,t,bytes,secret));assert.throws(()=>verifyWebhookSignature(bytes,headers,{secrets:[secret]}));}
+const secret=`whsec_${Buffer.alloc(32,1).toString('base64')}`,previous=`whsec_${Buffer.alloc(32,2).toString('base64')}`;
+// All boundary checks use the same injected second; wall-clock rollover must not change their meaning.
+const timestamp=1_800_000_000;
+const event={version:1 as const,id,type:'product.updated' as const,resourceKind:'product' as const,resourceId:'product_1'};
+const bytes=Buffer.from(JSON.stringify(event));
+const headers=new Headers({'webhook-id':id,'webhook-timestamp':String(timestamp),'webhook-signature':signWebhook(id,timestamp,bytes,previous)});
+assert.equal(verifyWebhookSignature(bytes,headers,{secrets:[secret,previous],now:timestamp}),id,'rotation accepts the previous secret at the fixed clock');
+assert.throws(()=>verifyWebhookSignature(Buffer.from('tampered'),headers,{secrets:[secret,previous],now:timestamp}),error=>error instanceof WebhookVerificationError&&error.category==='signature','tampering rejects by signature at the fixed clock');
+for(const offset of [-300,300]){
+ const t=timestamp+offset;headers.set('webhook-timestamp',String(t));headers.set('webhook-signature',signWebhook(id,t,bytes,secret));
+ assert.equal(verifyWebhookSignature(bytes,headers,{secrets:[secret],now:timestamp}),id,`timestamp offset ${offset} is inside the inclusive tolerance`);
+}
+for(const offset of [-301,301]){
+ const t=timestamp+offset;headers.set('webhook-timestamp',String(t));headers.set('webhook-signature',signWebhook(id,t,bytes,secret));
+ assert.throws(()=>verifyWebhookSignature(bytes,headers,{secrets:[secret],now:timestamp}),error=>error instanceof WebhookVerificationError&&error.category==='timestamp',`timestamp offset ${offset} rejects specifically as expired/future`);
+}
+// Reproduce the original false failure without waiting or monkeypatching Date: +301 becomes valid +300 one second later.
+assert.equal(verifyWebhookSignature(bytes,headers,{secrets:[secret],now:timestamp+1}),id,'one-second rollover explains the old future-boundary fixture flake');
+
 let requests=0,closed=0;
 const server=createServer((req,res)=>{requests++;assert.equal(req.headers.authorization,`Basic ${Buffer.from('fixture-secret:').toString('base64')}`);assert.equal(req.headers['x-medusa-access-token'],undefined);req.on('close',()=>closed++);const u=new URL(req.url??'','http://fixture');assert.equal(u.searchParams.get('fields'),'id,title,handle,status,updated_at');
  if(u.pathname.endsWith('/slow-header')){setTimeout(()=>{res.end('{}');},150);return;}

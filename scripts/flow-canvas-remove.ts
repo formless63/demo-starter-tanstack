@@ -1,0 +1,11 @@
+import { rm,readFile,writeFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const file=JSON.parse(await readFile('package.json','utf8'));
+if(file.name!=='flow-canvas-clean-install')throw new Error('Refusing non-fixture removal');
+for(const path of ['src/routes/flow-fixture.tsx','src/integrations/flow-canvas','capabilities/flow-canvas','scripts/flow-canvas-browser.tsx','scripts/flow-canvas-example.tsx','scripts/flow-canvas-client.tsx','scripts/flow-canvas-unit.tsx','scripts/flow-canvas-fixture-route.ts','scripts/flow-canvas-production.mjs'])await rm(path,{recursive:true,force:true});
+for(const key of Object.keys(file.scripts))if(key.startsWith('flow-canvas:'))delete file.scripts[key];
+delete file.dependencies['@xyflow/react'];delete file.devDependencies['@playwright/test'];
+await writeFile('package.json',`${JSON.stringify(file,null,2)}\n`);
+if(spawnSync('bun',['install'],{stdio:'inherit'}).status!==0)throw new Error('Removal install failed');
+await rm(fileURLToPath(import.meta.url));
