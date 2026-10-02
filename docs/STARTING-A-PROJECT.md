@@ -250,3 +250,7 @@ Keep all additive provider SQL and cumulative snapshots described in the [integr
 ### Remove Data Table
 
 Remove application imports, the component and its browser fixture scripts/package script, then remove the table dependency. Keep Playwright if other tests use it. Follow the exact [Data Table removal contract](../capabilities/data-table/CAPABILITY.md), then typecheck and build. No migrations or stored data are affected.
+
+## Rich Text removal
+
+Remove the Rich Text imports, `src/integrations/rich-text`, `/rich-text-test` reference route and `e2e/rich-text.e2e.ts`, fixture scripts and package scripts. Remove the three `@tiptap` packages and client Vite optimizeDeps entries, then reinstall, regenerate routes, typecheck and rebuild. Preserve user documents. Keep reusable authoring assets if desired. Details and generated-consumer removal are in [the contract](../capabilities/rich-text/CAPABILITY.md).
