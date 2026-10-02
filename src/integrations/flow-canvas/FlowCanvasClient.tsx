@@ -27,12 +27,29 @@ type Props = {
 	connectionPolicy?: ConnectionPolicy;
 	nextId: (prefix: string) => string;
 };
-function PlainNode({ data }: NodeProps<Node<{ label: string }>>) {
+function PlainNode({
+	data,
+	isConnectable,
+}: NodeProps<Node<{ label: string }>>) {
 	return (
 		<>
-			<Handle type="target" position={Position.Top} id="in" />
+			<Handle
+				type="target"
+				position={Position.Top}
+				id="in"
+				isConnectable={isConnectable}
+				isConnectableStart={isConnectable}
+				isConnectableEnd={isConnectable}
+			/>
 			<span>{data.label}</span>
-			<Handle type="source" position={Position.Bottom} id="out" />
+			<Handle
+				type="source"
+				position={Position.Bottom}
+				id="out"
+				isConnectable={isConnectable}
+				isConnectableStart={isConnectable}
+				isConnectableEnd={isConnectable}
+			/>
 		</>
 	);
 }
@@ -57,6 +74,10 @@ function Visual({
 	nextId,
 }: Props) {
 	const active = useRef(false);
+	const currentReadOnly = useRef(readOnly);
+	currentReadOnly.current = readOnly;
+	const currentSelection = useRef(selected);
+	currentSelection.current = selected;
 	const latestPolicy = useRef(connectionPolicy);
 	latestPolicy.current = connectionPolicy;
 	const { setViewport } = useReactFlow();
@@ -75,7 +96,7 @@ function Visual({
 		};
 	}, []);
 	const onPropose: Props["onPropose"] = (make) => {
-		if (active.current) emit(make);
+		if (active.current && !currentReadOnly.current) emit(make);
 	};
 	const originalIds = new Map(
 		graph.nodes.map((node) => [wireId(node.id), node.id]),
@@ -133,9 +154,25 @@ function Visual({
 			}}
 			onNodesChange={(changes) => {
 				if (!active.current) return;
+				const selections = new Map<string, boolean>();
 				for (const change of changes)
-					if (change.type === "select" && change.selected)
-						onSelect(originalIds.get(change.id) ?? "");
+					if (change.type === "select") {
+						const id = originalIds.get(change.id);
+						if (id !== undefined) selections.set(id, change.selected);
+					}
+				const replacement = [...selections]
+					.reverse()
+					.find(([, chosen]) => chosen)?.[0];
+				const nextSelection =
+					replacement ??
+					(selections.get(currentSelection.current) === false
+						? ""
+						: currentSelection.current);
+				if (
+					replacement !== undefined ||
+					nextSelection !== currentSelection.current
+				)
+					onSelect(nextSelection);
 				const positions = changes.filter(
 					(change) => change.type === "position" && change.position,
 				);
