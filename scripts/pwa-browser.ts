@@ -12,7 +12,7 @@ async function command(args:string[]) {
 }
 let servingBase='/';let privateReads=0;let unsafeHeaders=false;let errorPage=false;let tamper=false;
 const publicCredentials:string[]=[];
-const httpTrace: {path:string;status:number;type:string;cache:string}[]=[];
+const httpTrace: {path:string;status:number;type:string;cache:string;cookiePresent:boolean;destination:string;mode:string}[]=[];
 async function waitForWorker(page:Page,label:string,predicate:()=>unknown|Promise<unknown>) {
  console.info(`[PWA stage] ${label}`);
  try {await page.waitForFunction(predicate,undefined,{timeout:30000});}
@@ -32,7 +32,7 @@ function observe(context:BrowserContext,label:string){
 const server=createServer(async(request,response)=>{
  try{
   const url=new URL(request.url??'/','http://fixture');
-  const requestedPath=url.pathname;response.on('finish',()=>{httpTrace.push({path:requestedPath,status:response.statusCode,type:String(response.getHeader('content-type')??''),cache:String(response.getHeader('cache-control')??'')});if(httpTrace.length>100)httpTrace.shift();});
+  const requestedPath=url.pathname;response.on('finish',()=>{httpTrace.push({path:requestedPath,status:response.statusCode,type:String(response.getHeader('content-type')??''),cache:String(response.getHeader('cache-control')??''),cookiePresent:!!request.headers.cookie,destination:String(request.headers['sec-fetch-dest']??''),mode:String(request.headers['sec-fetch-mode']??'')});if(httpTrace.length>100)httpTrace.shift();});
   if(url.pathname==='/login'){response.setHeader('set-cookie','session=private-user; Path=/; SameSite=Lax');response.end('signed in');return;}
   if(url.pathname==='/logout'){response.setHeader('set-cookie','session=; Path=/; Max-Age=0');response.end('signed out');return;}
   if(url.pathname==='/api/private'){privateReads++;response.setHeader('content-type','application/json');response.setHeader('cache-control','private, no-store');response.end(JSON.stringify({session:request.headers.cookie??'anonymous',nonce:privateReads}));return;}
@@ -72,6 +72,7 @@ try {
  await page.evaluate(()=>fetch('/login',{method:'POST'}));
  await page.getByRole('button',{name:'Enable offline notice'}).click();
  await waitForWorker(page,'root initial activation',async()=>!!(await navigator.serviceWorker.getRegistration())?.active);
+ console.info('[PWA precache credential observations]',JSON.stringify({count:publicCredentials.length,withCookie:publicCredentials.filter(value=>value!=='').length,requests:httpTrace.filter(item=>item.path.startsWith('/pwa-offline/'))}));
  assert.ok(publicCredentials.length>=3&&publicCredentials.every(value=>value===''),'Precache install sent no session cookies');
  await page.reload();await waitForWorker(page,'root first controlled reload',()=>!!navigator.serviceWorker.controller);
  await page.evaluate(()=>fetch('/api/private'));await page.evaluate(()=>fetch('/logout',{method:'POST'}));await page.evaluate(()=>fetch('/api/private'));
