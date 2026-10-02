@@ -39,14 +39,16 @@ try {
  const page = await context.newPage();
  const errors:string[] = [];
  const external:string[] = [];
- page.on('pageerror',error => errors.push(error.message));
- page.on('console',message => {if(message.type()==='error')errors.push(message.text());});
+ page.on('pageerror',error => {errors.push(error.message);console.error('Browser page error:',error.message);});
+ page.on('console',message => {if(message.type()==='error'){errors.push(message.text());console.error('Browser console error:',message.text());}});
  page.on('request',request => {if(!request.url().startsWith(`http://127.0.0.1:${port}`))external.push(request.url());});
  await page.goto(`http://127.0.0.1:${port}`);
  await expect(page.getByRole('heading',{name:'Safe content'})).toBeVisible();
  assert.equal(await page.locator('img').count(),0);
  assert.equal(await page.evaluate(() => Object.hasOwn(window,'pwned')),false);
  const copy = page.getByRole('button',{name:'Copy typescript code'});
+ // Visibility proves SSR only; keyboard activation requires hydrated event handlers.
+ await expect(copy).toBeEnabled();
  await copy.press('Enter');
  await expect(page.getByRole('status').first()).toHaveText('Copied');
  assert.equal(await page.evaluate(() => navigator.clipboard.readText()),'const greeting = "<script>"\n');

@@ -87,6 +87,7 @@ jobs:
       - run: bun run data-table:unit
       - run: bun run markdown-code:typecheck
       - run: bun run markdown-code:unit
+      - run: bun run markdown-code:dom
       - run: bun run project:check
       - run: bun run project:status
       - run: bun run theme:check

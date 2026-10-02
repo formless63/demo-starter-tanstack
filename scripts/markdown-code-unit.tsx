@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { parseMarkdown, MarkdownLimitError, markdownLimits } from '../src/integrations/markdown-code/markdown.server';
 import { MarkdownContent } from '../src/integrations/markdown-code/MarkdownContent';
-import { safeMarkdownHref } from '../src/integrations/markdown-code/types';
+import { normalizeMarkdownDocument, safeMarkdownHref } from '../src/integrations/markdown-code/types';
 import type { MarkdownDocument, MarkdownNode } from '../src/integrations/markdown-code/types';
 
 const render = async (source:string) => renderToStaticMarkup(<MarkdownContent document={await parseMarkdown(source)} />);
@@ -35,6 +35,7 @@ assert.match(html,/Copy typescript code/);
 assert.match(html,/&lt;script&gt;/);
 assert.match(html,/<output aria-live="polite"/);
 assert.match(html,/tabindex="0"/);
+assert.match(html,/disabled=""/,"SSR copy stays disabled until hydration is ready");
 const unknown = firstCode((await parseMarkdown('```not-a-language\n<script>plain</script>\n```')).nodes);
 assert.ok(unknown?.kind === 'code' && unknown.language === 'text' && unknown.lines === undefined);
 const windowsCode = firstCode((await parseMarkdown('```ts\r\nconst value = 1\r\n```')).nodes);
@@ -59,7 +60,7 @@ const forged = {version:1,nodes:[
  {kind:'code',language:'text',text:'literal',lines:[[{text:'<script>literal</script>',light:'url(https://tracker.invalid)',dark:'#fff;background:red'}]]},
 ]} as unknown as MarkdownDocument;
 const forgedHtml = renderToStaticMarkup(<MarkdownContent document={forged}/>);
-assert.ok(forgedHtml.includes('&lt;script&gt;literal&lt;/script&gt;'));
+assert.ok(forgedHtml.includes('<code>literal</code>'));
 for (const marker of ['<script','<img','javascript:','tracker.invalid','background:red','onclick=','onerror=']) assert.ok(!forgedHtml.includes(marker),marker);
 console.info('Markdown renderer independently rejects forged tags, hrefs, attributes and highlighted CSS values');
 
@@ -76,6 +77,36 @@ assert.ok(manyTokens[0].lines && !manyTokens[1].lines,'aggregate span budget');
 const maxDepth = (nodes:MarkdownNode[],depth=0):number => Math.max(depth,...nodes.map(node=>node.kind === 'element' ? maxDepth(node.children,depth+1) : depth));
 assert.ok(maxDepth((await parseMarkdown('> '.repeat(100)+'nested')).nodes) <= markdownLimits.depth,'bounded rendered nesting');
 console.info('Markdown per-block/aggregate highlight characters, line length/count, span and nesting budgets passed');
+
+for (const value of [null, undefined, 1, [], {}, { version: 1, nodes: null }, { version: 1, nodes: [null, { kind: 'code', text: null }] }]) {
+ const html = renderToStaticMarkup(<MarkdownContent document={value} />);
+ assert.ok(html.length < 200, 'Malformed documents render safely');
+}
+for (const lines of [null, {}, [null], [[null]], [[{ text: {} }]], [[{ text: 'x'.repeat(65537) }]], Array(129).fill([]), [Array(8193).fill({ text: '' })], [[{ text: 'shown', light: '#ff0000' }]]]) {
+ const document = { version: 1, nodes: [{ kind: 'code', text: 'copied', language: 'javascript', lines }] };
+ const html = renderToStaticMarkup(<MarkdownContent document={document} />);
+ assert.ok(html.includes('<code>copied</code>'), 'Malformed, oversized or mismatched highlights use exact plaintext');
+ assert.ok(html.length < 1000);
+}
+for (const text of [null, {}, 'x'.repeat(32769)]) {
+ const html = renderToStaticMarkup(<MarkdownContent document={{ version: 1, nodes: [{ kind: 'code', text, language: {} }] }} />);
+ assert.ok(!html.includes('<figure'), 'Malformed or over-budget code is rejected');
+}
+const flat = normalizeMarkdownDocument({ version: 1, nodes: Array(4097).fill({ kind: 'text', text: 'x' }) });
+assert.equal(flat.nodes.length, 4096);
+assert.equal(normalizeMarkdownDocument({ version: 1, nodes: [{ kind: 'text', text: '😀'.repeat(20000) }] }).nodes.length, 0);
+assert.equal(normalizeMarkdownDocument({ version: 1, nodes: Array(33).fill({ kind: 'code', language: 'text', text: 'x' }) }).nodes.length, 32);
+assert.equal(normalizeMarkdownDocument({ version: 1, nodes: Array(5).fill({ kind: 'code', language: 'text', text: 'x'.repeat(8192) }) }).nodes.length, 4);
+let deep:unknown = {kind:'text',text:'leaf'};
+for(let i=0;i<100;i++) deep={kind:'element',tag:'blockquote',children:[deep]};
+assert.equal(maxDepth(normalizeMarkdownDocument({version:1,nodes:[deep]}).nodes),24);
+const cycle:Record<string,unknown>={kind:'element',tag:'blockquote'};cycle.children=[cycle];
+assert.equal(maxDepth(normalizeMarkdownDocument({version:1,nodes:[cycle]}).nodes),24);
+const cssModel = normalizeMarkdownDocument({version:1,nodes:[{kind:'code',language:'javascript',text:'safe',lines:[[{text:'safe',light:'url(https://tracker.invalid)',dark:'#fff;background:red'}]]}]});
+assert.ok(cssModel.nodes[0].kind === 'code' && cssModel.nodes[0].lines, 'Valid matching highlight text remains structured');
+const cssHtml=renderToStaticMarkup(<MarkdownContent document={cssModel}/>);
+for(const marker of ['tracker.invalid','background:red','url(']) assert.ok(!cssHtml.includes(marker));
+console.info('Renderer model normalization: malformed/null shapes, bounded text/code/nodes/depth/highlights and exact display/copy equality passed');
 
 const root = fileURLToPath(new URL('../',import.meta.url));
 const authored = join(root,'capabilities/markdown-code/.add-on/assets');
