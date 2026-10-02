@@ -250,3 +250,7 @@ Keep all additive provider SQL and cumulative snapshots described in the [integr
 ### Remove Data Table
 
 Remove application imports, the component and its browser fixture scripts/package script, then remove the table dependency. Keep Playwright if other tests use it. Follow the exact [Data Table removal contract](../capabilities/data-table/CAPABILITY.md), then typecheck and build. No migrations or stored data are affected.
+
+### Remove Markdown / Code Content
+
+Remove application routes/loaders/component and CSS imports first (the reference owns `/markdown-test` and `src/features/markdown-reference.ts`). Remove `src/integrations/markdown-code`, module fixture scripts and `markdown-code:*` scripts; uninstall `markdown-it` and `shiki` if unused elsewhere. Keep Playwright and Bun types when other tests need them. Regenerate routes, typecheck and rebuild. No migrations or persisted data are involved. Retaining authored add-on source is a separate choice; remove reference enablement when present but keep catalog identity. See the [exact contract](../capabilities/markdown-code/CAPABILITY.md).
