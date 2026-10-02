@@ -74,7 +74,8 @@ export async function verifyStripeRequest(
 				/* rotation */
 			}
 		}
-		if (!event) throw new StripeCapabilityError("invalid_input");
+		if (!event || event.object !== "event")
+			throw new StripeCapabilityError("invalid_input");
 		if (
 			typeof event.livemode !== "boolean" ||
 			event.livemode !== (config.mode === "live") ||

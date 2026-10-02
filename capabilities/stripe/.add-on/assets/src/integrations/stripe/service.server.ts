@@ -30,6 +30,7 @@ import {
 	stripeOperations,
 	stripeProjections,
 } from "./schema";
+import { operationDeadline, withinSignal } from "./transport.server";
 import type { VerifiedHint } from "./webhook.server";
 
 type Database = typeof import("../../db").db;
@@ -279,7 +280,12 @@ export function createStripeCapability(wiring: StripeWiring) {
 					digest,
 					sourceBindingId: source.id,
 					status: "queued",
-					intent: { accountId: config.accountId, mode: config.mode, params },
+					intent: {
+						accountId: config.accountId,
+						mode: config.mode,
+						expectedCurrency: currency ?? "",
+						params,
+					},
 					createdAt: now,
 					updatedAt: now,
 				})
@@ -292,6 +298,7 @@ export function createStripeCapability(wiring: StripeWiring) {
 				return operationView(winner);
 			}
 			await wiring.enqueue(tx, { operationId: row.id });
+			context.signal?.throwIfAborted();
 			return { operationId: row.id, status: "queued" as const };
 		});
 	}
@@ -325,6 +332,7 @@ export function createStripeCapability(wiring: StripeWiring) {
 				updatedAt: now,
 			});
 			await wiring.enqueue(tx, { operationId: id });
+			context.signal?.throwIfAborted();
 			return { operationId: id, status: "queued" as const };
 		});
 	}
@@ -458,17 +466,92 @@ export function createStripeCapability(wiring: StripeWiring) {
 		if (receipt && bound) await wiring.enqueue(tx, { inboxId: receipt.id });
 		return { accepted: true as const };
 	}
+	async function cancelOperation(context: TrustedContext, input: unknown) {
+		await authorize(context);
+		const { operationId } = parse(operationInput, input);
+		return db.transaction(async (tx) => {
+			const [row] = await tx
+				.select()
+				.from(stripeOperations)
+				.where(
+					and(
+						eq(stripeOperations.id, operationId),
+						eq(stripeOperations.scopeKind, context.scope.kind),
+						eq(stripeOperations.scopeId, context.scope.id),
+					),
+				)
+				.for("update");
+			if (!row) throw new StripeCapabilityError("not_found");
+			await binding(context, row.sourceBindingId, undefined, tx);
+			if (row.status === "cancelled") return operationView(row);
+			if (
+				row.status !== "queued" ||
+				(row.kind === "create_checkout" && row.firstDispatchAt)
+			)
+				throw new StripeCapabilityError("conflict");
+			const [cancelled] = await tx
+				.update(stripeOperations)
+				.set({
+					status: "cancelled",
+					errorCode: "cancelled",
+					updatedAt: new Date(),
+					revision: sql`${stripeOperations.revision}+1`,
+				})
+				.where(
+					and(
+						eq(stripeOperations.id, row.id),
+						eq(stripeOperations.status, "queued"),
+					),
+				)
+				.returning();
+			if (!cancelled) throw new StripeCapabilityError("conflict");
+			context.signal?.throwIfAborted();
+			return operationView(cancelled);
+		});
+	}
+	async function retireBindingInTransaction(
+		tx: StripeTransaction,
+		context: TrustedContext,
+		id: string,
+	) {
+		await binding(context, id, undefined, tx);
+		await tx
+			.update(stripeBindings)
+			.set({
+				retiredAt: new Date(),
+				revision: sql`${stripeBindings.revision}+1`,
+			})
+			.where(eq(stripeBindings.id, id));
+	}
+
+	function command<T>(
+		fn: (context: TrustedContext, input: unknown) => Promise<T>,
+	) {
+		return async (context: TrustedContext, input: unknown) => {
+			const deadline = operationDeadline(context.signal);
+			try {
+				return await withinSignal(deadline.signal, () =>
+					fn({ ...context, signal: deadline.signal }, input),
+				);
+			} finally {
+				deadline.dispose();
+			}
+		};
+	}
+
 	return {
+		cancelOperation: command(cancelOperation),
+		retireBindingInTransaction,
 		authorize,
 		connection,
 		binding,
 		operationView,
 		createBindingInTransaction,
-		requestCheckout,
-		requestPaymentReconciliation,
-		getOperation,
-		getCheckout,
-		listPayments,
+		requestCheckout: command(requestCheckout),
+		requestPaymentReconciliation: command(requestPaymentReconciliation),
+		getOperation: command(getOperation),
+		getCheckout: command(getCheckout),
+		listPayments: command(listPayments),
 		receiveInTransaction,
 	};
 }

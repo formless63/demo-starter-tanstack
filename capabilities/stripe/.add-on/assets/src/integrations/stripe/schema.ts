@@ -97,6 +97,7 @@ export type OperationStatus =
 	| "reconciliation_required"
 	| "cancelled";
 export interface FrozenIntent {
+	expectedCurrency: string;
 	accountId: string;
 	mode: "test" | "live";
 	params: {
