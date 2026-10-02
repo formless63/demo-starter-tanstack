@@ -21,7 +21,7 @@ Manual setup remains supported. Use the recipes below, copy relevant `docs/templ
 
 ## Full/reference setup
 
-The reference enables all seventeen completed capabilities, including Invoice Ninja, Stripe and Medusa. Keep them when their features fit the application, or when you want the repository's complete reference paths intact. Clean generated consumers still select capabilities explicitly (`defaultInstalled: false`). Provider credentials, trusted application policies and any remote setup remain operator-owned; completed local/CI verification is not financial or deployment certification.
+The reference enables all twenty-three completed capabilities, including File UI and Rich Text / Tiptap. Keep them when their features fit the application, or when you want the repository's complete reference paths intact. Clean generated consumers still select capabilities explicitly (`defaultInstalled: false`). Provider credentials, trusted application policies and any remote setup remain operator-owned; completed local/CI verification is not financial or deployment certification.
 
 ```bash
 cp .env.example .env.local
@@ -251,6 +251,13 @@ Keep all additive provider SQL and cumulative snapshots described in the [integr
 
 Remove application imports, the component and its browser fixture scripts/package script, then remove the table dependency. Keep Playwright if other tests use it. Follow the exact [Data Table removal contract](../capabilities/data-table/CAPABILITY.md), then typecheck and build. No migrations or stored data are affected.
 
+## Rich Text removal
+
+Remove the Rich Text imports, `src/integrations/rich-text`, `/rich-text-test` reference route and `e2e/rich-text.e2e.ts`, fixture scripts and package scripts. Remove the three `@tiptap` packages and client Vite optimizeDeps entries, then reinstall, regenerate routes, typecheck and rebuild. Preserve user documents. Keep reusable authoring assets if desired. Details and generated-consumer removal are in [the contract](../capabilities/rich-text/CAPABILITY.md).
+
+## Remove File UI
+
+Remove `src/components/file-ui.tsx`, `src/integrations/file-ui`, `src/routes/app.files.tsx`, `src/routes/api/files`, `src/lib/file-ui.server.ts`, `src/lib/file-ui-metadata.server.ts`, the Files navigation link and file-ui scripts/tooling. Keep `src/db/file-ui-schema.ts` and its schema export, SQL0016_file_ui, cumulative migration history and durable receipts. Never delete Object Storage files, configuration, credentials, buckets or objects as UI removal. Regenerate routes, run capability checks, typecheck and rebuild. Generated consumer removal is separately proved by `scripts/file-ui-remove.ts` while preserving a stored marker; no automatic uninstall transaction exists.
 ### Remove Markdown / Code Content
 
 Remove application routes/loaders/component and CSS imports first (the reference owns `/markdown-test` and `src/features/markdown-reference.ts`). Remove `src/integrations/markdown-code`, module fixture scripts and `markdown-code:*` scripts; uninstall `markdown-it` and `shiki` if unused elsewhere. Keep Playwright and Bun types when other tests need them. Regenerate routes, typecheck and rebuild. No migrations or persisted data are involved. Retaining authored add-on source is a separate choice; remove reference enablement when present but keep catalog identity. See the [exact contract](../capabilities/markdown-code/CAPABILITY.md).

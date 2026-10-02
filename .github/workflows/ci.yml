@@ -85,6 +85,12 @@ jobs:
       - run: bun run capabilities:check
       - run: bun run data-table:typecheck
       - run: bun run data-table:unit
+      - run: bun run rich-text:typecheck
+      - run: bun run rich-text:unit
+      - run: bun run file-ui:unit
+      - run: bun run file-ui:protocol
+      - run: bun run file-ui:protocol:node
+      - run: bun run file-ui:compat
       - run: bun run markdown-code:typecheck
       - run: bun run markdown-code:unit
       - run: bun run markdown-code:dom
@@ -97,6 +103,7 @@ jobs:
       - run: bun run db:persistence:test
       - run: docker compose up -d --wait postgres
       - run: docker compose run --rm migrate
+      - run: bun run file-ui:database
       - run: docker compose run --rm jobs-migrate
       - run: bun run production:smoke
       - run: docker compose run --rm worker node .output/notifications-smoke.mjs
@@ -139,6 +146,8 @@ jobs:
       - run: bun test
       - run: bun run command-system:test
       - run: bun run build
+      - run: bun run file-ui:http
+      - run: bun run file-ui:browser
       - run: bun run add-ons:verify:reference markdown-code
       - run: bun run test:e2e
       - run: docker compose up -d worker
