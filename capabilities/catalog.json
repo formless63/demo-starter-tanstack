@@ -1,932 +1,1653 @@
 {
-	"$schema": "./catalog.schema.json",
-	"version": 3,
-	"baseline": {
-		"summary": "Always-present starter foundations; these are not optional capability modules and must never appear in capability relationship arrays.",
-		"components": [
-			{ "id": "tanstack-start", "displayName": "TanStack Start framework" },
-			{ "id": "strict-typescript", "displayName": "Strict TypeScript" },
-			{ "id": "bun-tooling", "displayName": "Bun tooling" },
-			{ "id": "node-runtime", "displayName": "Node production runtime" },
-			{ "id": "postgresql", "displayName": "PostgreSQL" },
-			{ "id": "drizzle", "displayName": "Drizzle ORM and migrations" },
-			{ "id": "authentication", "displayName": "Better Auth without passwords" },
-			{ "id": "github-oauth", "displayName": "GitHub OAuth" },
-			{ "id": "generic-oidc", "displayName": "Generic OIDC" },
-			{ "id": "pocket-id-provisioning", "displayName": "Pocket ID development provisioning" },
-			{ "id": "tailwind", "displayName": "Tailwind CSS 4" },
-			{ "id": "component-system", "displayName": "shadcn-style component system" },
-			{ "id": "tabler-icons", "displayName": "Tabler Icons" },
-			{ "id": "containers", "displayName": "Docker and Compose" },
-			{ "id": "explicit-migrations", "displayName": "Explicit migration workflow" },
-			{ "id": "ci-testing", "displayName": "CI and testing" },
-			{ "id": "agent-scaffolding", "displayName": "Agent scaffolding" }
-		]
-	},
-	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "email", "webhooks", "audit-log", "cache-coordination", "ai", "search", "realtime", "notifications", "import-export", "ops-admin"]
-	},
-	"frameworkEvaluations": {
-		"tanstack": [
-			{ "id": "tanstack-db", "displayName": "TanStack DB", "status": "evaluate", "summary": "Evaluate for local-first collections and synchronized client data; do not install solely for roadmap coverage." },
-			{ "id": "tanstack-ai", "displayName": "TanStack AI", "status": "deferred", "summary": "Evaluated 0.63.0 for AI v1; selected stable OpenAI-compatible SDK boundary. Re-evaluate for future needs without making it baseline." },
-			{ "id": "tanstack-hotkeys", "displayName": "TanStack Hotkeys", "status": "evaluate", "summary": "Evaluate for the Command System when its API and accessibility fit are proven." },
-			{ "id": "tanstack-pacer", "displayName": "TanStack Pacer", "status": "evaluate", "summary": "Evaluate for reusable throttling, debouncing, and rate control needs." },
-			{ "id": "tanstack-virtual", "displayName": "TanStack Virtual", "status": "evaluate", "summary": "Evaluate for large Data Table and list surfaces." },
-			{ "id": "tanstack-charts", "displayName": "TanStack Charts", "status": "evaluate", "summary": "Evaluate for the Charts capability when stable and appropriate." },
-			{ "id": "tanstack-markdown-highlight", "displayName": "TanStack Markdown / Highlight", "status": "evaluate", "summary": "Evaluate for Markdown and code content rendering." },
-			{ "id": "tanstack-intent", "displayName": "TanStack Intent", "status": "evaluate", "summary": "Continue evaluating project hook reliability; on-demand discovery is currently available." }
-		],
-		"nuxt": [
-			{ "id": "nuxt-modules-ecosystem", "displayName": "Nuxt Modules ecosystem", "status": "evaluate", "summary": "Prefer maintained Nuxt Modules when governing the equivalent Nuxt starter." },
-			{ "id": "vueuse", "displayName": "VueUse", "status": "evaluate", "summary": "Evaluate composables for client capabilities rather than porting React-specific helpers." },
-			{ "id": "nuxt-content", "displayName": "Nuxt Content", "status": "evaluate", "summary": "Evaluate where Markdown and structured content requirements justify it." },
-			{ "id": "vue-native-equivalents", "displayName": "Vue-native capability libraries", "status": "evaluate", "summary": "Select Vue-native equivalents where TanStack-specific UI libraries are unsuitable." }
-		]
-	},
-	"capabilities": [
-		{
-			"id": "jobs",
-			"displayName": "Jobs",
-			"kind": "foundational-backend",
-			"status": "done",
-			"defaultInstalled": false,
-			"requires": [],
-			"integratesWith": ["observability", "ops-admin"],
-			"baselineRequirements": ["postgresql", "drizzle"],
-			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Durable queue storage and advisory-lock coordination." }],
-			"summary": "Typed PostgreSQL-backed jobs with routing-safe transactional enqueue, native attempt context, explicit process roles/schema migration, and a standalone worker.",
-			"scripts": ["jobs:worker", "jobs:migrate", "jobs:doctor", "jobs:smoke"],
-			"environmentVariables": [
-				{ "name": "PGBOSS_DATABASE_URL", "required": false, "description": "Optional jobs-specific PostgreSQL URL; falls back to DATABASE_URL." },
-				{ "name": "PGBOSS_SCHEMA", "required": false, "default": "pgboss", "description": "Dedicated pg-boss schema." },
-				{ "name": "PGBOSS_USE_LISTEN_NOTIFY", "required": false, "default": "false", "description": "Opt-in LISTEN/NOTIFY wakeups with polling fallback." },
-				{ "name": "JOBS_CONCURRENCY", "required": false, "default": "4", "description": "Per-queue local worker concurrency; integer 1–100." }
-			],
-			"migrations": ["bun run jobs:migrate"],
-			"runtimeServices": [
-				{ "id": "worker", "type": "process", "command": "bun run jobs:worker", "description": "Long-lived standalone job consumer." },
-				{ "id": "jobs-migrate", "type": "one-shot-job", "command": "bun run jobs:migrate", "description": "Explicit pg-boss schema installation and upgrade gate." },
-				{ "id": "compose-worker", "type": "compose-service", "command": "docker compose up -d worker", "description": "Production worker using the application image revision." }
-			],
-			"documentationPath": "capabilities/jobs/CAPABILITY.md",
-			"agentSkill": ".agents/skills/jobs-change/SKILL.md",
-			"evaluationDocument": "JOBS_MODULE_EVALUATION.md",
-			"tanstackAddOn": {
-				"addOnId": "postgres-jobs",
-				"sourceDirectory": "capabilities/jobs/.add-on",
-				"manifestPath": "capabilities/jobs/.add-on/info.json",
-				"distributablePath": "capabilities/jobs/add-on.json",
-				"cleanInstallFixture": "capabilities/jobs/test/clean-install.json",
-				"dependsOn": ["drizzle"],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "api-platform", "displayName": "API Platform / Machine Auth / OpenAPI", "kind": "foundational-backend", "status": "done", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["audit-log", "observability", "authorization", "organizations"], "baselineRequirements": ["authentication", "postgresql", "drizzle", "node-runtime"], "externalRequirements": [],
-			"summary": "User-owned machine credentials, typed permissions, native API route conventions, generated OpenAPI 3.1.1, and Scalar documentation.",
-			"scripts": ["api-platform:smoke"],
-			"environmentVariables": [
-				{ "name": "DATABASE_URL", "required": true, "description": "PostgreSQL connection used by Drizzle and Better Auth." },
-				{ "name": "BETTER_AUTH_SECRET", "required": true, "description": "Better Auth signing secret with at least 32 characters." },
-				{ "name": "APP_BASE_URL", "required": true, "description": "Public application and Better Auth base URL." }
-			],
-			"migrations": ["bun run db:migrate"],
-			"documentationPath": "capabilities/api-platform/CAPABILITY.md",
-			"agentSkill": ".agents/skills/api-contract-change/SKILL.md",
-			"evaluationDocument": "API_PLATFORM_MODULE_EVALUATION.md",
-			"tanstackAddOn": {
-				"addOnId": "api-platform",
-				"sourceDirectory": "capabilities/api-platform/.add-on",
-				"manifestPath": "capabilities/api-platform/.add-on/info.json",
-				"distributablePath": "capabilities/api-platform/add-on.json",
-				"cleanInstallFixture": "capabilities/api-platform/test/clean-install.json",
-				"dependsOn": ["better-auth", "drizzle"],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "observability", "displayName": "Observability", "kind": "foundational-backend", "status": "done", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["jobs", "api-platform", "object-storage", "email", "webhooks", "audit-log", "ai", "cache-coordination", "search", "realtime", "notifications", "import-export", "organizations", "authorization", "feature-flags", "invoice-ninja", "stripe", "medusa", "ops-admin"], "baselineRequirements": ["tanstack-start", "node-runtime"],
-			"externalRequirements": [{ "name": "OTLP destination", "required": false, "description": "Optional external telemetry collector or backend." }],
-			"summary": "Safe Pino logs, isolated request correlation, explicit server traces/metrics, optional OTLP export, and build/health metadata.",
-			"scripts": ["observability:smoke"],
-			"environmentVariables": [
-				{ "name": "OTEL_SERVICE_NAME", "required": false, "description": "Safe service name." },
-				{ "name": "OTEL_SDK_DISABLED", "required": false, "default": "false", "description": "Disable recording/export while retaining logs and context." },
-				{ "name": "OTEL_EXPORTER_OTLP_ENDPOINT", "required": false, "description": "Explicit optional OTLP/HTTP base endpoint." },
-				{ "name": "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "required": false, "description": "Optional full trace endpoint." },
-				{ "name": "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "required": false, "description": "Optional full metric endpoint." },
-				{ "name": "OTEL_EXPORTER_OTLP_HEADERS", "required": false, "description": "Collector credentials; never log." },
-				{ "name": "OTEL_TRACES_EXPORTER", "required": false, "description": "otlp or none; no endpoint means no export." },
-				{ "name": "OTEL_METRICS_EXPORTER", "required": false, "description": "Independent otlp or none metric export." },
-				{ "name": "OTEL_RESOURCE_ATTRIBUTES", "required": false, "description": "Safe standard resource attributes." },
-				{ "name": "APP_VERSION", "required": false, "description": "Application version." },
-				{ "name": "APP_REVISION", "required": false, "description": "Deployment-supplied revision." },
-				{ "name": "DEPLOYMENT_ENVIRONMENT", "required": false, "description": "Deployment environment name." },
-				{ "name": "LOG_LEVEL", "required": false, "default": "info", "description": "Pino logging level." },
-				{ "name": "LOG_REDACT_FIELDS", "required": false, "description": "Additional trusted sensitive field names." }
-			],
-			"migrations": [],
-			"runtimeServices": [],
-			"documentationPath": "capabilities/observability/CAPABILITY.md",
-			"agentSkill": ".agents/skills/observability-change/SKILL.md",
-			"evaluationDocument": "OBSERVABILITY_MODULE_EVALUATION.md",
-			"tanstackAddOn": {
-				"addOnId": "observability",
-				"sourceDirectory": "capabilities/observability/.add-on",
-				"manifestPath": "capabilities/observability/.add-on/info.json",
-				"distributablePath": "capabilities/observability/add-on.json",
-				"cleanInstallFixture": "capabilities/observability/test/clean-install.json",
-				"dependsOn": [], "conflictsWith": []
-			}
-		},
-		{
-			"id": "object-storage", "displayName": "Object Storage", "kind": "foundational-backend", "status": "done", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["jobs", "observability"], "baselineRequirements": ["node-runtime"],
-			"externalRequirements": [{ "name": "S3-compatible storage", "required": true, "description": "Required only when actively used; tested RustFS 1.0.0 preferred, Garage 2.4.1 supported with optional third-party Noooste Garage UI 0.13.0." }],
-			"summary": "Private server S3 primitives, streaming, bounded signed PUT/GET, multipart, and post-upload verification; no persistence or auth dependency.",
-			"scripts": ["storage:check", "storage:smoke", "storage:unit", "storage:compat", "storage:bootstrap", "storage:dev:rustfs", "storage:dev:garage", "storage:dev:down"],
-			"environmentVariables": [
-				{ "name": "STORAGE_BUCKET", "required": true, "description": "Required lazily when actively used, not for build/start." },
-				{ "name": "STORAGE_REGION", "required": false, "description": "STORAGE_REGION then AWS_REGION then AWS_DEFAULT_REGION, otherwise error; no implicit default." },
-				{ "name": "STORAGE_ENDPOINT", "required": false, "description": "Optional custom S3 origin; absent uses AWS endpoint resolution." },
-				{ "name": "STORAGE_ACCESS_KEY_ID", "required": false, "description": "Optional complete explicit pair; absent uses SDK credential chain." },
-				{ "name": "STORAGE_SECRET_ACCESS_KEY", "required": false, "description": "Explicit secret paired with access ID; never log." },
-				{ "name": "STORAGE_SESSION_TOKEN", "required": false, "description": "Optional temporary credential token." },
-				{ "name": "STORAGE_FORCE_PATH_STYLE", "required": false, "description": "true/false; custom endpoint defaults true, AWS false." },
-				{ "name": "STORAGE_PRESIGN_TTL_SECONDS", "required": false, "default": "600", "description": "Bounded integer 30–3600." },
-				{ "name": "STORAGE_KEY_PREFIX", "required": false, "description": "Optional normalized, enforced key prefix." }
-			],
-			"migrations": [],
-			"runtimeServices": [
-				{ "id": "rustfs", "type": "compose-service", "description": "Optional preferred local single-node S3 target." },
-				{ "id": "garage", "type": "compose-service", "description": "Optional alternate local single-node S3 target." },
-				{ "id": "garage-ui", "type": "compose-service", "description": "Optional third-party local admin UI; not required for Storage." }
-			],
-			"documentationPath": "capabilities/object-storage/CAPABILITY.md",
-			"agentSkill": ".agents/skills/storage-change/SKILL.md",
-			"evaluationDocument": "OBJECT_STORAGE_MODULE_EVALUATION.md",
-			"tanstackAddOn": {
-				"addOnId": "object-storage", "sourceDirectory": "capabilities/object-storage/.add-on",
-				"manifestPath": "capabilities/object-storage/.add-on/info.json", "distributablePath": "capabilities/object-storage/add-on.json",
-				"cleanInstallFixture": "capabilities/object-storage/test/clean-install.json", "dependsOn": [], "conflictsWith": []
-			}
-		},
-		{
-			"id": "email",
-			"displayName": "Email",
-			"kind": "foundational-backend",
-			"status": "done",
-			"defaultInstalled": false,
-			"requires": [],
-			"integratesWith": [
-				"jobs",
-				"observability"
-			],
-			"baselineRequirements": ["node-runtime"],
-			"baselineIntegrations": [
-				"authentication"
-			],
-			"externalRequirements": [
-				{
-					"name": "SMTP",
-					"required": true,
-					"description": "Required only when sending/verifying; provider-neutral SMTP with no provider SDK."
-				},
-				{
-					"name": "Mailpit",
-					"required": false,
-					"description": "Recommended local-development SMTP capture service."
-				}
-			],
-			"summary": "SMTP-first transactional email and Better Auth magic-link delivery.",
-			"scripts": [
-				"email:check",
-				"email:smoke",
-				"email:unit",
-				"email:compat",
-				"email:dev:mailpit",
-				"email:dev:down"
-			],
-			"environmentVariables": [
-				{
-					"name": "SMTP_HOST",
-					"required": false,
-					"description": "Required lazily when used; SMTP hostname, not URL."
-				},
-				{
-					"name": "SMTP_PORT",
-					"required": false,
-					"description": "Explicit integer 1\u201365535."
-				},
-				{
-					"name": "SMTP_SECURITY",
-					"required": false,
-					"description": "Explicit tls/starttls/opportunistic; no port inference."
-				},
-				{
-					"name": "SMTP_USER",
-					"required": false,
-					"description": "Optional complete auth pair; server-only."
-				},
-				{
-					"name": "SMTP_PASSWORD",
-					"required": false,
-					"description": "Secret paired with SMTP_USER; never log."
-				},
-				{
-					"name": "EMAIL_FROM_ADDRESS",
-					"required": false,
-					"description": "Fixed sender required when used."
-				},
-				{
-					"name": "EMAIL_FROM_NAME",
-					"required": false,
-					"description": "Optional fixed sender name."
-				},
-				{
-					"name": "EMAIL_REPLY_TO_ADDRESS",
-					"required": false,
-					"description": "Optional default reply-to."
-				},
-				{
-					"name": "EMAIL_REPLY_TO_NAME",
-					"required": false,
-					"description": "Optional name requires reply-to address."
-				},
-				{
-					"name": "EMAIL_MAX_RECIPIENTS",
-					"required": false,
-					"description": "Integer 1\u2013100 across To/Cc/Bcc, default 50.",
-					"default": "50"
-				}
-			],
-			"migrations": [],
-			"runtimeServices": [
-				{
-					"id": "mailpit",
-					"type": "compose-service",
-					"description": "Optional loopback-only temporary SMTP capture; never forwards."
-				}
-			],
-			"documentationPath": "capabilities/email/CAPABILITY.md",
-			"agentSkill": ".agents/skills/email-change/SKILL.md",
-			"evaluationDocument": "EMAIL_MODULE_EVALUATION.md",
-			"tanstackAddOn": {
-				"addOnId": "email",
-				"sourceDirectory": "capabilities/email/.add-on",
-				"manifestPath": "capabilities/email/.add-on/info.json",
-				"distributablePath": "capabilities/email/add-on.json",
-				"cleanInstallFixture": "capabilities/email/test/clean-install.json",
-				"dependsOn": [],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "webhooks",
-			"displayName": "Webhooks",
-			"kind": "foundational-backend",
-			"status": "done",
-			"defaultInstalled": false,
-			"requires": [
-				"jobs"
-			],
-			"integratesWith": [
-				"audit-log",
-				"observability",
-				"api-platform"
-			],
-			"baselineRequirements": ["node-runtime"],
-			"externalRequirements": [
-				{
-					"name": "Remote webhook endpoints",
-					"required": true,
-					"description": "Inbound senders and outbound consumers configured by an application."
-				}
-			],
-			"summary": "Standard Webhooks signed raw-byte verification and stable Jobs-backed delivery with application-owned targets and idempotency.",
-			"scripts": [
-				"webhooks:unit",
-				"webhooks:smoke"
-			],
-			"environmentVariables": [
-				{
-					"name": "WEBHOOK_REFERENCE_URL",
-					"required": false,
-					"description": "Application-owned HTTPS reference target, resolved only on explicit delivery."
-				},
-				{
-					"name": "WEBHOOK_REFERENCE_SECRET",
-					"required": false,
-					"description": "Application-owned primary Standard Webhooks whsec_ secret; never queued."
-				}
-			],
-			"migrations": [],
-			"runtimeServices": [],
-			"documentationPath": "capabilities/webhooks/CAPABILITY.md",
-			"agentSkill": ".agents/skills/webhooks-change/SKILL.md",
-			"evaluationDocument": "WEBHOOKS_MODULE_EVALUATION.md",
-			"tanstackAddOn": {
-				"addOnId": "webhooks",
-				"sourceDirectory": "capabilities/webhooks/.add-on",
-				"manifestPath": "capabilities/webhooks/.add-on/info.json",
-				"distributablePath": "capabilities/webhooks/add-on.json",
-				"cleanInstallFixture": "capabilities/webhooks/test/clean-install.json",
-				"dependsOn": [
-					"postgres-jobs"
-				],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "audit-log",
-			"displayName": "Audit Log",
-			"kind": "foundational-backend",
-			"status": "done",
-			"defaultInstalled": false,
-			"requires": [],
-			"integratesWith": [
-				"api-platform",
-				"organizations",
-				"jobs",
-				"invoice-ninja",
-				"stripe",
-				"medusa"
-			],
-			"baselineRequirements": [
-				"postgresql",
-				"drizzle"
-			],
-			"baselineIntegrations": [
-				"authentication"
-			],
-			"externalRequirements": [
-				{
-					"name": "PostgreSQL",
-					"required": true,
-					"description": "Durable append-oriented audit records."
-				}
-			],
-			"summary": "Application audit events with actor, subject, action, and context.",
-			"documentationPath": "capabilities/audit-log/CAPABILITY.md",
-			"evaluationDocument": "AUDIT_LOG_MODULE_EVALUATION.md",
-			"agentSkill": ".agents/skills/audit-log-change/SKILL.md",
-			"scripts": [
-				"audit-log:smoke"
-			],
-			"environmentVariables": [],
-			"runtimeServices": [],
-			"migrations": [
-				"bun run db:migrate"
-			],
-			"tanstackAddOn": {
-				"addOnId": "audit-log",
-				"sourceDirectory": "capabilities/audit-log/.add-on",
-				"manifestPath": "capabilities/audit-log/.add-on/info.json",
-				"distributablePath": "capabilities/audit-log/add-on.json",
-				"cleanInstallFixture": "capabilities/audit-log/test/clean-install.json",
-				"dependsOn": [
-					"drizzle"
-				],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "ai",
-			"displayName": "AI",
-			"kind": "foundational-backend",
-			"status": "done",
-			"defaultInstalled": false,
-			"requires": [],
-			"integratesWith": [
-				"jobs",
-				"object-storage",
-				"observability",
-				"audit-log"
-			],
-			"baselineRequirements": [
-				"node-runtime"
-			],
-			"externalRequirements": [
-				{
-					"name": "Configured model provider",
-					"required": true,
-					"description": "Required only on an explicit AI operation; no build/start/readiness network access."
-				}
-			],
-			"summary": "Lazy bounded server-side OpenAI-compatible generation with stop-only structured Zod validation, whole-operation cancellation and safe errors; Bun/Node and production-image fixtures.",
-			"scripts": [
-				"ai:unit",
-				"ai:compat"
-			],
-			"environmentVariables": [
-				{
-					"name": "AI_PROVIDER",
-					"required": false,
-					"default": "openai-compatible",
-					"description": "Sole accepted v1 provider ID."
-				},
-				{
-					"name": "AI_MODEL",
-					"required": false,
-					"description": "Required lazily on operation; 1\u2013128 printable characters, never inferred."
-				},
-				{
-					"name": "AI_API_KEY",
-					"required": false,
-					"description": "Optional server-only authentication; never log."
-				},
-				{
-					"name": "AI_BASE_URL",
-					"required": false,
-					"description": "Optional HTTPS compatible endpoint; loopback HTTP only explicit development/test."
-				},
-				{
-					"name": "AI_TIMEOUT_SECONDS",
-					"required": false,
-					"default": "60",
-					"description": "Complete request deadline; integer seconds 1\u2013300."
-				}
-			],
-			"migrations": [],
-			"runtimeServices": [],
-			"documentationPath": "capabilities/ai/CAPABILITY.md",
-			"agentSkill": ".agents/skills/ai-change/SKILL.md",
-			"evaluationDocument": "AI_MODULE_EVALUATION.md",
-			"tanstackAddOn": {
-				"addOnId": "ai",
-				"sourceDirectory": "capabilities/ai/.add-on",
-				"manifestPath": "capabilities/ai/.add-on/info.json",
-				"distributablePath": "capabilities/ai/add-on.json",
-				"cleanInstallFixture": "capabilities/ai/test/clean-install.json",
-				"dependsOn": [],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "cache-coordination",
-			"displayName": "Cache / Coordination",
-			"kind": "application-infrastructure",
-			"status": "done",
-			"defaultInstalled": false,
-			"requires": [],
-			"integratesWith": [
-				"realtime",
-				"api-platform",
-				"jobs",
-				"observability"
-			],
-			"baselineRequirements": [
-				"node-runtime"
-			],
-			"externalRequirements": [
-				{
-					"name": "Valkey/Redis-compatible service",
-					"required": true,
-					"description": "Only required on first use; tested Valkey 9.1.2, common Redis protocol subset."
-				}
-			],
-			"summary": "Ephemeral server-only cache, atomic counters, advisory token-checked leases and pub/sub; tested on Valkey.",
-			"scripts": [
-				"cache:check",
-				"cache:smoke",
-				"cache:unit",
-				"cache:compat",
-				"cache:dev:valkey",
-				"cache:dev:down"
-			],
-			"environmentVariables": [
-				{
-					"name": "CACHE_URL",
-					"required": false,
-					"description": "Server-only redis/rediss URL; required lazily on use; may contain credentials; never log."
-				},
-				{
-					"name": "CACHE_KEY_PREFIX",
-					"required": false,
-					"description": "1–128 ASCII alphanumeric/underscore/hyphen, starts alphanumeric.",
-					"default": "app"
-				},
-				{
-					"name": "CACHE_DEFAULT_TTL_SECONDS",
-					"required": false,
-					"description": "Integer 1–86400.",
-					"default": "300"
-				},
-				{
-					"name": "CACHE_MAX_VALUE_BYTES",
-					"required": false,
-					"description": "Integer 1–1048576; encoded values/messages.",
-					"default": "1048576"
-				}
-			],
-			"migrations": [],
-			"runtimeServices": [
-				{
-					"id": "cache-valkey",
-					"type": "compose-service",
-					"command": "bun run cache:dev:valkey",
-					"description": "Optional loopback ephemeral Valkey; separate Compose, no persistence."
-				}
-			],
-			"documentationPath": "capabilities/cache-coordination/CAPABILITY.md",
-			"agentSkill": ".agents/skills/cache-change/SKILL.md",
-			"evaluationDocument": "CACHE_COORDINATION_MODULE_EVALUATION.md",
-			"tanstackAddOn": {
-				"addOnId": "cache-coordination",
-				"sourceDirectory": "capabilities/cache-coordination/.add-on",
-				"manifestPath": "capabilities/cache-coordination/.add-on/info.json",
-				"distributablePath": "capabilities/cache-coordination/add-on.json",
-				"cleanInstallFixture": "capabilities/cache-coordination/test/clean-install.json",
-				"dependsOn": [],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "search",
-			"displayName": "Search",
-			"kind": "application-infrastructure",
-			"status": "done",
-			"defaultInstalled": false,
-			"requires": [],
-			"integratesWith": [
-				"jobs",
-				"object-storage",
-				"organizations"
-			],
-			"baselineRequirements": [
-				"postgresql",
-				"drizzle"
-			],
-			"externalRequirements": [
-				{
-					"name": "PostgreSQL",
-					"required": true,
-					"description": "Built-in full-text search only; no separate service."
-				}
-			],
-			"summary": "PostgreSQL-native application-owned FTS with safe query and canonical numeric-float4 keysets preserving microseconds and opaque IDs.",
-			"documentationPath": "capabilities/search/CAPABILITY.md",
-			"evaluationDocument": "SEARCH_MODULE_EVALUATION.md",
-			"agentSkill": ".agents/skills/search-change/SKILL.md",
-			"scripts": [
-				"search:smoke"
-			],
-			"environmentVariables": [],
-			"runtimeServices": [],
-			"migrations": [
-				"bun run db:migrate"
-			],
-			"tanstackAddOn": {
-				"addOnId": "search",
-				"sourceDirectory": "capabilities/search/.add-on",
-				"manifestPath": "capabilities/search/.add-on/info.json",
-				"distributablePath": "capabilities/search/add-on.json",
-				"cleanInstallFixture": "capabilities/search/test/clean-install.json",
-				"dependsOn": [
-					"drizzle"
-				],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "realtime",
-			"displayName": "Realtime",
-			"kind": "application-infrastructure",
-			"status": "done",
-			"defaultInstalled": false,
-			"requires": [],
-			"integratesWith": [
-				"cache-coordination",
-				"notifications",
-				"observability"
-			],
-			"baselineRequirements": [
-				"node-runtime"
-			],
-			"externalRequirements": [],
-			"summary": "Authenticated server-to-client updates with no external service initially.",
-			"baselineIntegrations": [
-				"authentication"
-			],
-			"documentationPath": "capabilities/realtime/CAPABILITY.md",
-			"evaluationDocument": "REALTIME_MODULE_EVALUATION.md",
-			"agentSkill": ".agents/skills/realtime-change/SKILL.md",
-			"scripts": [
-				"realtime:unit",
-				"realtime:transport"
-			],
-			"environmentVariables": [
-				{
-					"name": "REALTIME_TRANSPORTS",
-					"default": "sse",
-					"description": "Server-only sse/websocket/sse,websocket; no duplicates.",
-					"required": false
-				}
-			],
-			"runtimeServices": [],
-			"migrations": [],
-			"tanstackAddOn": {
-				"addOnId": "realtime",
-				"sourceDirectory": "capabilities/realtime/.add-on",
-				"manifestPath": "capabilities/realtime/.add-on/info.json",
-				"distributablePath": "capabilities/realtime/add-on.json",
-				"cleanInstallFixture": "capabilities/realtime/test/clean-install.json",
-				"dependsOn": [],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "notifications",
-			"displayName": "Notifications",
-			"kind": "application-infrastructure",
-			"status": "done",
-			"defaultInstalled": false,
-			"requires": [
-				"jobs"
-			],
-			"integratesWith": [
-				"email",
-				"realtime",
-				"audit-log",
-				"observability"
-			],
-			"baselineRequirements": [
-				"postgresql",
-				"drizzle"
-			],
-			"externalRequirements": [
-				{
-					"name": "ntfy",
-					"required": false,
-					"description": "Optional application-resolved HTTP delivery."
-				}
-			],
-			"summary": "Durable multi-channel notification orchestration with optional delivery integrations.",
-			"baselineIntegrations": [
-				"authentication"
-			],
-			"documentationPath": "capabilities/notifications/CAPABILITY.md",
-			"evaluationDocument": "NOTIFICATIONS_MODULE_EVALUATION.md",
-			"agentSkill": ".agents/skills/notifications-change/SKILL.md",
-			"scripts": [
-				"notifications:unit",
-				"notifications:smoke",
-				"notifications:compat"
-			],
-			"environmentVariables": [
-				{
-					"name": "NTFY_BASE_URL",
-					"description": "Optional lazy ntfy server HTTPS URL; no public default.",
-					"required": false
-				},
-				{
-					"name": "NTFY_TOKEN",
-					"description": "Optional private ntfy token resolved at execution.",
-					"required": false
-				},
-				{
-					"name": "NTFY_TIMEOUT_SECONDS",
-					"default": "10",
-					"description": "Integer 1–30 seconds.",
-					"required": false
-				}
-			],
-			"runtimeServices": [],
-			"migrations": [
-				"bun run db:migrate",
-				"bun run jobs:migrate"
-			],
-			"tanstackAddOn": {
-				"addOnId": "notifications",
-				"sourceDirectory": "capabilities/notifications/.add-on",
-				"manifestPath": "capabilities/notifications/.add-on/info.json",
-				"distributablePath": "capabilities/notifications/add-on.json",
-				"cleanInstallFixture": "capabilities/notifications/test/clean-install.json",
-				"dependsOn": [
-					"postgres-jobs"
-				],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "import-export",
-			"displayName": "Import / Export",
-			"kind": "application-infrastructure",
-			"status": "done",
-			"defaultInstalled": false,
-			"requires": [
-				"jobs",
-				"object-storage"
-			],
-			"integratesWith": [
-				"notifications",
-				"audit-log"
-			],
-			"baselineRequirements": [
-				"postgresql",
-				"drizzle",
-				"node-runtime"
-			],
-			"baselineIntegrations": [
-				"authentication"
-			],
-			"externalRequirements": [],
-			"summary": "Asynchronous bulk data ingestion and export backed by durable jobs and objects.",
-			"documentationPath": "capabilities/import-export/CAPABILITY.md",
-			"evaluationDocument": "IMPORT_EXPORT_MODULE_EVALUATION.md",
-			"agentSkill": ".agents/skills/import-export-change/SKILL.md",
-			"scripts": [
-				"import-export:unit",
-				"import-export:compat",
-				"import-export:operator"
-			],
-			"migrations": [
-				"bun run db:migrate"
-			],
-			"runtimeServices": [],
-			"environmentVariables": [
-				{
-					"name": "IMPORT_EXPORT_MAX_BYTES",
-					"required": false,
-					"default": "16777216",
-					"description": "Integer1024\u201367108864; bounded input/output bytes."
-				},
-				{
-					"name": "IMPORT_EXPORT_MAX_ROWS",
-					"required": false,
-					"default": "10000",
-					"description": "Integer1\u2013100000."
-				},
-				{
-					"name": "IMPORT_EXPORT_TIMEOUT_SECONDS",
-					"required": false,
-					"default": "60",
-					"description": "Integer5\u2013300; entire attempt deadline."
-				},
-				{
-					"name": "IMPORT_EXPORT_ARTIFACT_TTL_SECONDS",
-					"required": false,
-					"default": "86400",
-					"description": "Integer300\u2013604800; expiry denies access without physical deletion."
-				}
-			],
-			"tanstackAddOn": {
-				"addOnId": "import-export",
-				"sourceDirectory": "capabilities/import-export/.add-on",
-				"manifestPath": "capabilities/import-export/.add-on/info.json",
-				"distributablePath": "capabilities/import-export/add-on.json",
-				"cleanInstallFixture": "capabilities/import-export/test/clean-install.json",
-				"dependsOn": [
-					"postgres-jobs",
-					"object-storage"
-				],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "organizations", "displayName": "Organizations / Tenancy", "kind": "identity-policy", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["audit-log", "notifications"], "baselineRequirements": ["authentication", "postgresql"],
-			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Tenant membership and boundary persistence." }],
-			"summary": "Organization membership, tenant context, and isolation conventions on starter authentication."
-		},
-		{
-			"id": "authorization", "displayName": "Authorization", "kind": "identity-policy", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["organizations", "api-platform", "audit-log"], "baselineRequirements": ["authentication", "postgresql"],
-			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Policy assignments and application authorization data." }],
-			"summary": "Application policy and permission primitives layered on authenticated identity."
-		},
-		{
-			"id": "feature-flags", "displayName": "Feature Flags", "kind": "identity-policy", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["organizations", "authorization", "audit-log"], "baselineRequirements": ["postgresql"],
-			"externalRequirements": [{ "name": "PostgreSQL", "required": true, "description": "Flag definitions, targeting, and evaluation state." }],
-			"summary": "Database-backed release and targeting controls without a required SaaS provider."
-		},
-		{
-			"id": "invoice-ninja", "displayName": "Invoice Ninja", "kind": "business-integration", "status": "planned", "defaultInstalled": false,
-			"requires": ["jobs", "webhooks"], "integratesWith": ["organizations", "audit-log", "notifications"], "baselineRequirements": [],
-			"externalRequirements": [{ "name": "Invoice Ninja", "required": true, "description": "Invoice Ninja instance and API credentials." }],
-			"summary": "Durable Invoice Ninja synchronization and webhook integration."
-		},
-		{
-			"id": "stripe", "displayName": "Stripe", "kind": "business-integration", "status": "planned", "defaultInstalled": false,
-			"requires": ["jobs", "webhooks"], "integratesWith": ["organizations", "authorization", "audit-log", "notifications"], "baselineRequirements": [],
-			"externalRequirements": [{ "name": "Stripe", "required": true, "description": "Stripe account, API credentials, and webhook endpoint." }],
-			"summary": "Stripe billing integration with durable webhook and reconciliation workflows."
-		},
-		{
-			"id": "medusa", "displayName": "Medusa", "kind": "business-integration", "status": "planned", "defaultInstalled": false,
-			"requires": ["jobs", "webhooks"], "integratesWith": ["object-storage", "organizations", "search"], "baselineRequirements": [],
-			"externalRequirements": [{ "name": "Medusa", "required": true, "description": "Medusa commerce backend and credentials." }],
-			"summary": "Medusa commerce synchronization using reliable background and webhook processing."
-		},
-		{
-			"id": "ops-admin",
-			"displayName": "Ops / Admin",
-			"kind": "operations-ui-infrastructure",
-			"status": "done",
-			"defaultInstalled": false,
-			"requires": [],
-			"integratesWith": [
-				"observability",
-				"jobs",
-				"audit-log",
-				"object-storage",
-				"cache-coordination",
-				"webhooks"
-			],
-			"baselineRequirements": [
-				"authentication",
-				"node-runtime"
-			],
-			"externalRequirements": [],
-			"summary": "Authenticated operational surfaces assembled from installed capability adapters.",
-			"documentationPath": "capabilities/ops-admin/CAPABILITY.md",
-			"evaluationDocument": "OPS_ADMIN_MODULE_EVALUATION.md",
-			"scripts": [
-				"ops:unit"
-			],
-			"environmentVariables": [
-				{
-					"name": "OPS_ADMIN_USER_IDS",
-					"required": false,
-					"default": "",
-					"description": "Privileged server-only platform-wide operator IDs; empty denies all."
-				}
-			],
-			"migrations": [],
-			"runtimeServices": [],
-			"tanstackAddOn": {
-				"addOnId": "ops-admin",
-				"sourceDirectory": "capabilities/ops-admin/.add-on",
-				"manifestPath": "capabilities/ops-admin/.add-on/info.json",
-				"distributablePath": "capabilities/ops-admin/add-on.json",
-				"cleanInstallFixture": "capabilities/ops-admin/test/clean-install.json",
-				"dependsOn": [
-					"better-auth",
-					"drizzle"
-				],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "command-system", "displayName": "Command System", "kind": "operations-ui-infrastructure", "status": "in-progress", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["search", "authorization"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Accessible application commands, shortcuts, and command palette conventions.",
-			"documentationPath": "capabilities/command-system/CAPABILITY.md",
-			"agentSkill": ".agents/skills/capability-change/SKILL.md",
-			"evaluationDocument": "COMMAND_SYSTEM_MODULE_EVALUATION.md",
-			"tanstackAddOn": {
-				"addOnId": "command-system",
-				"sourceDirectory": "capabilities/command-system/.add-on",
-				"manifestPath": "capabilities/command-system/.add-on/info.json",
-				"distributablePath": "capabilities/command-system/add-on.json",
-				"cleanInstallFixture": "capabilities/command-system/test/clean-install.json",
-				"dependsOn": [],
-				"conflictsWith": []
-			}
-		},
-		{
-			"id": "data-table", "displayName": "Data Table", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["search", "organizations", "authorization"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Reusable high-density data browsing, filtering, sorting, and selection UI."
-		},
-		{
-			"id": "markdown-code", "displayName": "Markdown / Code Content", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["object-storage", "ai"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Safe Markdown and highlighted code rendering and authoring primitives."
-		},
-		{
-			"id": "charts-visualization", "displayName": "Charts / Visualization", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["data-table", "realtime"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Accessible application charts and reusable visualization conventions."
-		},
-		{
-			"id": "file-ui", "displayName": "File UI", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": ["object-storage"], "integratesWith": ["jobs", "search"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Upload, browse, preview, and manage object-backed files."
-		},
-		{
-			"id": "rich-text", "displayName": "Rich Text / Tiptap", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["object-storage", "markdown-code", "realtime", "organizations"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Structured rich-text editing, with Tiptap evaluated as the primary TanStack-repo option."
-		},
-		{
-			"id": "flow-canvas", "displayName": "Flow / Canvas", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["realtime", "object-storage", "audit-log"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Composable node, edge, and spatial workflow interfaces."
-		},
-		{
-			"id": "pwa-offline", "displayName": "PWA / Offline", "kind": "client-platform", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["notifications", "realtime"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Installability, service-worker lifecycle, caching, and offline UX conventions."
-		},
-		{
-			"id": "internationalization", "displayName": "Internationalization", "kind": "client-platform", "status": "planned", "defaultInstalled": false,
-			"requires": [], "integratesWith": ["ops-admin", "command-system", "data-table", "markdown-code", "charts-visualization", "file-ui", "rich-text", "flow-canvas", "pwa-offline"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Locale routing, message formatting, and translation conventions for UI-facing capabilities."
-		}
-	]
+  "$schema": "./catalog.schema.json",
+  "version": 3,
+  "baseline": {
+    "summary": "Always-present starter foundations; these are not optional capability modules and must never appear in capability relationship arrays.",
+    "components": [
+      {
+        "id": "tanstack-start",
+        "displayName": "TanStack Start framework"
+      },
+      {
+        "id": "strict-typescript",
+        "displayName": "Strict TypeScript"
+      },
+      {
+        "id": "bun-tooling",
+        "displayName": "Bun tooling"
+      },
+      {
+        "id": "node-runtime",
+        "displayName": "Node production runtime"
+      },
+      {
+        "id": "postgresql",
+        "displayName": "PostgreSQL"
+      },
+      {
+        "id": "drizzle",
+        "displayName": "Drizzle ORM and migrations"
+      },
+      {
+        "id": "authentication",
+        "displayName": "Better Auth without passwords"
+      },
+      {
+        "id": "github-oauth",
+        "displayName": "GitHub OAuth"
+      },
+      {
+        "id": "generic-oidc",
+        "displayName": "Generic OIDC"
+      },
+      {
+        "id": "pocket-id-provisioning",
+        "displayName": "Pocket ID development provisioning"
+      },
+      {
+        "id": "tailwind",
+        "displayName": "Tailwind CSS 4"
+      },
+      {
+        "id": "component-system",
+        "displayName": "shadcn-style component system"
+      },
+      {
+        "id": "tabler-icons",
+        "displayName": "Tabler Icons"
+      },
+      {
+        "id": "containers",
+        "displayName": "Docker and Compose"
+      },
+      {
+        "id": "explicit-migrations",
+        "displayName": "Explicit migration workflow"
+      },
+      {
+        "id": "ci-testing",
+        "displayName": "CI and testing"
+      },
+      {
+        "id": "agent-scaffolding",
+        "displayName": "Agent scaffolding"
+      }
+    ]
+  },
+  "referenceApplication": {
+    "enabledCapabilities": [
+      "jobs",
+      "api-platform",
+      "observability",
+      "object-storage",
+      "email",
+      "webhooks",
+      "audit-log",
+      "cache-coordination",
+      "ai",
+      "search",
+      "realtime",
+      "notifications",
+      "import-export",
+      "ops-admin",
+      "invoice-ninja",
+      "stripe",
+      "medusa"
+    ]
+  },
+  "frameworkEvaluations": {
+    "tanstack": [
+      {
+        "id": "tanstack-db",
+        "displayName": "TanStack DB",
+        "status": "evaluate",
+        "summary": "Evaluate for local-first collections and synchronized client data; do not install solely for roadmap coverage."
+      },
+      {
+        "id": "tanstack-ai",
+        "displayName": "TanStack AI",
+        "status": "deferred",
+        "summary": "Evaluated 0.63.0 for AI v1; selected stable OpenAI-compatible SDK boundary. Re-evaluate for future needs without making it baseline."
+      },
+      {
+        "id": "tanstack-hotkeys",
+        "displayName": "TanStack Hotkeys",
+        "status": "evaluate",
+        "summary": "Evaluate for the Command System when its API and accessibility fit are proven."
+      },
+      {
+        "id": "tanstack-pacer",
+        "displayName": "TanStack Pacer",
+        "status": "evaluate",
+        "summary": "Evaluate for reusable throttling, debouncing, and rate control needs."
+      },
+      {
+        "id": "tanstack-virtual",
+        "displayName": "TanStack Virtual",
+        "status": "evaluate",
+        "summary": "Evaluate for large Data Table and list surfaces."
+      },
+      {
+        "id": "tanstack-charts",
+        "displayName": "TanStack Charts",
+        "status": "evaluate",
+        "summary": "Evaluate for the Charts capability when stable and appropriate."
+      },
+      {
+        "id": "tanstack-markdown-highlight",
+        "displayName": "TanStack Markdown / Highlight",
+        "status": "evaluate",
+        "summary": "Evaluate for Markdown and code content rendering."
+      },
+      {
+        "id": "tanstack-intent",
+        "displayName": "TanStack Intent",
+        "status": "evaluate",
+        "summary": "Continue evaluating project hook reliability; on-demand discovery is currently available."
+      }
+    ],
+    "nuxt": [
+      {
+        "id": "nuxt-modules-ecosystem",
+        "displayName": "Nuxt Modules ecosystem",
+        "status": "evaluate",
+        "summary": "Prefer maintained Nuxt Modules when governing the equivalent Nuxt starter."
+      },
+      {
+        "id": "vueuse",
+        "displayName": "VueUse",
+        "status": "evaluate",
+        "summary": "Evaluate composables for client capabilities rather than porting React-specific helpers."
+      },
+      {
+        "id": "nuxt-content",
+        "displayName": "Nuxt Content",
+        "status": "evaluate",
+        "summary": "Evaluate where Markdown and structured content requirements justify it."
+      },
+      {
+        "id": "vue-native-equivalents",
+        "displayName": "Vue-native capability libraries",
+        "status": "evaluate",
+        "summary": "Select Vue-native equivalents where TanStack-specific UI libraries are unsuitable."
+      }
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "jobs",
+      "displayName": "Jobs",
+      "kind": "foundational-backend",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "observability",
+        "ops-admin"
+      ],
+      "baselineRequirements": [
+        "postgresql",
+        "drizzle"
+      ],
+      "externalRequirements": [
+        {
+          "name": "PostgreSQL",
+          "required": true,
+          "description": "Durable queue storage and advisory-lock coordination."
+        }
+      ],
+      "summary": "Typed PostgreSQL-backed jobs with routing-safe transactional enqueue, native attempt context, explicit process roles/schema migration, and a standalone worker.",
+      "scripts": [
+        "jobs:worker",
+        "jobs:migrate",
+        "jobs:doctor",
+        "jobs:smoke"
+      ],
+      "environmentVariables": [
+        {
+          "name": "PGBOSS_DATABASE_URL",
+          "required": false,
+          "description": "Optional jobs-specific PostgreSQL URL; falls back to DATABASE_URL."
+        },
+        {
+          "name": "PGBOSS_SCHEMA",
+          "required": false,
+          "default": "pgboss",
+          "description": "Dedicated pg-boss schema."
+        },
+        {
+          "name": "PGBOSS_USE_LISTEN_NOTIFY",
+          "required": false,
+          "default": "false",
+          "description": "Opt-in LISTEN/NOTIFY wakeups with polling fallback."
+        },
+        {
+          "name": "JOBS_CONCURRENCY",
+          "required": false,
+          "default": "4",
+          "description": "Per-queue local worker concurrency; integer 1–100."
+        }
+      ],
+      "migrations": [
+        "bun run jobs:migrate"
+      ],
+      "runtimeServices": [
+        {
+          "id": "worker",
+          "type": "process",
+          "command": "bun run jobs:worker",
+          "description": "Long-lived standalone job consumer."
+        },
+        {
+          "id": "jobs-migrate",
+          "type": "one-shot-job",
+          "command": "bun run jobs:migrate",
+          "description": "Explicit pg-boss schema installation and upgrade gate."
+        },
+        {
+          "id": "compose-worker",
+          "type": "compose-service",
+          "command": "docker compose up -d worker",
+          "description": "Production worker using the application image revision."
+        }
+      ],
+      "documentationPath": "capabilities/jobs/CAPABILITY.md",
+      "agentSkill": ".agents/skills/jobs-change/SKILL.md",
+      "evaluationDocument": "JOBS_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "postgres-jobs",
+        "sourceDirectory": "capabilities/jobs/.add-on",
+        "manifestPath": "capabilities/jobs/.add-on/info.json",
+        "distributablePath": "capabilities/jobs/add-on.json",
+        "cleanInstallFixture": "capabilities/jobs/test/clean-install.json",
+        "dependsOn": [
+          "drizzle"
+        ],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "api-platform",
+      "displayName": "API Platform / Machine Auth / OpenAPI",
+      "kind": "foundational-backend",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "audit-log",
+        "observability",
+        "authorization",
+        "organizations"
+      ],
+      "baselineRequirements": [
+        "authentication",
+        "postgresql",
+        "drizzle",
+        "node-runtime"
+      ],
+      "externalRequirements": [],
+      "summary": "User-owned machine credentials, typed permissions, native API route conventions, generated OpenAPI 3.1.1, and Scalar documentation.",
+      "scripts": [
+        "api-platform:smoke"
+      ],
+      "environmentVariables": [
+        {
+          "name": "DATABASE_URL",
+          "required": true,
+          "description": "PostgreSQL connection used by Drizzle and Better Auth."
+        },
+        {
+          "name": "BETTER_AUTH_SECRET",
+          "required": true,
+          "description": "Better Auth signing secret with at least 32 characters."
+        },
+        {
+          "name": "APP_BASE_URL",
+          "required": true,
+          "description": "Public application and Better Auth base URL."
+        }
+      ],
+      "migrations": [
+        "bun run db:migrate"
+      ],
+      "documentationPath": "capabilities/api-platform/CAPABILITY.md",
+      "agentSkill": ".agents/skills/api-contract-change/SKILL.md",
+      "evaluationDocument": "API_PLATFORM_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "api-platform",
+        "sourceDirectory": "capabilities/api-platform/.add-on",
+        "manifestPath": "capabilities/api-platform/.add-on/info.json",
+        "distributablePath": "capabilities/api-platform/add-on.json",
+        "cleanInstallFixture": "capabilities/api-platform/test/clean-install.json",
+        "dependsOn": [
+          "better-auth",
+          "drizzle"
+        ],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "observability",
+      "displayName": "Observability",
+      "kind": "foundational-backend",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "jobs",
+        "api-platform",
+        "object-storage",
+        "email",
+        "webhooks",
+        "audit-log",
+        "ai",
+        "cache-coordination",
+        "search",
+        "realtime",
+        "notifications",
+        "import-export",
+        "organizations",
+        "authorization",
+        "feature-flags",
+        "invoice-ninja",
+        "stripe",
+        "medusa",
+        "ops-admin"
+      ],
+      "baselineRequirements": [
+        "tanstack-start",
+        "node-runtime"
+      ],
+      "externalRequirements": [
+        {
+          "name": "OTLP destination",
+          "required": false,
+          "description": "Optional external telemetry collector or backend."
+        }
+      ],
+      "summary": "Safe Pino logs, isolated request correlation, explicit server traces/metrics, optional OTLP export, and build/health metadata.",
+      "scripts": [
+        "observability:smoke"
+      ],
+      "environmentVariables": [
+        {
+          "name": "OTEL_SERVICE_NAME",
+          "required": false,
+          "description": "Safe service name."
+        },
+        {
+          "name": "OTEL_SDK_DISABLED",
+          "required": false,
+          "default": "false",
+          "description": "Disable recording/export while retaining logs and context."
+        },
+        {
+          "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+          "required": false,
+          "description": "Explicit optional OTLP/HTTP base endpoint."
+        },
+        {
+          "name": "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+          "required": false,
+          "description": "Optional full trace endpoint."
+        },
+        {
+          "name": "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+          "required": false,
+          "description": "Optional full metric endpoint."
+        },
+        {
+          "name": "OTEL_EXPORTER_OTLP_HEADERS",
+          "required": false,
+          "description": "Collector credentials; never log."
+        },
+        {
+          "name": "OTEL_TRACES_EXPORTER",
+          "required": false,
+          "description": "otlp or none; no endpoint means no export."
+        },
+        {
+          "name": "OTEL_METRICS_EXPORTER",
+          "required": false,
+          "description": "Independent otlp or none metric export."
+        },
+        {
+          "name": "OTEL_RESOURCE_ATTRIBUTES",
+          "required": false,
+          "description": "Safe standard resource attributes."
+        },
+        {
+          "name": "APP_VERSION",
+          "required": false,
+          "description": "Application version."
+        },
+        {
+          "name": "APP_REVISION",
+          "required": false,
+          "description": "Deployment-supplied revision."
+        },
+        {
+          "name": "DEPLOYMENT_ENVIRONMENT",
+          "required": false,
+          "description": "Deployment environment name."
+        },
+        {
+          "name": "LOG_LEVEL",
+          "required": false,
+          "default": "info",
+          "description": "Pino logging level."
+        },
+        {
+          "name": "LOG_REDACT_FIELDS",
+          "required": false,
+          "description": "Additional trusted sensitive field names."
+        }
+      ],
+      "migrations": [],
+      "runtimeServices": [],
+      "documentationPath": "capabilities/observability/CAPABILITY.md",
+      "agentSkill": ".agents/skills/observability-change/SKILL.md",
+      "evaluationDocument": "OBSERVABILITY_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "observability",
+        "sourceDirectory": "capabilities/observability/.add-on",
+        "manifestPath": "capabilities/observability/.add-on/info.json",
+        "distributablePath": "capabilities/observability/add-on.json",
+        "cleanInstallFixture": "capabilities/observability/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "object-storage",
+      "displayName": "Object Storage",
+      "kind": "foundational-backend",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "jobs",
+        "observability"
+      ],
+      "baselineRequirements": [
+        "node-runtime"
+      ],
+      "externalRequirements": [
+        {
+          "name": "S3-compatible storage",
+          "required": true,
+          "description": "Required only when actively used; tested RustFS 1.0.0 preferred, Garage 2.4.1 supported with optional third-party Noooste Garage UI 0.13.0."
+        }
+      ],
+      "summary": "Private server S3 primitives, streaming, bounded signed PUT/GET, multipart, and post-upload verification; no persistence or auth dependency.",
+      "scripts": [
+        "storage:check",
+        "storage:smoke",
+        "storage:unit",
+        "storage:compat",
+        "storage:bootstrap",
+        "storage:dev:rustfs",
+        "storage:dev:garage",
+        "storage:dev:down"
+      ],
+      "environmentVariables": [
+        {
+          "name": "STORAGE_BUCKET",
+          "required": true,
+          "description": "Required lazily when actively used, not for build/start."
+        },
+        {
+          "name": "STORAGE_REGION",
+          "required": false,
+          "description": "STORAGE_REGION then AWS_REGION then AWS_DEFAULT_REGION, otherwise error; no implicit default."
+        },
+        {
+          "name": "STORAGE_ENDPOINT",
+          "required": false,
+          "description": "Optional custom S3 origin; absent uses AWS endpoint resolution."
+        },
+        {
+          "name": "STORAGE_ACCESS_KEY_ID",
+          "required": false,
+          "description": "Optional complete explicit pair; absent uses SDK credential chain."
+        },
+        {
+          "name": "STORAGE_SECRET_ACCESS_KEY",
+          "required": false,
+          "description": "Explicit secret paired with access ID; never log."
+        },
+        {
+          "name": "STORAGE_SESSION_TOKEN",
+          "required": false,
+          "description": "Optional temporary credential token."
+        },
+        {
+          "name": "STORAGE_FORCE_PATH_STYLE",
+          "required": false,
+          "description": "true/false; custom endpoint defaults true, AWS false."
+        },
+        {
+          "name": "STORAGE_PRESIGN_TTL_SECONDS",
+          "required": false,
+          "default": "600",
+          "description": "Bounded integer 30–3600."
+        },
+        {
+          "name": "STORAGE_KEY_PREFIX",
+          "required": false,
+          "description": "Optional normalized, enforced key prefix."
+        }
+      ],
+      "migrations": [],
+      "runtimeServices": [
+        {
+          "id": "rustfs",
+          "type": "compose-service",
+          "description": "Optional preferred local single-node S3 target."
+        },
+        {
+          "id": "garage",
+          "type": "compose-service",
+          "description": "Optional alternate local single-node S3 target."
+        },
+        {
+          "id": "garage-ui",
+          "type": "compose-service",
+          "description": "Optional third-party local admin UI; not required for Storage."
+        }
+      ],
+      "documentationPath": "capabilities/object-storage/CAPABILITY.md",
+      "agentSkill": ".agents/skills/storage-change/SKILL.md",
+      "evaluationDocument": "OBJECT_STORAGE_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "object-storage",
+        "sourceDirectory": "capabilities/object-storage/.add-on",
+        "manifestPath": "capabilities/object-storage/.add-on/info.json",
+        "distributablePath": "capabilities/object-storage/add-on.json",
+        "cleanInstallFixture": "capabilities/object-storage/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "email",
+      "displayName": "Email",
+      "kind": "foundational-backend",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "jobs",
+        "observability"
+      ],
+      "baselineRequirements": [
+        "node-runtime"
+      ],
+      "baselineIntegrations": [
+        "authentication"
+      ],
+      "externalRequirements": [
+        {
+          "name": "SMTP",
+          "required": true,
+          "description": "Required only when sending/verifying; provider-neutral SMTP with no provider SDK."
+        },
+        {
+          "name": "Mailpit",
+          "required": false,
+          "description": "Recommended local-development SMTP capture service."
+        }
+      ],
+      "summary": "SMTP-first transactional email and Better Auth magic-link delivery.",
+      "scripts": [
+        "email:check",
+        "email:smoke",
+        "email:unit",
+        "email:compat",
+        "email:dev:mailpit",
+        "email:dev:down"
+      ],
+      "environmentVariables": [
+        {
+          "name": "SMTP_HOST",
+          "required": false,
+          "description": "Required lazily when used; SMTP hostname, not URL."
+        },
+        {
+          "name": "SMTP_PORT",
+          "required": false,
+          "description": "Explicit integer 1–65535."
+        },
+        {
+          "name": "SMTP_SECURITY",
+          "required": false,
+          "description": "Explicit tls/starttls/opportunistic; no port inference."
+        },
+        {
+          "name": "SMTP_USER",
+          "required": false,
+          "description": "Optional complete auth pair; server-only."
+        },
+        {
+          "name": "SMTP_PASSWORD",
+          "required": false,
+          "description": "Secret paired with SMTP_USER; never log."
+        },
+        {
+          "name": "EMAIL_FROM_ADDRESS",
+          "required": false,
+          "description": "Fixed sender required when used."
+        },
+        {
+          "name": "EMAIL_FROM_NAME",
+          "required": false,
+          "description": "Optional fixed sender name."
+        },
+        {
+          "name": "EMAIL_REPLY_TO_ADDRESS",
+          "required": false,
+          "description": "Optional default reply-to."
+        },
+        {
+          "name": "EMAIL_REPLY_TO_NAME",
+          "required": false,
+          "description": "Optional name requires reply-to address."
+        },
+        {
+          "name": "EMAIL_MAX_RECIPIENTS",
+          "required": false,
+          "description": "Integer 1–100 across To/Cc/Bcc, default 50.",
+          "default": "50"
+        }
+      ],
+      "migrations": [],
+      "runtimeServices": [
+        {
+          "id": "mailpit",
+          "type": "compose-service",
+          "description": "Optional loopback-only temporary SMTP capture; never forwards."
+        }
+      ],
+      "documentationPath": "capabilities/email/CAPABILITY.md",
+      "agentSkill": ".agents/skills/email-change/SKILL.md",
+      "evaluationDocument": "EMAIL_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "email",
+        "sourceDirectory": "capabilities/email/.add-on",
+        "manifestPath": "capabilities/email/.add-on/info.json",
+        "distributablePath": "capabilities/email/add-on.json",
+        "cleanInstallFixture": "capabilities/email/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "webhooks",
+      "displayName": "Webhooks",
+      "kind": "foundational-backend",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [
+        "jobs"
+      ],
+      "integratesWith": [
+        "audit-log",
+        "observability",
+        "api-platform"
+      ],
+      "baselineRequirements": [
+        "node-runtime"
+      ],
+      "externalRequirements": [
+        {
+          "name": "Remote webhook endpoints",
+          "required": true,
+          "description": "Inbound senders and outbound consumers configured by an application."
+        }
+      ],
+      "summary": "Standard Webhooks signed raw-byte verification and stable Jobs-backed delivery with application-owned targets and idempotency.",
+      "scripts": [
+        "webhooks:unit",
+        "webhooks:smoke"
+      ],
+      "environmentVariables": [
+        {
+          "name": "WEBHOOK_REFERENCE_URL",
+          "required": false,
+          "description": "Application-owned HTTPS reference target, resolved only on explicit delivery."
+        },
+        {
+          "name": "WEBHOOK_REFERENCE_SECRET",
+          "required": false,
+          "description": "Application-owned primary Standard Webhooks whsec_ secret; never queued."
+        }
+      ],
+      "migrations": [],
+      "runtimeServices": [],
+      "documentationPath": "capabilities/webhooks/CAPABILITY.md",
+      "agentSkill": ".agents/skills/webhooks-change/SKILL.md",
+      "evaluationDocument": "WEBHOOKS_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "webhooks",
+        "sourceDirectory": "capabilities/webhooks/.add-on",
+        "manifestPath": "capabilities/webhooks/.add-on/info.json",
+        "distributablePath": "capabilities/webhooks/add-on.json",
+        "cleanInstallFixture": "capabilities/webhooks/test/clean-install.json",
+        "dependsOn": [
+          "postgres-jobs"
+        ],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "audit-log",
+      "displayName": "Audit Log",
+      "kind": "foundational-backend",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "api-platform",
+        "organizations",
+        "jobs",
+        "invoice-ninja",
+        "stripe",
+        "medusa"
+      ],
+      "baselineRequirements": [
+        "postgresql",
+        "drizzle"
+      ],
+      "baselineIntegrations": [
+        "authentication"
+      ],
+      "externalRequirements": [
+        {
+          "name": "PostgreSQL",
+          "required": true,
+          "description": "Durable append-oriented audit records."
+        }
+      ],
+      "summary": "Application audit events with actor, subject, action, and context.",
+      "documentationPath": "capabilities/audit-log/CAPABILITY.md",
+      "evaluationDocument": "AUDIT_LOG_MODULE_EVALUATION.md",
+      "agentSkill": ".agents/skills/audit-log-change/SKILL.md",
+      "scripts": [
+        "audit-log:smoke"
+      ],
+      "environmentVariables": [],
+      "runtimeServices": [],
+      "migrations": [
+        "bun run db:migrate"
+      ],
+      "tanstackAddOn": {
+        "addOnId": "audit-log",
+        "sourceDirectory": "capabilities/audit-log/.add-on",
+        "manifestPath": "capabilities/audit-log/.add-on/info.json",
+        "distributablePath": "capabilities/audit-log/add-on.json",
+        "cleanInstallFixture": "capabilities/audit-log/test/clean-install.json",
+        "dependsOn": [
+          "drizzle"
+        ],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "ai",
+      "displayName": "AI",
+      "kind": "foundational-backend",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "jobs",
+        "object-storage",
+        "observability",
+        "audit-log"
+      ],
+      "baselineRequirements": [
+        "node-runtime"
+      ],
+      "externalRequirements": [
+        {
+          "name": "Configured model provider",
+          "required": true,
+          "description": "Required only on an explicit AI operation; no build/start/readiness network access."
+        }
+      ],
+      "summary": "Lazy bounded server-side OpenAI-compatible generation with stop-only structured Zod validation, whole-operation cancellation and safe errors; Bun/Node and production-image fixtures.",
+      "scripts": [
+        "ai:unit",
+        "ai:compat"
+      ],
+      "environmentVariables": [
+        {
+          "name": "AI_PROVIDER",
+          "required": false,
+          "default": "openai-compatible",
+          "description": "Sole accepted v1 provider ID."
+        },
+        {
+          "name": "AI_MODEL",
+          "required": false,
+          "description": "Required lazily on operation; 1–128 printable characters, never inferred."
+        },
+        {
+          "name": "AI_API_KEY",
+          "required": false,
+          "description": "Optional server-only authentication; never log."
+        },
+        {
+          "name": "AI_BASE_URL",
+          "required": false,
+          "description": "Optional HTTPS compatible endpoint; loopback HTTP only explicit development/test."
+        },
+        {
+          "name": "AI_TIMEOUT_SECONDS",
+          "required": false,
+          "default": "60",
+          "description": "Complete request deadline; integer seconds 1–300."
+        }
+      ],
+      "migrations": [],
+      "runtimeServices": [],
+      "documentationPath": "capabilities/ai/CAPABILITY.md",
+      "agentSkill": ".agents/skills/ai-change/SKILL.md",
+      "evaluationDocument": "AI_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "ai",
+        "sourceDirectory": "capabilities/ai/.add-on",
+        "manifestPath": "capabilities/ai/.add-on/info.json",
+        "distributablePath": "capabilities/ai/add-on.json",
+        "cleanInstallFixture": "capabilities/ai/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "cache-coordination",
+      "displayName": "Cache / Coordination",
+      "kind": "application-infrastructure",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "realtime",
+        "api-platform",
+        "jobs",
+        "observability"
+      ],
+      "baselineRequirements": [
+        "node-runtime"
+      ],
+      "externalRequirements": [
+        {
+          "name": "Valkey/Redis-compatible service",
+          "required": true,
+          "description": "Only required on first use; tested Valkey 9.1.2, common Redis protocol subset."
+        }
+      ],
+      "summary": "Ephemeral server-only cache, atomic counters, advisory token-checked leases and pub/sub; tested on Valkey.",
+      "scripts": [
+        "cache:check",
+        "cache:smoke",
+        "cache:unit",
+        "cache:compat",
+        "cache:dev:valkey",
+        "cache:dev:down"
+      ],
+      "environmentVariables": [
+        {
+          "name": "CACHE_URL",
+          "required": false,
+          "description": "Server-only redis/rediss URL; required lazily on use; may contain credentials; never log."
+        },
+        {
+          "name": "CACHE_KEY_PREFIX",
+          "required": false,
+          "description": "1–128 ASCII alphanumeric/underscore/hyphen, starts alphanumeric.",
+          "default": "app"
+        },
+        {
+          "name": "CACHE_DEFAULT_TTL_SECONDS",
+          "required": false,
+          "description": "Integer 1–86400.",
+          "default": "300"
+        },
+        {
+          "name": "CACHE_MAX_VALUE_BYTES",
+          "required": false,
+          "description": "Integer 1–1048576; encoded values/messages.",
+          "default": "1048576"
+        }
+      ],
+      "migrations": [],
+      "runtimeServices": [
+        {
+          "id": "cache-valkey",
+          "type": "compose-service",
+          "command": "bun run cache:dev:valkey",
+          "description": "Optional loopback ephemeral Valkey; separate Compose, no persistence."
+        }
+      ],
+      "documentationPath": "capabilities/cache-coordination/CAPABILITY.md",
+      "agentSkill": ".agents/skills/cache-change/SKILL.md",
+      "evaluationDocument": "CACHE_COORDINATION_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "cache-coordination",
+        "sourceDirectory": "capabilities/cache-coordination/.add-on",
+        "manifestPath": "capabilities/cache-coordination/.add-on/info.json",
+        "distributablePath": "capabilities/cache-coordination/add-on.json",
+        "cleanInstallFixture": "capabilities/cache-coordination/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "search",
+      "displayName": "Search",
+      "kind": "application-infrastructure",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "jobs",
+        "object-storage",
+        "organizations"
+      ],
+      "baselineRequirements": [
+        "postgresql",
+        "drizzle"
+      ],
+      "externalRequirements": [
+        {
+          "name": "PostgreSQL",
+          "required": true,
+          "description": "Built-in full-text search only; no separate service."
+        }
+      ],
+      "summary": "PostgreSQL-native application-owned FTS with safe query and canonical numeric-float4 keysets preserving microseconds and opaque IDs.",
+      "documentationPath": "capabilities/search/CAPABILITY.md",
+      "evaluationDocument": "SEARCH_MODULE_EVALUATION.md",
+      "agentSkill": ".agents/skills/search-change/SKILL.md",
+      "scripts": [
+        "search:smoke"
+      ],
+      "environmentVariables": [],
+      "runtimeServices": [],
+      "migrations": [
+        "bun run db:migrate"
+      ],
+      "tanstackAddOn": {
+        "addOnId": "search",
+        "sourceDirectory": "capabilities/search/.add-on",
+        "manifestPath": "capabilities/search/.add-on/info.json",
+        "distributablePath": "capabilities/search/add-on.json",
+        "cleanInstallFixture": "capabilities/search/test/clean-install.json",
+        "dependsOn": [
+          "drizzle"
+        ],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "realtime",
+      "displayName": "Realtime",
+      "kind": "application-infrastructure",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "cache-coordination",
+        "notifications",
+        "observability"
+      ],
+      "baselineRequirements": [
+        "node-runtime"
+      ],
+      "externalRequirements": [],
+      "summary": "Authenticated server-to-client updates with no external service initially.",
+      "baselineIntegrations": [
+        "authentication"
+      ],
+      "documentationPath": "capabilities/realtime/CAPABILITY.md",
+      "evaluationDocument": "REALTIME_MODULE_EVALUATION.md",
+      "agentSkill": ".agents/skills/realtime-change/SKILL.md",
+      "scripts": [
+        "realtime:unit",
+        "realtime:transport"
+      ],
+      "environmentVariables": [
+        {
+          "name": "REALTIME_TRANSPORTS",
+          "default": "sse",
+          "description": "Server-only sse/websocket/sse,websocket; no duplicates.",
+          "required": false
+        }
+      ],
+      "runtimeServices": [],
+      "migrations": [],
+      "tanstackAddOn": {
+        "addOnId": "realtime",
+        "sourceDirectory": "capabilities/realtime/.add-on",
+        "manifestPath": "capabilities/realtime/.add-on/info.json",
+        "distributablePath": "capabilities/realtime/add-on.json",
+        "cleanInstallFixture": "capabilities/realtime/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "notifications",
+      "displayName": "Notifications",
+      "kind": "application-infrastructure",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [
+        "jobs"
+      ],
+      "integratesWith": [
+        "email",
+        "realtime",
+        "audit-log",
+        "observability"
+      ],
+      "baselineRequirements": [
+        "postgresql",
+        "drizzle"
+      ],
+      "externalRequirements": [
+        {
+          "name": "ntfy",
+          "required": false,
+          "description": "Optional application-resolved HTTP delivery."
+        }
+      ],
+      "summary": "Durable multi-channel notification orchestration with optional delivery integrations.",
+      "baselineIntegrations": [
+        "authentication"
+      ],
+      "documentationPath": "capabilities/notifications/CAPABILITY.md",
+      "evaluationDocument": "NOTIFICATIONS_MODULE_EVALUATION.md",
+      "agentSkill": ".agents/skills/notifications-change/SKILL.md",
+      "scripts": [
+        "notifications:unit",
+        "notifications:smoke",
+        "notifications:compat"
+      ],
+      "environmentVariables": [
+        {
+          "name": "NTFY_BASE_URL",
+          "description": "Optional lazy ntfy server HTTPS URL; no public default.",
+          "required": false
+        },
+        {
+          "name": "NTFY_TOKEN",
+          "description": "Optional private ntfy token resolved at execution.",
+          "required": false
+        },
+        {
+          "name": "NTFY_TIMEOUT_SECONDS",
+          "default": "10",
+          "description": "Integer 1–30 seconds.",
+          "required": false
+        }
+      ],
+      "runtimeServices": [],
+      "migrations": [
+        "bun run db:migrate",
+        "bun run jobs:migrate"
+      ],
+      "tanstackAddOn": {
+        "addOnId": "notifications",
+        "sourceDirectory": "capabilities/notifications/.add-on",
+        "manifestPath": "capabilities/notifications/.add-on/info.json",
+        "distributablePath": "capabilities/notifications/add-on.json",
+        "cleanInstallFixture": "capabilities/notifications/test/clean-install.json",
+        "dependsOn": [
+          "postgres-jobs"
+        ],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "import-export",
+      "displayName": "Import / Export",
+      "kind": "application-infrastructure",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [
+        "jobs",
+        "object-storage"
+      ],
+      "integratesWith": [
+        "notifications",
+        "audit-log"
+      ],
+      "baselineRequirements": [
+        "postgresql",
+        "drizzle",
+        "node-runtime"
+      ],
+      "baselineIntegrations": [
+        "authentication"
+      ],
+      "externalRequirements": [],
+      "summary": "Asynchronous bulk data ingestion and export backed by durable jobs and objects.",
+      "documentationPath": "capabilities/import-export/CAPABILITY.md",
+      "evaluationDocument": "IMPORT_EXPORT_MODULE_EVALUATION.md",
+      "agentSkill": ".agents/skills/import-export-change/SKILL.md",
+      "scripts": [
+        "import-export:unit",
+        "import-export:compat",
+        "import-export:operator"
+      ],
+      "migrations": [
+        "bun run db:migrate"
+      ],
+      "runtimeServices": [],
+      "environmentVariables": [
+        {
+          "name": "IMPORT_EXPORT_MAX_BYTES",
+          "required": false,
+          "default": "16777216",
+          "description": "Integer1024–67108864; bounded input/output bytes."
+        },
+        {
+          "name": "IMPORT_EXPORT_MAX_ROWS",
+          "required": false,
+          "default": "10000",
+          "description": "Integer1–100000."
+        },
+        {
+          "name": "IMPORT_EXPORT_TIMEOUT_SECONDS",
+          "required": false,
+          "default": "60",
+          "description": "Integer5–300; entire attempt deadline."
+        },
+        {
+          "name": "IMPORT_EXPORT_ARTIFACT_TTL_SECONDS",
+          "required": false,
+          "default": "86400",
+          "description": "Integer300–604800; expiry denies access without physical deletion."
+        }
+      ],
+      "tanstackAddOn": {
+        "addOnId": "import-export",
+        "sourceDirectory": "capabilities/import-export/.add-on",
+        "manifestPath": "capabilities/import-export/.add-on/info.json",
+        "distributablePath": "capabilities/import-export/add-on.json",
+        "cleanInstallFixture": "capabilities/import-export/test/clean-install.json",
+        "dependsOn": [
+          "postgres-jobs",
+          "object-storage"
+        ],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "organizations",
+      "displayName": "Organizations / Tenancy",
+      "kind": "identity-policy",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "audit-log",
+        "notifications"
+      ],
+      "baselineRequirements": [
+        "authentication",
+        "postgresql"
+      ],
+      "externalRequirements": [
+        {
+          "name": "PostgreSQL",
+          "required": true,
+          "description": "Tenant membership and boundary persistence."
+        }
+      ],
+      "summary": "Organization membership, tenant context, and isolation conventions on starter authentication."
+    },
+    {
+      "id": "authorization",
+      "displayName": "Authorization",
+      "kind": "identity-policy",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "organizations",
+        "api-platform",
+        "audit-log"
+      ],
+      "baselineRequirements": [
+        "authentication",
+        "postgresql"
+      ],
+      "externalRequirements": [
+        {
+          "name": "PostgreSQL",
+          "required": true,
+          "description": "Policy assignments and application authorization data."
+        }
+      ],
+      "summary": "Application policy and permission primitives layered on authenticated identity."
+    },
+    {
+      "id": "feature-flags",
+      "displayName": "Feature Flags",
+      "kind": "identity-policy",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "organizations",
+        "authorization",
+        "audit-log"
+      ],
+      "baselineRequirements": [
+        "postgresql"
+      ],
+      "externalRequirements": [
+        {
+          "name": "PostgreSQL",
+          "required": true,
+          "description": "Flag definitions, targeting, and evaluation state."
+        }
+      ],
+      "summary": "Database-backed release and targeting controls without a required SaaS provider."
+    },
+    {
+      "id": "invoice-ninja",
+      "displayName": "Invoice Ninja",
+      "kind": "business-integration",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [
+        "jobs",
+        "webhooks"
+      ],
+      "integratesWith": [
+        "organizations",
+        "audit-log",
+        "notifications"
+      ],
+      "baselineRequirements": [
+        "postgresql",
+        "drizzle",
+        "node-runtime"
+      ],
+      "externalRequirements": [
+        {
+          "name": "Invoice Ninja",
+          "required": true,
+          "description": "Invoice Ninja instance and API credentials."
+        }
+      ],
+      "summary": "Durable Invoice Ninja synchronization and webhook integration.",
+      "documentationPath": "capabilities/invoice-ninja/CAPABILITY.md",
+      "evaluationDocument": "INVOICE_NINJA_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "invoice-ninja",
+        "sourceDirectory": "capabilities/invoice-ninja/.add-on",
+        "manifestPath": "capabilities/invoice-ninja/.add-on/info.json",
+        "distributablePath": "capabilities/invoice-ninja/add-on.json",
+        "cleanInstallFixture": "capabilities/invoice-ninja/test/clean-install.json",
+        "dependsOn": [
+          "postgres-jobs",
+          "webhooks"
+        ],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "stripe",
+      "displayName": "Stripe",
+      "kind": "business-integration",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [
+        "jobs",
+        "webhooks"
+      ],
+      "integratesWith": [
+        "organizations",
+        "authorization",
+        "audit-log",
+        "notifications"
+      ],
+      "baselineRequirements": [],
+      "externalRequirements": [
+        {
+          "name": "Stripe",
+          "required": true,
+          "description": "Stripe account, API credentials, and webhook endpoint."
+        }
+      ],
+      "documentationPath": "capabilities/stripe/CAPABILITY.md",
+      "evaluationDocument": "STRIPE_MODULE_EVALUATION.md",
+      "scripts": [
+        "stripe:unit",
+        "stripe:durable"
+      ],
+      "migrations": [
+        "bun run db:migrate",
+        "bun run jobs:migrate"
+      ],
+      "runtimeServices": [],
+      "environmentVariables": [
+        {
+          "name": "STRIPE_SECRET_KEY",
+          "required": false,
+          "description": "Server-only secret/restricted key validated on use; test mode by default."
+        },
+        {
+          "name": "STRIPE_ACCOUNT_ID",
+          "required": false,
+          "description": "Explicit expected single account, required on operation use."
+        },
+        {
+          "name": "STRIPE_MODE",
+          "required": false,
+          "default": "test",
+          "description": "Explicit server deployment assignment; test or live."
+        },
+        {
+          "name": "STRIPE_WEBHOOK_SECRET",
+          "required": false,
+          "description": "Native callback endpoint secret, required for receiver use."
+        },
+        {
+          "name": "STRIPE_WEBHOOK_SECRET_PREVIOUS",
+          "required": false,
+          "description": "Optional previous native callback secret for rotation."
+        }
+      ],
+      "tanstackAddOn": {
+        "addOnId": "stripe",
+        "sourceDirectory": "capabilities/stripe/.add-on",
+        "manifestPath": "capabilities/stripe/.add-on/info.json",
+        "distributablePath": "capabilities/stripe/add-on.json",
+        "cleanInstallFixture": "capabilities/stripe/test/clean-install.json",
+        "dependsOn": [
+          "postgres-jobs",
+          "webhooks"
+        ],
+        "conflictsWith": []
+      },
+      "summary": "Hosted one-time Checkout and scoped durable reconciliation."
+    },
+    {
+      "id": "medusa",
+      "displayName": "Medusa",
+      "kind": "business-integration",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [
+        "jobs",
+        "webhooks"
+      ],
+      "integratesWith": [
+        "object-storage",
+        "organizations",
+        "search"
+      ],
+      "baselineRequirements": [
+        "postgresql",
+        "drizzle",
+        "node-runtime"
+      ],
+      "externalRequirements": [
+        {
+          "name": "Medusa",
+          "required": true,
+          "description": "Medusa commerce backend and credentials."
+        }
+      ],
+      "summary": "Medusa commerce synchronization using reliable background and webhook processing.",
+      "scripts": [
+        "medusa:unit",
+        "medusa:smoke",
+        "medusa:compat"
+      ],
+      "environmentVariables": [
+        {
+          "name": "MEDUSA_BASE_URL",
+          "description": "Optional Medusa HTTPS origin resolved only on explicit use.",
+          "required": false
+        },
+        {
+          "name": "MEDUSA_SECRET_API_KEY",
+          "description": "Private lazy server configuration; never queued.",
+          "required": false
+        },
+        {
+          "name": "MEDUSA_BRIDGE_WEBHOOK_SECRET",
+          "description": "Private lazy server configuration; never queued.",
+          "required": false
+        },
+        {
+          "name": "MEDUSA_BRIDGE_WEBHOOK_SECRET_PREVIOUS",
+          "description": "Private lazy server configuration; never queued.",
+          "required": false
+        }
+      ],
+      "migrations": [
+        "bun run db:migrate"
+      ],
+      "documentationPath": "capabilities/medusa/CAPABILITY.md",
+      "agentSkill": ".agents/skills/capability-change/SKILL.md",
+      "evaluationDocument": "MEDUSA_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "medusa",
+        "sourceDirectory": "capabilities/medusa/.add-on",
+        "manifestPath": "capabilities/medusa/.add-on/info.json",
+        "distributablePath": "capabilities/medusa/add-on.json",
+        "cleanInstallFixture": "capabilities/medusa/test/clean-install.json",
+        "dependsOn": [
+          "postgres-jobs",
+          "webhooks"
+        ],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "ops-admin",
+      "displayName": "Ops / Admin",
+      "kind": "operations-ui-infrastructure",
+      "status": "done",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "observability",
+        "jobs",
+        "audit-log",
+        "object-storage",
+        "cache-coordination",
+        "webhooks"
+      ],
+      "baselineRequirements": [
+        "authentication",
+        "node-runtime"
+      ],
+      "externalRequirements": [],
+      "summary": "Authenticated operational surfaces assembled from installed capability adapters.",
+      "documentationPath": "capabilities/ops-admin/CAPABILITY.md",
+      "evaluationDocument": "OPS_ADMIN_MODULE_EVALUATION.md",
+      "scripts": [
+        "ops:unit"
+      ],
+      "environmentVariables": [
+        {
+          "name": "OPS_ADMIN_USER_IDS",
+          "required": false,
+          "default": "",
+          "description": "Privileged server-only platform-wide operator IDs; empty denies all."
+        }
+      ],
+      "migrations": [],
+      "runtimeServices": [],
+      "tanstackAddOn": {
+        "addOnId": "ops-admin",
+        "sourceDirectory": "capabilities/ops-admin/.add-on",
+        "manifestPath": "capabilities/ops-admin/.add-on/info.json",
+        "distributablePath": "capabilities/ops-admin/add-on.json",
+        "cleanInstallFixture": "capabilities/ops-admin/test/clean-install.json",
+        "dependsOn": [
+          "better-auth",
+          "drizzle"
+        ],
+        "conflictsWith": []
+      }
+    },
+    {
+      "id": "command-system",
+      "displayName": "Command System",
+      "kind": "operations-ui-infrastructure",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "search",
+        "authorization"
+      ],
+      "baselineRequirements": [],
+      "externalRequirements": [],
+      "summary": "Accessible application commands, shortcuts, and command palette conventions."
+    },
+    {
+      "id": "data-table",
+      "displayName": "Data Table",
+      "kind": "operations-ui-infrastructure",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "search",
+        "organizations",
+        "authorization"
+      ],
+      "baselineRequirements": [],
+      "externalRequirements": [],
+      "summary": "Reusable high-density data browsing, filtering, sorting, and selection UI."
+    },
+    {
+      "id": "markdown-code",
+      "displayName": "Markdown / Code Content",
+      "kind": "operations-ui-infrastructure",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "object-storage",
+        "ai"
+      ],
+      "baselineRequirements": [],
+      "externalRequirements": [],
+      "summary": "Safe Markdown and highlighted code rendering and authoring primitives."
+    },
+    {
+      "id": "charts-visualization",
+      "displayName": "Charts / Visualization",
+      "kind": "operations-ui-infrastructure",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "data-table",
+        "realtime"
+      ],
+      "baselineRequirements": [],
+      "externalRequirements": [],
+      "summary": "Accessible application charts and reusable visualization conventions."
+    },
+    {
+      "id": "file-ui",
+      "displayName": "File UI",
+      "kind": "operations-ui-infrastructure",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [
+        "object-storage"
+      ],
+      "integratesWith": [
+        "jobs",
+        "search"
+      ],
+      "baselineRequirements": [],
+      "externalRequirements": [],
+      "summary": "Upload, browse, preview, and manage object-backed files."
+    },
+    {
+      "id": "rich-text",
+      "displayName": "Rich Text / Tiptap",
+      "kind": "operations-ui-infrastructure",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "object-storage",
+        "markdown-code",
+        "realtime",
+        "organizations"
+      ],
+      "baselineRequirements": [],
+      "externalRequirements": [],
+      "summary": "Structured rich-text editing, with Tiptap evaluated as the primary TanStack-repo option."
+    },
+    {
+      "id": "flow-canvas",
+      "displayName": "Flow / Canvas",
+      "kind": "operations-ui-infrastructure",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "realtime",
+        "object-storage",
+        "audit-log"
+      ],
+      "baselineRequirements": [],
+      "externalRequirements": [],
+      "summary": "Composable node, edge, and spatial workflow interfaces."
+    },
+    {
+      "id": "pwa-offline",
+      "displayName": "PWA / Offline",
+      "kind": "client-platform",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "notifications",
+        "realtime"
+      ],
+      "baselineRequirements": [],
+      "externalRequirements": [],
+      "summary": "Installability, service-worker lifecycle, caching, and offline UX conventions."
+    },
+    {
+      "id": "internationalization",
+      "displayName": "Internationalization",
+      "kind": "client-platform",
+      "status": "planned",
+      "defaultInstalled": false,
+      "requires": [],
+      "integratesWith": [
+        "ops-admin",
+        "command-system",
+        "data-table",
+        "markdown-code",
+        "charts-visualization",
+        "file-ui",
+        "rich-text",
+        "flow-canvas",
+        "pwa-offline"
+      ],
+      "baselineRequirements": [],
+      "externalRequirements": [],
+      "summary": "Locale routing, message formatting, and translation conventions for UI-facing capabilities."
+    }
+  ]
 }

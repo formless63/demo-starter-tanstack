@@ -1,11 +1,20 @@
 import type { z } from "zod";
 import { referenceTransferJobs } from "../../lib/import-export.server";
+import { referenceInvoiceNinjaJobs } from "../../lib/invoice-ninja.server";
+
+import { referenceMedusaJobs } from "../../lib/medusa.server";
 import { referenceNotificationJobs } from "../../lib/notifications.server";
+import { referenceStripeJobs } from "../../lib/stripe.server";
 import { referenceWebhookJobs } from "../../lib/webhooks.server";
 import { handleStarterEcho, starterEchoPayload } from "./tasks/starter-echo";
 import { defineJob } from "./types";
 
 export const jobRegistry = {
+	...referenceInvoiceNinjaJobs,
+
+	...referenceStripeJobs,
+
+	...referenceMedusaJobs,
 	...referenceTransferJobs,
 	...referenceWebhookJobs,
 	...referenceNotificationJobs,
