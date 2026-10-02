@@ -227,10 +227,6 @@ Independent add-on assets overlay only the clean Jobs registry and Drizzle confi
 
 Opt-in Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
 
-Invoice Ninja's current in-progress add-on packages boundary primitives only. Do not use it
-as a completed financial integration. Its foundation removal fixture removes
-`src/integrations/invoice-ninja` and the installed capability documentation while retaining
-Jobs and Webhooks. Once durable runtime assets exist, their handlers must stop before
-removal, and schemas, migrations, bindings, projections, ledger and inbox history must be
-retained. Remote deletion, callback deregistration and credential revocation are separate
-operator actions.
+## Remove Invoice Ninja
+
+Stop/drain its workers and settle or explicitly recover outstanding attempts. Remove `/app/invoices`, Invoice Ninja API routes/navigation, `src/lib/invoice-ninja.server.ts` and its Jobs registry import/spread. Remove provider runtime files and optional environment settings, but retain application-owned schema/validation/error types, all tables/data, applied SQL/journal/history and Jobs/Webhooks. Keep schema declarations in Drizzle until deliberately migrating data ownership. Never delete provider invoices or deregister callbacks as a side effect. See the capability contract for exact limitations.

@@ -14,30 +14,34 @@
     "webhooks"
   ],
   "expectedFiles": [
-    "src/integrations/invoice-ninja/transport.server.ts",
-    "capabilities/invoice-ninja/CAPABILITY.md"
+    "src/integrations/invoice-ninja/service.server.ts",
+    "src/lib/invoice-ninja.server.ts",
+    "drizzle/0009_invoice_ninja_v1.sql"
   ],
   "verificationCommands": [
     [
       "bun",
-      "test",
-      "src/integrations/invoice-ninja"
-    ],
-    [
-      "node",
-      "node_modules/vitest/vitest.mjs",
-      "run",
-      "src/integrations/invoice-ninja/boundary.test.ts"
-    ],
-    [
-      "bun",
-      "run",
-      "build"
-    ],
-    [
-      "bun",
-      "scripts/invoice-ninja-removal-fixture.ts"
+      "scripts/invoice-ninja-clean-fixture.ts"
     ]
   ],
-  "build": true
+  "build": true,
+  "verificationEnvironment": {
+    "DATABASE_URL": "${DATABASE_URL}",
+    "NODE_ENV": "test"
+  },
+  "referenceVerification": {
+    "installedPath": "src/lib/invoice-ninja.server.ts",
+    "commands": [
+      [
+        "bun",
+        "run",
+        "invoice-ninja:unit"
+      ],
+      [
+        "bun",
+        "run",
+        "invoice-ninja:smoke"
+      ]
+    ]
+  }
 }

@@ -806,10 +806,11 @@
 		},
 		{
 			"id": "invoice-ninja", "displayName": "Invoice Ninja", "kind": "business-integration", "status": "in-progress", "defaultInstalled": false,
-			"requires": ["jobs", "webhooks"], "integratesWith": ["organizations", "audit-log", "notifications"], "baselineRequirements": [],
+			"requires": ["jobs", "webhooks"], "integratesWith": ["organizations", "audit-log", "notifications"], "baselineRequirements": ["postgresql", "drizzle", "node-runtime"],
 			"externalRequirements": [{ "name": "Invoice Ninja", "required": true, "description": "Invoice Ninja instance and API credentials." }],
 			"summary": "Durable Invoice Ninja synchronization and webhook integration.",
 			"documentationPath": "capabilities/invoice-ninja/CAPABILITY.md",
+			"evaluationDocument": "INVOICE_NINJA_MODULE_EVALUATION.md",
 			"tanstackAddOn": {"addOnId": "invoice-ninja", "sourceDirectory": "capabilities/invoice-ninja/.add-on", "manifestPath": "capabilities/invoice-ninja/.add-on/info.json", "distributablePath": "capabilities/invoice-ninja/add-on.json", "cleanInstallFixture": "capabilities/invoice-ninja/test/clean-install.json", "dependsOn": ["postgres-jobs", "webhooks"], "conflictsWith": []}
 		},
 		{

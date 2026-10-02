@@ -34,7 +34,7 @@ function InvoiceNinjaPage() {
 	const [key, setKey] = useState("");
 	useEffect(() => () => controller.current?.abort(), []);
 	async function call(action: string, input: unknown) {
-		controller.current?.abort();
+		if (controller.current && !controller.current.signal.aborted) return null;
 		const abort = new AbortController();
 		controller.current = abort;
 		setBusy(true);
@@ -50,6 +50,11 @@ function InvoiceNinjaPage() {
 				},
 			);
 			const value = await response.json();
+			if (abort.signal.aborted) return null;
+			if (response.status === 401 || response.status === 403) {
+				setItems([]);
+				setOperation(null);
+			}
 			if (!response.ok)
 				throw new Error(value.error?.message ?? "Integration unavailable.");
 			return value;
@@ -60,7 +65,10 @@ function InvoiceNinjaPage() {
 				);
 			return null;
 		} finally {
-			if (controller.current === abort) setBusy(false);
+			if (controller.current === abort) {
+				setBusy(false);
+				controller.current = null;
+			}
 		}
 	}
 	async function refresh(next?: string) {

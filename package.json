@@ -91,7 +91,10 @@
     "storage:abort": "bun scripts/storage-abort-fixture.ts",
     "ops:unit": "vitest run src/integrations/ops-admin/ops.test.ts",
     "ops:reference:removal": "bun scripts/ops-reference-removal-fixture.ts",
-    "add-ons:verify:reference": "bun scripts/add-ons.ts verify-reference"
+    "add-ons:verify:reference": "bun scripts/add-ons.ts verify-reference",
+    "invoice-ninja:unit": "bun test src/integrations/invoice-ninja",
+    "invoice-ninja:smoke": "bun scripts/invoice-ninja-database-fixture.ts",
+    "invoice-ninja:compat": "bun scripts/invoice-ninja-provider.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",
