@@ -88,6 +88,9 @@ jobs:
       - run: bun run markdown-code:typecheck
       - run: bun run markdown-code:unit
       - run: bun run markdown-code:dom
+      - run: bun run flow-canvas:typecheck
+      - run: bun run flow-canvas:unit
+      - run: bun run flow-canvas:dom
       - run: bun run project:check
       - run: bun run project:status
       - run: bun run theme:check

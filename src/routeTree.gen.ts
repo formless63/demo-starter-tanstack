@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as ChartsTestRouteImport } from './routes/charts-test'
+import { Route as FlowTestRouteImport } from './routes/flow-test'
 import { Route as MarkdownTestRouteImport } from './routes/markdown-test'
 import { Route as AdminOpsRouteImport } from './routes/admin.ops'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
@@ -47,6 +48,11 @@ const AppRoute = AppRouteImport.update({
 const ChartsTestRoute = ChartsTestRouteImport.update({
   id: '/charts-test',
   path: '/charts-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FlowTestRoute = FlowTestRouteImport.update({
+  id: '/flow-test',
+  path: '/flow-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MarkdownTestRoute = MarkdownTestRouteImport.update({
@@ -164,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/flow-test': typeof FlowTestRoute
   '/markdown-test': typeof MarkdownTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
@@ -190,6 +197,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/flow-test': typeof FlowTestRoute
   '/markdown-test': typeof MarkdownTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/flow-test': typeof FlowTestRoute
   '/markdown-test': typeof MarkdownTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
@@ -245,6 +254,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/charts-test'
+    | '/flow-test'
     | '/markdown-test'
     | '/admin/ops'
     | '/api/health'
@@ -271,6 +281,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/charts-test'
+    | '/flow-test'
     | '/markdown-test'
     | '/admin/ops'
     | '/api/health'
@@ -297,6 +308,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/charts-test'
+    | '/flow-test'
     | '/markdown-test'
     | '/admin/ops'
     | '/api/health'
@@ -324,6 +336,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   ChartsTestRoute: typeof ChartsTestRoute
+  FlowTestRoute: typeof FlowTestRoute
   MarkdownTestRoute: typeof MarkdownTestRoute
   AdminOpsRoute: typeof AdminOpsRoute
   ApiHealthRoute: typeof ApiHealthRoute
@@ -361,6 +374,13 @@ declare module '@tanstack/react-router' {
       path: '/charts-test'
       fullPath: '/charts-test'
       preLoaderRoute: typeof ChartsTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/flow-test': {
+      id: '/flow-test'
+      path: '/flow-test'
+      fullPath: '/flow-test'
+      preLoaderRoute: typeof FlowTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/markdown-test': {
@@ -539,6 +559,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   ChartsTestRoute: ChartsTestRoute,
+  FlowTestRoute: FlowTestRoute,
   MarkdownTestRoute: MarkdownTestRoute,
   AdminOpsRoute: AdminOpsRoute,
   ApiHealthRoute: ApiHealthRoute,
