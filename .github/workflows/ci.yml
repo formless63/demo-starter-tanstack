@@ -91,6 +91,8 @@ jobs:
       - run: bun run file-ui:protocol
       - run: bun run file-ui:protocol:node
       - run: bun run file-ui:compat
+      - run: bun run pwa:unit
+      - run: bun run pwa:packaging
       - run: bun run internationalization:router
       - run: bun run internationalization:packaging
       - run: bun run internationalization:typecheck
@@ -155,6 +157,7 @@ jobs:
       - run: bun run build
       - run: bun run file-ui:http
       - run: bun run file-ui:browser
+      - run: bun run add-ons:verify:reference pwa-offline
       - run: bun run add-ons:verify:reference internationalization
       - run: bun run add-ons:verify:reference markdown-code
       - run: bun run test:e2e
