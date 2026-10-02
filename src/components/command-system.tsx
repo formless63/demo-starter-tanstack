@@ -12,7 +12,9 @@ export function CommandPalette({ commands }: { commands: readonly Command[] }) {
 	const filtered = commands.filter((command) =>
 		command.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
 	);
-	useHotkey("Mod+K" as RegisterableHotkey, () => setOpen(true));
+	useHotkey("Mod+K" as RegisterableHotkey, () => setOpen(true), {
+		ignoreInputs: true,
+	});
 	useEffect(() => {
 		if (!open) return;
 		const id = requestAnimationFrame(() => inputRef.current?.focus());
@@ -20,6 +22,7 @@ export function CommandPalette({ commands }: { commands: readonly Command[] }) {
 	}, [open]);
 	return (
 		<Dialog.Root open={open} onOpenChange={setOpen}>
+			<Dialog.Trigger className="sr-only">Open command menu</Dialog.Trigger>
 			<Dialog.Portal>
 				<Dialog.Backdrop className="fixed inset-0 z-40 bg-black/40" />
 				<Dialog.Popup
