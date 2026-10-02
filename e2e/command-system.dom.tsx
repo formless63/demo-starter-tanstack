@@ -10,7 +10,7 @@ import { StrictMode, useState } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CommandPalette, createCommandRegistry } from "./command-system";
+import { CommandPalette, createCommandRegistry } from "../src/components/command-system";
 
 describe("reference command palette", () => {
 	afterEach(() => cleanup());
