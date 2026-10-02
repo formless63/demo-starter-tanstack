@@ -1,0 +1,19 @@
+{
+  "reviewedOverrides": [
+    {
+      "path": "src/integrations/jobs/registry.ts",
+      "dependency": "jobs",
+      "reason": "Preserves starter.echo and Webhooks delivery, composes private Medusa worker; removal retains hard dependencies."
+    },
+    {
+      "path": "src/integrations/jobs/registry.ts",
+      "dependency": "webhooks",
+      "reason": "Preserves starter.echo and Webhooks delivery, composes private Medusa worker; removal retains hard dependencies."
+    },
+    {
+      "path": "drizzle.config.ts",
+      "dependency": "jobs",
+      "reason": "Preserves baseline schema and explicitly includes Medusa-owned schema."
+    }
+  ]
+}

@@ -410,7 +410,7 @@ const addOns = selectedAddOns(catalog, command === "test-composition" ? [] : req
 if (command === "matrix") {
 	console.info(
 		JSON.stringify(
-			addOns.filter(({ status }) => status === "done").map(({ id }) => id),
+			addOns.filter(({ status, tanstackAddOn }) => status === "done" || (status === "in-progress" && existsSync(resolve(root, tanstackAddOn.cleanInstallFixture)))).map(({ id }) => id),
 		),
 	);
 } else if (command === "serve") {

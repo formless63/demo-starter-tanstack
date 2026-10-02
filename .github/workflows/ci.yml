@@ -83,9 +83,13 @@ jobs:
       - run: bun run agents:test
       - run: bun run capabilities:status
       - run: bun run capabilities:check
+      - run: bun run data-table:typecheck
+      - run: bun run data-table:unit
       - run: bun run project:check
       - run: bun run project:status
       - run: bun run theme:check
+      - name: Verify provider Compose inheritance
+        run: bun scripts/provider-compose-check.mjs
       - run: docker compose build app
       - run: bun run db:persistence:test
       - run: docker compose up -d --wait postgres
@@ -98,6 +102,12 @@ jobs:
           bun run import-export:unit
           bun run storage:abort
           IMPORT_EXPORT_FIXTURE_SCRIPT=scripts/import-export-ops-fixture.ts bun run import-export:compat
+      - name: Verify Stripe local protocol and migration upgrades
+        run: |
+          bun run stripe:unit
+          bun run stripe:durable
+          bun run stripe:migrations
+          bun run stripe:worker
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run add-ons:test:composition
@@ -121,6 +131,7 @@ jobs:
       - name: Verify SMTP, Chaos, Better Auth and production magic-link delivery
         run: bun run email:compat --reference --production
       - run: bun test
+      - run: bun run command-system:test
       - run: bun run build
       - run: bunx playwright install --with-deps chromium
       - run: bun run test:e2e
