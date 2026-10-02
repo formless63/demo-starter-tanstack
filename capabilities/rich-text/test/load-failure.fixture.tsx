@@ -11,6 +11,7 @@ test("failed client chunk leaves safe readable content and a non-busy failure st
 	const onChange = vi.fn();
 	const { container } = render(
 		<RichTextEditor
+			documentKey="test-document"
 			label="Available content"
 			value={{
 				type: "doc",

@@ -432,3 +432,42 @@ describe("safe absolute link allowlist", () => {
 		).toThrow();
 	});
 });
+
+describe("Unicode and HTML parser canonical text", () => {
+	test.each([
+		"one\rtwo",
+		"one\r\ntwo",
+		"one\ntwo",
+	])("canonicalizes line endings in %j without mutating input", (text) => {
+		const input = doc(paragraph(text));
+		expect(parseRichTextDocument(input).content[0].content?.[0].text).toBe(
+			"one\ntwo",
+		);
+		expect(input.content[0]).toEqual(paragraph(text));
+	});
+	test.each([
+		"\0",
+		"before\0after",
+		"\ud800",
+		"\udfff",
+		"x\ud800y",
+		"\ud800\ud800\udc00",
+		"\udc00\ud800",
+	])("rejects non-scalar text and href %j", (text) => {
+		expect(() => parseRichTextDocument(doc(paragraph(text)))).toThrow(
+			"Invalid rich-text document",
+		);
+		expect(isSafeRichTextLink(`https://example.test/${text}`)).toBe(false);
+	});
+	test.each([
+		"😀",
+		"\ufffd",
+		"A😀𐀀中é\ufffd\nB",
+	])("preserves valid Unicode %j", (text) => {
+		expect(
+			parseRichTextDocument(doc(paragraph(text))).content[0].content?.[0].text,
+		).toBe(text);
+		if (!text.includes("\n"))
+			expect(isSafeRichTextLink(`https://example.test/${text}`)).toBe(true);
+	});
+});
