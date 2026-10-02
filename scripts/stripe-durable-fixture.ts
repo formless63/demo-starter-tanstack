@@ -1,0 +1,108 @@
+import assert from "node:assert/strict";
+import {randomUUID} from "node:crypto";
+import {readFile} from "node:fs/promises";
+import {createServer} from "node:http";
+import {eq,sql} from "drizzle-orm";
+import {drizzle} from "drizzle-orm/node-postgres";
+import {migrate} from "drizzle-orm/node-postgres/migrator";
+import pg from "pg";
+import {PgBoss,fromDrizzle} from "pg-boss";
+import * as schema from "../src/db/schema";
+import {createStripeCapability,type StripeWiring} from "../src/integrations/stripe/service.server";
+import {createStripeJobs} from "../src/integrations/stripe/jobs.server";
+import {stripeBindings,stripeInbox,stripeOperations,stripeProjections} from "../src/integrations/stripe/schema";
+import {StripeCapabilityError} from "../src/integrations/stripe/contract";
+const adminUrl=process.env.STRIPE_FIXTURE_DATABASE_URL??process.env.DATABASE_URL;
+assert.ok(adminUrl,"Explicit disposable fixture PostgreSQL URL required");
+const admin=new pg.Pool({connectionString:adminUrl});const name=`stripe_fixture_${randomUUID().replaceAll("-","")}`;const url=new URL(adminUrl);url.pathname=`/${name}`;
+const pool=new pg.Pool({connectionString:url.toString()});const db=drizzle(pool,{schema});const boss=new PgBoss({connectionString:url.toString(),migrate:true});
+let holdGet=false;let releaseGet:(()=>void)|undefined;
+function releaseHeldGet(){releaseGet?.();}
+let allow=true;let callbackAllow=true;let outcome="normal";let posts=0;let gets=0;let paymentStatus="unpaid";let checkoutState="complete";let paymentState="succeeded";
+const bodies:string[]=[];let offerPrice="price_fixture";const acceptedKeys=new Map<string,string>();const keys:(string|string[]|undefined)[]=[];
+const server=createServer((req,res)=>{let body="";req.on("data",v=>body+=v);req.on("end",async()=>{
+ res.setHeader("content-type","application/json");if(req.method==="POST"){posts++;bodies.push(body);keys.push(req.headers["idempotency-key"]);if(outcome==="disconnect"){req.socket.destroy();return;}if(outcome==="slow"){res.writeHead(200);res.write('{"id":"');return;}if(outcome==="cached500"){res.writeHead(500);res.end('{"error":{"type":"api_error","message":"financial-do-not-log"}}');return;}if(outcome==="reject"){res.writeHead(400);res.end('{"error":{"type":"invalid_request_error","message":"financial-do-not-log"}}');return;}}
+ else gets++;
+ const paymentStatusSnapshot=paymentStatus;
+ if(holdGet&&req.method==="GET"){holdGet=false;await new Promise<void>(resolve=>{releaseGet=resolve;});}
+ if(req.url?.startsWith("/v1/payment_intents/")){res.end(JSON.stringify({id:"pi_fixture",object:"payment_intent",livemode:false,status:paymentState,currency:"usd",amount:2500,amount_received:2500,metadata:{private:"do-not-expose"}}));return;}
+ const nativeKey=String(req.headers["idempotency-key"]??"");if(req.method==="POST"&&!acceptedKeys.has(nativeKey))acceptedKeys.set(nativeKey,acceptedKeys.size===0?"cs_fixture":`cs_${acceptedKeys.size}`);const sessionId=req.method==="POST"?acceptedKeys.get(nativeKey):decodeURIComponent((req.url??"").split("/").at(-1)??"");
+ res.end(JSON.stringify({id:sessionId,object:"checkout.session",livemode:false,customer:"cus_fixture",status:checkoutState,payment_status:paymentStatusSnapshot,currency:"usd",amount_total:2500,url:"https://checkout.stripe.com/private",payment_intent:"pi_fixture",customer_details:{email:"private@example.test"},metadata:{owner:"forged"}}));
+});});
+await new Promise<void>(resolve=>server.listen(0,"127.0.0.1",resolve));const address=server.address();assert.ok(address&&typeof address!=="string");
+const config={id:"default",secretKey:"sk_test_fixture",accountId:"acct_fixture",mode:"test" as const,webhookSecrets:["whsec_fixture"],endpoint:`http://127.0.0.1:${address.port}/`};
+const scopeA={actorUserId:"scope-a",scope:{kind:"user" as const,id:"scope-a"}};const scopeB={actorUserId:"scope-b",scope:{kind:"user" as const,id:"scope-b"}};
+const wiring:StripeWiring={db,async enqueue(tx,payload){const job=await boss.send("stripe.process",payload,{db:fromDrizzle(tx,sql)});assert.ok(job);},async resolveConnection(){return config;},async authorizeScope(actor,scope){return allow&&scope.kind==="user"&&scope.id===actor;},async authorizeBoundResource(context,binding){return allow&&context.scope.id===binding.scopeId;},async authorizeReconciliation(){return callbackAllow;},async resolveOffer(){return {priceId:offerPrice,currency:"usd"};},async approvedRedirects(){return {successUrl:"https://app.example/success",cancelUrl:"https://app.example/cancel"};}};
+const service=createStripeCapability(wiring);const worker=createStripeJobs(wiring);const context={id:randomUUID(),signal:new AbortController().signal,retryCount:5,retryLimit:5};
+async function processOperation(operationId:string){return worker.jobs["stripe.process"].handler({operationId},context);}
+try {
+ await admin.query(`CREATE DATABASE "${name}"`);await migrate(db,{migrationsFolder:"drizzle"});await migrate(db,{migrationsFolder:"drizzle"});await boss.start();await boss.createQueue("stripe.process",worker.jobs["stripe.process"].queue);
+ const binding=await db.transaction(tx=>service.createBindingInTransaction(tx,scopeA,{localResourceId:"customer-a",connectionId:"default",resourceKind:"customer",remoteId:"cus_fixture"}));
+ await assert.rejects(service.requestCheckout(scopeB,{customerBindingId:binding.id,idempotencyKey:"key",items:[{offerId:"standard",quantity:1}]}),e=>e instanceof StripeCapabilityError&&e.code==="not_found");assert.equal(posts,0);
+
+ const raceInput={customerBindingId:binding.id,idempotencyKey:"race",items:[{offerId:"standard",quantity:1}]};const race=await Promise.all([service.requestCheckout(scopeA,raceInput),service.requestCheckout(scopeA,raceInput)]);const raceIds=race.map(v=>"operationId" in v?v.operationId:v.id);assert.equal(raceIds[0],raceIds[1]);await service.cancelOperation(scopeA,{operationId:raceIds[0]});
+ const queued=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"first",items:[{offerId:"standard",quantity:1}]});assert.ok("operationId" in queued);const op=queued.operationId;
+ await assert.rejects(service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"first",items:[{offerId:"standard",quantity:2}]}),e=>e instanceof StripeCapabilityError&&e.code==="conflict");
+ await processOperation(op);assert.equal(posts,1);const result=await service.getOperation(scopeA,{operationId:op});assert.equal(result.status,"succeeded");assert.ok(result.bindingId);
+ const checkout=await service.getCheckout(scopeA,{bindingId:result.bindingId});assert.equal(checkout.status,"complete");assert.equal(checkout.paymentStatus,"unpaid");assert.equal(checkout.checkoutUrl,null);assert.ok(!JSON.stringify(checkout).includes("private"));
+ await assert.rejects(service.getCheckout(scopeB,{bindingId:result.bindingId}));
+ const duplicate=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"first",items:[{offerId:"standard",quantity:1}]});assert.ok("status" in duplicate);assert.equal(duplicate.status,"succeeded");assert.equal(posts,1);
+ const hints={eventId:"evt_first",type:"checkout.session.completed" as const,kind:"checkout" as const,remoteId:"cs_fixture",bodySHA256:"a".repeat(64)};
+ const before=(await pool.query("select count(*)::int as count from pgboss.job")).rows[0].count;
+ await assert.rejects(db.transaction(async tx=>{await service.receiveInTransaction(tx,config,hints);throw Error("rollback");}));assert.equal((await db.select().from(stripeInbox)).length,0);assert.equal((await pool.query("select count(*)::int as count from pgboss.job")).rows[0].count,before);
+ await db.transaction(tx=>service.receiveInTransaction(tx,config,hints));await db.transaction(tx=>service.receiveInTransaction(tx,config,{...hints,bodySHA256:"b".repeat(64)}));const receipts=await db.select().from(stripeInbox);assert.equal(receipts.length,1);assert.equal(receipts[0].bodySHA256,hints.bodySHA256);
+ paymentStatus="paid";await worker.jobs["stripe.process"].handler({inboxId:receipts[0].id},context);assert.equal((await service.getCheckout(scopeA,{bindingId:result.bindingId})).paymentStatus,"paid");
+ // Same ID, new authenticated bytes: preserve original ownership and coalesce rechecks.
+ const receiptJobs=async()=>Number((await pool.query("select count(*)::int n from pgboss.job where data ? 'inboxId'")).rows[0].n);
+ const collisionCount=await receiptJobs();const conflicting={...hints,remoteId:"cs_unbound",bodySHA256:"c".repeat(64)};
+ await db.transaction(tx=>service.receiveInTransaction(tx,config,conflicting));await db.transaction(tx=>service.receiveInTransaction(tx,config,conflicting));
+ const [collision]=await db.select().from(stripeInbox).where(eq(stripeInbox.id,receipts[0].id));
+ assert.equal(collision.state,"received");assert.equal(collision.remoteHint,"cs_fixture");assert.equal(collision.bodySHA256,hints.bodySHA256);assert.equal(collision.bindingId,receipts[0].bindingId);assert.equal(await receiptJobs(),collisionCount+1);
+ holdGet=true;releaseGet=undefined;const activeCollision=worker.jobs["stripe.process"].handler({inboxId:collision.id},context);
+ for(let n=0;!releaseGet&&n<500;n++)await new Promise(resolve=>setTimeout(resolve,10));assert.ok(releaseGet,"Authoritative GET is held during receipt processing");
+ try{
+  paymentStatus="unpaid";const during={...hints,remoteId:"cs_another_unbound",bodySHA256:"d".repeat(64)};
+  await db.transaction(tx=>service.receiveInTransaction(tx,config,during));await db.transaction(tx=>service.receiveInTransaction(tx,config,during));
+  assert.equal(await receiptJobs(),collisionCount+1,"Active collisions record one follow-up without parallel enqueue");
+ }finally{releaseHeldGet();await activeCollision;}
+ assert.equal((await db.select().from(stripeInbox).where(eq(stripeInbox.id,collision.id)))[0].state,"received");assert.equal(await receiptJobs(),collisionCount+2);
+ await worker.jobs["stripe.process"].handler({inboxId:collision.id},context);
+ assert.equal((await service.getCheckout(scopeA,{bindingId:result.bindingId})).paymentStatus,"unpaid");
+ assert.equal((await db.select().from(stripeInbox).where(eq(stripeInbox.id,collision.id)))[0].reconcileAgain,false);
+ paymentStatus="unpaid";await db.transaction(tx=>service.receiveInTransaction(tx,config,{...hints,eventId:"evt_outoforder",type:"checkout.session.async_payment_failed"}));const [later]=await db.select().from(stripeInbox).where(eq(stripeInbox.eventId,"evt_outoforder"));await worker.jobs["stripe.process"].handler({inboxId:later.id},context);assert.equal((await service.getCheckout(scopeA,{bindingId:result.bindingId})).paymentStatus,"unpaid");
+ await db.transaction(tx=>service.receiveInTransaction(tx,config,{...hints,eventId:"evt_unbound",remoteId:"cs_forged"}));const [ignored]=await db.select().from(stripeInbox).where(eq(stripeInbox.eventId,"evt_unbound"));assert.equal(ignored.state,"ignored");
+ const [payment]=await db.select().from(stripeBindings).where(eq(stripeBindings.resourceKind,"payment"));assert.ok(payment);
+ const reconciliation=await service.requestPaymentReconciliation(scopeA,{kind:"payment",bindingId:payment.id});await processOperation(reconciliation.operationId);const listed=await service.listPayments(scopeA,{});assert.equal(listed.items[0].status,"succeeded");assert.equal((await service.listPayments(scopeB,{})).items.length,0);assert.ok(!JSON.stringify(listed).includes("private"));
+
+ for(const terminal of ["processing","canceled","requires_payment_method","succeeded"]){paymentState=terminal;const refresh=await service.requestPaymentReconciliation(scopeA,{kind:"payment",bindingId:payment.id});await processOperation(refresh.operationId);assert.equal((await service.listPayments(scopeA,{})).items[0].status,terminal);}
+ checkoutState="open";const open=await service.requestPaymentReconciliation(scopeA,{kind:"checkout",bindingId:result.bindingId});await processOperation(open.operationId);assert.equal((await service.getCheckout(scopeA,{bindingId:result.bindingId})).checkoutUrl,"https://checkout.stripe.com/private");assert.ok(!JSON.stringify(await service.getOperation(scopeA,{operationId:open.operationId})).includes("stripe.com"));checkoutState="complete";
+ outcome="disconnect";const ambiguous=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"ambiguous",items:[{offerId:"standard",quantity:1}]});assert.ok("operationId" in ambiguous);await processOperation(ambiguous.operationId);assert.equal((await service.getOperation(scopeA,{operationId:ambiguous.operationId})).status,"reconciliation_required");const count=posts;await processOperation(ambiguous.operationId);assert.equal(posts,count);
+ outcome="normal";const revoked=await service.requestPaymentReconciliation(scopeA,{kind:"payment",bindingId:payment.id});allow=false;const getCount=gets;await processOperation(revoked.operationId);assert.equal(gets,getCount);allow=true;
+ const stale=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"cutoff",items:[{offerId:"standard",quantity:1}]});assert.ok("operationId" in stale);await db.update(stripeOperations).set({firstDispatchAt:new Date(Date.now()-23*3600*1000)}).where(eq(stripeOperations.id,stale.operationId));await processOperation(stale.operationId);assert.equal(posts,count);
+
+ // A permitted retry freezes exact parameters/key across mutable offer changes.
+ const replay=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"replay",items:[{offerId:"standard",quantity:1}]});assert.ok("operationId" in replay);outcome="disconnect";
+ const retryMeta={...context,retryCount:0};await assert.rejects(worker.jobs["stripe.process"].handler({operationId:replay.operationId},retryMeta));
+ await assert.rejects(service.cancelOperation(scopeA,{operationId:replay.operationId}),e=>e instanceof StripeCapabilityError&&e.code==="conflict");
+ const firstReplayBody=bodies.at(-1);const firstReplayKey=keys.at(-1);offerPrice="price_changed";outcome="normal";await worker.jobs["stripe.process"].handler({operationId:replay.operationId},{...context,retryCount:1});assert.equal(bodies.at(-1),firstReplayBody);assert.equal(keys.at(-1),firstReplayKey);assert.equal((await service.getOperation(scopeA,{operationId:replay.operationId})).status,"succeeded");
+
+ outcome="cached500";const cached=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"cached500",items:[{offerId:"standard",quantity:1}]});assert.ok("operationId" in cached);await assert.rejects(worker.jobs["stripe.process"].handler({operationId:cached.operationId},{...context,retryCount:0}));const cachedKey=keys.at(-1);const cachedBody=bodies.at(-1);await processOperation(cached.operationId);assert.equal(keys.at(-1),cachedKey);assert.equal(bodies.at(-1),cachedBody);assert.equal((await service.getOperation(scopeA,{operationId:cached.operationId})).status,"reconciliation_required");
+ outcome="reject";const rejected=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"definitive-reject",items:[{offerId:"standard",quantity:1}]});assert.ok("operationId" in rejected);await processOperation(rejected.operationId);assert.equal((await service.getOperation(scopeA,{operationId:rejected.operationId})).status,"failed");assert.ok(!JSON.stringify(await service.getOperation(scopeA,{operationId:rejected.operationId})).includes("financial"));
+ outcome="slow";const interrupted=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"abort-after-dispatch",items:[{offerId:"standard",quantity:1}]});assert.ok("operationId" in interrupted);const abort=new AbortController();const interruptedWork=worker.jobs["stripe.process"].handler({operationId:interrupted.operationId},{...context,signal:abort.signal});setTimeout(()=>abort.abort(),50);await assert.rejects(interruptedWork);for(let attempt=0;attempt<20;attempt++){if((await service.getOperation(scopeA,{operationId:interrupted.operationId})).status==="reconciliation_required")break;await new Promise(resolve=>setTimeout(resolve,10));}assert.equal((await service.getOperation(scopeA,{operationId:interrupted.operationId})).status,"reconciliation_required");outcome="normal";
+ const cancelled=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"cancel-before-dispatch",items:[{offerId:"standard",quantity:1}]});assert.ok("operationId" in cancelled);await service.cancelOperation(scopeA,{operationId:cancelled.operationId});const beforeCancel=posts;await processOperation(cancelled.operationId);assert.equal(posts,beforeCancel);
+ // Trusted callback policy is re-evaluated after durable receipt, without invented actor.
+ await db.transaction(tx=>service.receiveInTransaction(tx,config,{...hints,eventId:"evt_revoked"}));const [revokedHint]=await db.select().from(stripeInbox).where(eq(stripeInbox.eventId,"evt_revoked"));callbackAllow=false;const callbackGets=gets;await worker.jobs["stripe.process"].handler({inboxId:revokedHint.id},context);assert.equal(gets,callbackGets);assert.equal((await db.select().from(stripeInbox).where(eq(stripeInbox.id,revokedHint.id)))[0].state,"failed");callbackAllow=true;assert.deepEqual(await db.transaction(tx=>worker.repairInboxInTransaction(tx,revokedHint.id,new AbortController().signal)),{requeued:true});assert.deepEqual(await db.transaction(tx=>worker.repairInboxInTransaction(tx,revokedHint.id,new AbortController().signal)),{requeued:false});
+ const crash=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"stale-write",items:[{offerId:"standard",quantity:1}]});assert.ok("operationId" in crash);await db.update(stripeOperations).set({status:"dispatching",firstDispatchAt:new Date(),attemptToken:randomUUID(),leaseUntil:new Date(Date.now()-1000)}).where(eq(stripeOperations.id,crash.operationId));await db.transaction(tx=>worker.recoverInTransaction(tx));assert.equal((await service.getOperation(scopeA,{operationId:crash.operationId})).status,"reconciliation_required");const beforeRecovery=posts;await processOperation(crash.operationId);assert.equal(posts,beforeRecovery);
+
+ // Known accepted Checkout survives projection persistence failure and reconciles by GET beyond the create horizon.
+ const known=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"accepted-before-local-failure",items:[{offerId:"standard",quantity:1}]});assert.ok("operationId" in known);const providerSessionId=`cs_${acceptedKeys.size}`;
+ await db.transaction(tx=>service.createBindingInTransaction(tx,scopeB,{localResourceId:"foreign-fence",connectionId:"default",resourceKind:"checkout",remoteId:providerSessionId}));
+ outcome="normal";await processOperation(known.operationId);const [uncertainKnown]=await db.select().from(stripeOperations).where(eq(stripeOperations.id,known.operationId));assert.equal(uncertainKnown.status,"reconciliation_required");assert.equal(uncertainKnown.checkoutRemoteId,providerSessionId);
+ await db.delete(stripeBindings).where(eq(stripeBindings.remoteId,providerSessionId));await db.update(stripeOperations).set({firstDispatchAt:new Date(Date.now()-24*3600*1000)}).where(eq(stripeOperations.id,known.operationId));const knownPostCount=posts;await service.requestOperationReconciliation(scopeA,{operationId:known.operationId});await processOperation(known.operationId);assert.equal(posts,knownPostCount);assert.equal((await service.getOperation(scopeA,{operationId:known.operationId})).status,"succeeded");
+ await assert.rejects(service.requestOperationReconciliation(scopeB,{operationId:crash.operationId,checkoutRemoteId:providerSessionId}));await assert.rejects(service.requestOperationReconciliation(scopeA,{operationId:crash.operationId}));
+ const staleRead=await service.requestPaymentReconciliation(scopeA,{kind:"payment",bindingId:payment.id});await db.update(stripeOperations).set({status:"dispatching",attemptToken:randomUUID(),leaseUntil:new Date(Date.now()-1000)}).where(eq(stripeOperations.id,staleRead.operationId));await db.transaction(tx=>worker.recoverInTransaction(tx));assert.equal((await service.getOperation(scopeA,{operationId:staleRead.operationId})).status,"queued");await processOperation(staleRead.operationId);assert.equal((await service.getOperation(scopeA,{operationId:staleRead.operationId})).status,"succeeded");
+ const queue=await pool.query("select data from pgboss.job");for(const row of queue.rows){const fields=Object.keys(row.data);assert.equal(fields.length,1);assert.ok(fields[0]==="operationId"||fields[0]==="inboxId");assert.ok(!JSON.stringify(row.data).includes("private"));}
+ const sqlFiles=JSON.parse(await readFile("drizzle/meta/_journal.json","utf8")).entries;assert.equal(sqlFiles.length>=1,true);assert.ok(await readFile("drizzle/0011_stripe_v1.sql","utf8"));
+ assert.ok((await db.select().from(stripeProjections)).length>=2);assert.equal(keys[0],`gs-stripe:${op}`);assert.ok(new URLSearchParams(bodies[0]).get("automatic_tax[enabled]") === "false");
+ console.info("Stripe disposable PostgreSQL18 ownership/ledger/receipt rollback/privacy/cutoff fixtures passed; no provider API requests.");
+} finally {releaseHeldGet();await boss.stop({graceful:true});server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));await pool.end();await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);await admin.end();}

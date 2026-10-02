@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import catalog from "../../capabilities/catalog.json";
 import pkg from "../../package.json";
@@ -39,14 +39,21 @@ test("the reference app enables the complete optional capability wave", () => {
 	);
 });
 
-test("the generic lifecycle matrix discovers all completed add-ons", () => {
+test("the generic lifecycle matrix discovers completed and authored in-progress add-ons", () => {
 	const result = spawnSync(process.execPath, ["scripts/add-ons.ts", "matrix"], {
 		encoding: "utf8",
 	});
 	expect(result.status).toBe(0);
 	expect(JSON.parse(result.stdout).sort()).toEqual(
-		completed
-			.filter((capability) => "tanstackAddOn" in capability)
+		catalog.capabilities
+			.filter(
+				(capability) =>
+					"tanstackAddOn" in capability &&
+					capability.tanstackAddOn !== undefined &&
+					(capability.status === "done" ||
+						(capability.status === "in-progress" &&
+							existsSync(capability.tanstackAddOn.cleanInstallFixture))),
+			)
 			.map(({ id }) => id)
 			.sort(),
 	);
