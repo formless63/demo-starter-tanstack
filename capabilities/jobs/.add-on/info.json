@@ -5,7 +5,7 @@
 	"description": "Typed PostgreSQL background jobs with pg-boss, Zod validation, explicit migrations, and a standalone worker.",
 	"version": "1.0.0",
 	"type": "add-on",
-	"phase": "add-on",
+	"phase": "example",
 	"category": "database",
 	"modes": ["file-router"],
 	"dependsOn": ["drizzle"],
@@ -50,7 +50,7 @@
 		},
 		{
 			"name": "JOBS_CONCURRENCY",
-			"description": "Per-queue worker concurrency.",
+			"description": "Per-queue local worker concurrency; integer 1–100, default 4.",
 			"required": false,
 			"default": "4",
 			"secret": false,

@@ -1,0 +1,105 @@
+{
+  "id": "email",
+  "name": "email",
+  "displayName": "Email",
+  "description": "Lazy provider-neutral server SMTP primitives with safe bounded messages and disposable Mailpit compatibility.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "nodemailer": "10.0.13"
+    },
+    "devDependencies": {
+      "@types/nodemailer": "8.0.2"
+    },
+    "scripts": {
+      "email:check": "bun scripts/email-check.ts",
+      "email:smoke": "bun scripts/email-smoke.ts",
+      "email:unit": "bun test src/integrations/email",
+      "email:compat": "bun scripts/email-compat.ts",
+      "email:dev:mailpit": "bun scripts/email-dev.ts up",
+      "email:dev:down": "bun scripts/email-dev.ts down"
+    }
+  },
+  "envVars": [
+    {
+      "name": "SMTP_HOST",
+      "description": "Required lazily when used; SMTP hostname, not URL.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "SMTP_PORT",
+      "description": "Explicit integer 1\u201365535.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "SMTP_SECURITY",
+      "description": "Explicit tls/starttls/opportunistic; no port inference.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "SMTP_USER",
+      "description": "Optional complete auth pair; server-only.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local"
+    },
+    {
+      "name": "SMTP_PASSWORD",
+      "description": "Secret paired with SMTP_USER; never log.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local"
+    },
+    {
+      "name": "EMAIL_FROM_ADDRESS",
+      "description": "Fixed sender required when used.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "EMAIL_FROM_NAME",
+      "description": "Optional fixed sender name.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "EMAIL_REPLY_TO_ADDRESS",
+      "description": "Optional default reply-to.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "EMAIL_REPLY_TO_NAME",
+      "description": "Optional name requires reply-to address.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "EMAIL_MAX_RECIPIENTS",
+      "description": "Integer 1\u2013100 across To/Cc/Bcc, default 50.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local",
+      "default": "50"
+    }
+  ]
+}

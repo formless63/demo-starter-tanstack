@@ -1,0 +1,44 @@
+{
+	"projectName": "audit-log-addon-clean-install",
+	"framework": "React",
+	"blank": true,
+	"packageManager": "bun",
+	"toolchain": "biome",
+	"addOnConfig": {
+		"drizzle": {
+			"database": "postgresql"
+		}
+	},
+	"expectedOfficialAddOns": [
+		"drizzle"
+	],
+	"forbiddenOfficialAddOns": [
+		"better-auth",
+		"postgres-jobs",
+		"api-platform",
+		"observability",
+		"object-storage"
+	],
+	"expectedFiles": [
+		"src/db/index.ts",
+		"src/db/schema.ts",
+		"src/integrations/audit-log/schema.ts",
+		"src/integrations/audit-log/audit.server.ts",
+		"src/integrations/audit-log/validation.ts",
+		"drizzle/0000_audit_log.sql",
+		"scripts/audit-log-smoke.ts",
+		"capabilities/audit-log/CAPABILITY.md"
+	],
+	"expectedFileText": {
+		"drizzle.config.ts": [
+			"./src/integrations/audit-log/schema.ts"
+		]
+	},
+	"verificationCommands": [
+		[
+			"bun",
+			"scripts/audit-log-clean-fixture.ts"
+		]
+	],
+	"build": true
+}

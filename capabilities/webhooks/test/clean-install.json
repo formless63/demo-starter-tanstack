@@ -1,0 +1,94 @@
+{
+  "projectName": "webhooks-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "addOnConfig": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "expectedOfficialAddOns": [
+    "postgres-jobs"
+  ],
+  "forbiddenOfficialAddOns": [
+    "observability",
+    "api-platform",
+    "object-storage",
+    "better-auth"
+  ],
+  "expectedFiles": [
+    "src/integrations/jobs/worker.server.ts",
+    "src/integrations/webhooks/protocol.server.ts",
+    "src/integrations/webhooks/enqueue.server.ts",
+    "src/lib/webhooks.server.ts",
+    "scripts/webhooks-smoke.ts",
+    "capabilities/webhooks/CAPABILITY.md",
+    "WEBHOOKS_MODULE_EVALUATION.md"
+  ],
+  "expectedFileText": {
+    "src/integrations/jobs/registry.ts": [
+      "...referenceWebhookJobs",
+      "starter.echo"
+    ],
+    "package.json": [
+      "\"pg-boss\": \"12.35.0\""
+    ]
+  },
+  "verificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "run",
+      "jobs:migrate"
+    ],
+    [
+      "bun",
+      "run",
+      "jobs:doctor"
+    ],
+    [
+      "bun",
+      "run",
+      "webhooks:unit"
+    ],
+    [
+      "bun",
+      "run",
+      "webhooks:smoke"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ],
+    [
+      "bun",
+      "scripts/webhooks-removal-fixture.ts"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "run",
+      "jobs:smoke"
+    ]
+  ],
+  "build": true,
+  "verificationEnvironment": {
+    "PGBOSS_SCHEMA": "webhooks_clean_fixture",
+    "PGBOSS_USE_LISTEN_NOTIFY": "false",
+    "JOBS_CONCURRENCY": "4",
+    "PGBOSS_DATABASE_URL": "${DATABASE_URL}"
+  }
+}

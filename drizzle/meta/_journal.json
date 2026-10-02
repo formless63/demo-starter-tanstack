@@ -22,6 +22,41 @@
       "when": 1790716706250,
       "tag": "0002_even_nighthawk",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790804092045,
+      "tag": "0003_audit_log",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790870049947,
+      "tag": "0004_search",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790870160579,
+      "tag": "0004_tough_mindworm",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790883257200,
+      "tag": "0006_parched_darwin",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790883310120,
+      "tag": "0007_misty_betty_ross",
+      "breakpoints": true
     }
   ]
 }

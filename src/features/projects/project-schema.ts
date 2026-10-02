@@ -1,11 +1,18 @@
 import { z } from "zod";
 
+export const PROJECT_NAME_MAX_LENGTH = 120;
+export const PROJECT_DESCRIPTION_MAX_LENGTH = 1000;
+
 export const projectInputSchema = z.object({
-	name: z.string().trim().min(1, "Name is required").max(100),
+	name: z
+		.string()
+		.trim()
+		.min(1, "Name is required")
+		.max(PROJECT_NAME_MAX_LENGTH),
 	description: z
 		.string()
 		.trim()
-		.max(1000)
+		.max(PROJECT_DESCRIPTION_MAX_LENGTH)
 		.optional()
 		.transform((value) => value || null),
 });

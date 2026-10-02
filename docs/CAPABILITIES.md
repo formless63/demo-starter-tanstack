@@ -17,11 +17,19 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 | ID | TanStack add-on ID | Status | Reference app | Default installed | Official add-on dependencies | Reusable capability requirements | External | Contract |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `ops-admin` | `ops-admin` | Done | Yes | No | `better-auth`, `drizzle` | None | None additional | [Ops / Admin](../capabilities/ops-admin/CAPABILITY.md) |
 | `jobs` | `postgres-jobs` | Done | Enabled | No | `drizzle` | None | PostgreSQL | [Jobs](../capabilities/jobs/CAPABILITY.md) |
 | `api-platform` | `api-platform` | Done | Enabled | No | `better-auth`, `drizzle` | None | None beyond baseline PostgreSQL | [API Platform](../capabilities/api-platform/CAPABILITY.md) |
 | `observability` | `observability` | Done | Enabled | No | None | None | Optional OTLP | [Observability](../capabilities/observability/CAPABILITY.md) |
 | `object-storage` | `object-storage` | Done | Enabled | No | None | None | S3 only when used | [Object Storage](../capabilities/object-storage/CAPABILITY.md) |
-| `charts-visualization` | `charts-visualization` | Done | Enabled | No | None | None | None | [Charts](../capabilities/charts-visualization/CAPABILITY.md) |
+| `email` | `email` | Done | Enabled | No | None | None | SMTP only when used; optional Mailpit | [Email](../capabilities/email/CAPABILITY.md) |
+| `webhooks` | `webhooks` | Done | Enabled | No | `postgres-jobs` | Jobs | Remote endpoints when used | [Webhooks](../capabilities/webhooks/CAPABILITY.md) |
+| `audit-log` | `audit-log` | Done | Enabled | No | `drizzle` | None | PostgreSQL | [Audit Log](../capabilities/audit-log/CAPABILITY.md) |
+| `cache-coordination` | `cache-coordination` | Done | Enabled | No | None | None | Valkey/Redis-compatible service on use | [Cache / Coordination](../capabilities/cache-coordination/CAPABILITY.md) |
+| `ai` | `ai` | Done | Enabled | No | None | None | Model endpoint only on use | [AI](../capabilities/ai/CAPABILITY.md) |
+| `search` | `search` | Done | Enabled | No | `drizzle` | None | PostgreSQL only | [Search](../capabilities/search/CAPABILITY.md) |
+| `realtime` | `realtime` | Done | Enabled | No | None | None | Optional Cache backplane | [Realtime](../capabilities/realtime/CAPABILITY.md) |
+| `notifications` | `notifications` | Done | Enabled | No | `postgres-jobs` | Jobs | Optional ntfy; optional Email adapter | [Notifications](../capabilities/notifications/CAPABILITY.md) |
 
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
@@ -57,7 +65,7 @@ For an existing TanStack CLI-created application, run from its root:
 bunx @tanstack/cli@0.71.0 add https://raw.githubusercontent.com/formless63/demo-starter-tanstack/main/capabilities/jobs/add-on.json
 ```
 
-Replace the URL with the API Platform or Observability distributable to select that capability. Review the resulting diff, configure its environment, apply any declared migrations, and run its `CAPABILITY.md` verification. Observability has no migrations or database dependency. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
+Replace the URL with the API Platform, Observability, Storage, Email, Audit Log, Cache AI or Search distributable (Webhooks uses the dependency transport described below) to select that capability. Review the resulting diff, configure its environment, apply any declared migrations, and run its `CAPABILITY.md` verification. Observability has no migrations or database dependency. The repository's `bun run add-ons:test <id>` harness serves the same compiled JSON locally and verifies the clean-create flow in a disposable scaffold.
 
 Official TanStack add-on dependencies are resolved by the CLI:
 
@@ -65,8 +73,15 @@ Official TanStack add-on dependencies are resolved by the CLI:
 - API Platform declares `dependsOn: ["better-auth", "drizzle"]` because Better Auth alone does not provide its PostgreSQL/Drizzle persistence boundary.
 - Observability declares `dependsOn: []`; its clean fixture proves signals and real optional OTLP export without Jobs, API Platform, authentication, or a database integration.
 - Object Storage declares `dependsOn: []`; its clean fixture rejects database/auth/Jobs/API/telemetry installation, builds backendless, tests real RustFS and Garage, then removes AWS/runtime additions and rebuilds. Local profiles and admin UI are optional infrastructure, not capability dependencies.
+- Email declares `dependsOn: []`; a backendless fixture types/builds with SMTP absent, tests real Mailpit SMTP/Chaos, then removes runtime/packages and rebuilds. Better Auth and telemetry are root-only integrations, never clean-consumer requirements.
+- Webhooks declares `dependsOn: ["postgres-jobs"]`; the generic transport resolves custom Jobs and transitive official Drizzle dependencies.
+- Audit Log declares `dependsOn: ["drizzle"]`; the fixture proves real migrations, coupled transactions and retained history on removal.
+- Cache declares `dependsOn: []`; the fixture proves backendless installation, actual Valkey and removal without touching external data.
+- AI declares `dependsOn: []`; the fixture proves backendless installation/build, actual local OpenAI-compatible HTTP generation/streaming/structured/cancellation and clean runtime removal/rebuild. Application telemetry remains outside the assets.
 
-These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Completed capabilities do not require one another.
+- Search declares `dependsOn: ["drizzle"]`; it installs only helpers/smoke/docs. Domains define their generated vector/GIN and create a new reviewed migration. Disposable fixture SQL is never a production model.
+
+These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Webhooks requires Jobs; optional integrations remain independent.
 
 ## Disabling or removing a capability
 
@@ -123,7 +138,52 @@ bun run add-ons:test jobs
 bun run add-ons:test api-platform
 bun run add-ons:test observability
 bun run add-ons:test object-storage
+bun run add-ons:test webhooks
 bun run check
 ```
 
 Then run the capability-specific database/worker/API smoke commands described in each `CAPABILITY.md`.
+
+## Webhooks
+
+Webhooks is complete and enabled in the reference application. Its add-on declares `dependsOn: ["postgres-jobs"]`. CLI 0.71 changes custom IDs to URLs, so direct raw JSON cannot resolve the stable custom dependency ID. Run `bun scripts/add-ons.ts serve webhooks`, then use its printed `--add-ons` argument with PostgreSQL Drizzle config. The local transport maps catalog dependency IDs to served URLs without changing retained artifacts. The generic catalog harness handles that ordering for `bun run add-ons:test webhooks`. Review the shared Jobs registry composition in customized applications. See [contract](../capabilities/webhooks/CAPABILITY.md). No API Platform, Audit Log or Observability requirement.
+
+## Audit Log
+
+Audit Log is optional and needs only baseline PostgreSQL/Drizzle; Authentication is application actor wiring. Its official add-on declares `dependsOn: ["drizzle"]` and no consumer dependencies. It owns schema/API source, reviewed SQL and a clean install/removal fixture. Root Projects mutations transactionally append safe user/machine records. See [the contract](../capabilities/audit-log/CAPABILITY.md).
+
+The clean scaffold gets a Drizzle config overlay including the baseline and capability schema plus an initial audit migration. Existing customized applications must manually register the owned schema and generate a new reviewed migration in their existing history; do not overwrite config or applied journals. No semantic merger/uninstaller is provided. Code removal retains audit schema/history. Operator destructive removal requires a new explicit migration. API Platform, Jobs, Organizations and business consumers remain optional; Audit Log is separate from Observability and supplies no query authorization/UI.
+
+Verification: `bun run add-ons:test audit-log`, `bun run audit-log:smoke`, and real PostgreSQL tests under `src/integrations/audit-log` and `src/features/projects/audit.integration.test.ts`.
+
+## Cache / Coordination
+
+Cache / Coordination declares `dependsOn: []`; clean installation needs no database, Auth, Jobs, API, Realtime or Observability add-on. Select `capabilities/cache-coordination/add-on.json` with the same official CLI URL flow above. Backendless build and unit checks run before actual disposable pinned Valkey compatibility and clean removal/rebuild. Its protocol subset is tested on Valkey only; no second Redis implementation is claimed. Optional reference telemetry is application-owned.
+
+Run `bun run add-ons:test cache-coordination`, `bun run cache:unit`, and `bun run cache:compat` for its standalone contract; normal root startup/readiness never requires Cache.
+
+The four SMTP/Webhooks/Audit/Cache v1 contracts fix shared behavioral bounds while retaining native add-on packaging. Email uses combined 1 MiB bodies, subject200, counts-only results and socket10s; Webhooks bounds the complete attempt and reads no response body and does not suppress deliberate enqueues; Audit owns event time/ID and uses from-inclusive/until-exclusive ranges; Cache returns Buffer, expires default writes, uses advisory lease seconds and explicit reconnect/subscription recreation. See each contract for exact validation and ownership rules.
+
+### Shared-file preflight and reviewed composition
+
+Run `bun run add-ons:preflight <id ...>` before combining custom add-ons. It exits nonzero for unreviewed shared files (including journals/config); it never merges files or applies migrations. Webhooks' `installation.json` records its reviewed Jobs registry overlay, permitted only for its hard dependency. Existing customized applications still require manual diff review even when this check passes. `bun run add-ons:test:composition` proves a reviewed API + Audit + Jobs clean consumer using this reference application's unified schema/history; it is a fixture, not an installation or upgrade command for a deployed application. Public semantic upgrade/merge support remains deferred.
+
+## Search ownership
+
+Search requires baseline PostgreSQL/Drizzle and no capability. Jobs, Object Storage and Organizations remain optional future integrations. Application tables own authorization and typed equality filters. Compose owner predicates with explicit `simple` FTS, validate query/page/cursor input, keep descending rank/timestamp/ID order, and retain exact database rank/time for continuation. No generic public table-search function or universal search_documents table is installed. Query text stays out of logs/spans/metric labels; the root uses a session-scoped POST function. See the [contract](../capabilities/search/CAPABILITY.md) for helpers and the [evaluation](../SEARCH_MODULE_EVALUATION.md) for shared v1 defaults.
+
+## Realtime and Notifications
+
+These remain two independent `defaultInstalled: false` add-ons. Realtime has no custom hard dependency; Notifications requires only Jobs (`postgres-jobs` in official add-on metadata). The reference enables both. Realtime uses Node-native Nitro/H3/CrossWS WebSocket and SSE adapters; `REALTIME_TRANSPORTS` defaults to `sse`. Choose SSE, WebSocket or both explicitly during onboarding, and remove unused route wiring when appropriate. WebSocket v1 has the same server→client event semantics and no generic RPC/client-command protocol.
+
+The reusable Realtime consumer includes reviewed provider-neutral Nitro Vite configuration, both route adapters and a default-deny application authorizer. Adapt the config with existing Vite plugins when installing into a customized app. Supply the existing human cookie session and authorized exact channels before accepting; no arbitrary logged-in subscriptions, query tokens or API keys. The reference shares its process hub between Nitro and Start module runners; restart development after registry changes. Optional `src/lib/realtime-cache.server.ts` provides an alternative single-path Cache backplane; choose it instead of local publication, subscribe explicitly, recreate after failure, and retain no replay claim.
+
+Notifications owns durable records/read state and uses caller DB/transaction executors. Its independent adapter registry starts empty. The reference's Project creation couples domain write, Audit and notification row in one transaction, then emits only `{notificationId}` after commit; Realtime failure cannot undo persistence. The `/app/notifications` view refetches on connection/reconnection and uses recipient-authorized server functions; rendering escapes plain text. Optional Email delegates to existing Email; optional ntfy is resolved at execution. Jobs stores only notification ID/channel. Delivery completion includes a business outcome and is not an external-delivery guarantee.
+
+`0004_tough_mindworm.sql` is the new additive reviewed root migration; previously applied files remain unchanged. Notifications removal retains schema/validation types, table/data, migrations and Jobs; Realtime removal has no database/external-data effect. See the two contracts and the starting guide for exact limits and removal edits. Generic completed-add-on discovery covers both clean fixtures; root verification additionally tests real cookie auth, optional two-process Valkey fanout and Node-worker SMTP/ntfy delivery.
+
+The integrated migration journal retains both original additive SQL files and timestamps: Search is entry 4 (`0004_search`) and Notifications entry 5 (`0004_tough_mindworm`). Snapshot 0004 remains Search; snapshot 0005 combines both schemas and links to snapshot 0004. Applied baseline migrations are unchanged. Branch-specific deployed databases must be reviewed against their recorded migration history before upgrade.
+
+Import / Export is completed: [contract](../capabilities/import-export/CAPABILITY.md) and [evaluation](../IMPORT_EXPORT_MODULE_EVALUATION.md). It requires Jobs + Object Storage; Notifications/Audit remain optional composition. Clean consumers remain opt-in.
+
+Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.

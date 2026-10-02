@@ -45,4 +45,21 @@ describe("API Platform OpenAPI document", () => {
 			"x-required-permissions": { projects: ["write"] },
 		});
 	});
+	it("publishes the same Project request bounds as runtime validation", () => {
+		const document = createOpenApiDocument();
+		expect(
+			document.paths?.["/api/v1/projects"]?.post?.requestBody,
+		).toMatchObject({
+			content: {
+				"application/json": {
+					schema: {
+						properties: {
+							name: { minLength: 1, maxLength: 120 },
+							description: { maxLength: 1000 },
+						},
+					},
+				},
+			},
+		});
+	});
 });

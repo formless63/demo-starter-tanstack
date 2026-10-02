@@ -1,4 +1,5 @@
 export type StorageErrorCode =
+	| "cancelled"
 	| "configuration"
 	| "not_found"
 	| "access_denied"
@@ -6,6 +7,7 @@ export type StorageErrorCode =
 	| "invalid_input"
 	| "provider_error";
 const messages: Record<StorageErrorCode, string> = {
+	cancelled: "Storage operation was cancelled",
 	configuration: "Storage configuration is incomplete or invalid",
 	not_found: "Storage resource was not found",
 	access_denied: "Storage access was denied",

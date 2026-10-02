@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
 	boolean,
 	index,
@@ -7,6 +8,7 @@ import {
 	timestamp,
 	uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { tsvector, weightedSearchVector } from "../integrations/search/schema";
 
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -153,6 +155,9 @@ export const apikey = pgTable(
 export const projects = pgTable(
 	"project",
 	{
+		searchVector: tsvector("search_vector").generatedAlwaysAs(
+			weightedSearchVector(sql`"name"`, sql`"description"`),
+		),
 		id: text("id").primaryKey(),
 		name: text("name").notNull(),
 		description: text("description"),
@@ -168,5 +173,10 @@ export const projects = pgTable(
 	},
 	(table) => [
 		index("project_owner_updated_idx").on(table.ownerId, table.updatedAt),
+		index("project_search_vector_idx").using("gin", table.searchVector),
 	],
 );
+
+export { auditEvents } from "../integrations/audit-log/schema";
+export { transfers } from "../integrations/import-export/schema";
+export { notifications } from "../integrations/notifications/schema";

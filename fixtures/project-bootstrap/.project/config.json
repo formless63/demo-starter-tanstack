@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "name": "Field Notes",
+    "summary": "Private document uploads and asynchronous processing for small teams."
+  },
+  "documents": {
+    "project": "PROJECT.md",
+    "spec": "input/SPEC.md",
+    "design": "DESIGN.md"
+  },
+  "capabilities": {
+    "selected": [
+      "jobs",
+      "object-storage",
+      "webhooks"
+    ],
+    "deferred": [
+      "realtime"
+    ],
+    "excluded": [
+      "cache-coordination"
+    ]
+  },
+  "appearance": {
+    "colorMode": {
+      "supported": [
+        "light",
+        "dark"
+      ],
+      "default": "system",
+      "userSelectable": true
+    },
+    "theme": {
+      "source": "tweakcn",
+      "name": "modern-minimal",
+      "reference": "input/tweakcn-modern-minimal.json",
+      "file": ".project/theme.json"
+    },
+    "fonts": "system-fallback"
+  },
+  "skills": {
+    "manifest": ".project/skills.json"
+  }
+}

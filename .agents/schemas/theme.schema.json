@@ -1,0 +1,868 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "starter",
+            "tweakcn",
+            "shadcn-registry",
+            "custom"
+          ]
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500,
+              "pattern": "^[^\\x00-\\x1f\\x7f]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "reference"
+      ],
+      "additionalProperties": false
+    },
+    "tokens": {
+      "type": "object",
+      "properties": {
+        "theme": {
+          "type": "object",
+          "properties": {
+            "background": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "card": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "card-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "popover": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "popover-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "primary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "primary-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "secondary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "secondary-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "muted": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "muted-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "accent": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "accent-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "destructive": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "destructive-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "border": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "input": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "ring": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-1": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-2": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-3": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-4": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-5": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-primary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-primary-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-accent": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-accent-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-border": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-ring": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "radius": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "font-sans": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "font-serif": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "font-mono": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "tracking-normal": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "spacing": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-2xs": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-xs": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-sm": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-md": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-lg": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-xl": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-2xl": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "additionalProperties": false
+        },
+        "light": {
+          "type": "object",
+          "properties": {
+            "background": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "card": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "card-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "popover": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "popover-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "primary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "primary-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "secondary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "secondary-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "muted": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "muted-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "accent": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "accent-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "destructive": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "destructive-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "border": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "input": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "ring": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-1": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-2": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-3": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-4": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-5": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-primary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-primary-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-accent": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-accent-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-border": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-ring": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "radius": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "font-sans": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "font-serif": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "font-mono": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "tracking-normal": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "spacing": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-2xs": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-xs": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-sm": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-md": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-lg": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-xl": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-2xl": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "background",
+            "foreground",
+            "card",
+            "card-foreground",
+            "popover",
+            "popover-foreground",
+            "primary",
+            "primary-foreground",
+            "secondary",
+            "secondary-foreground",
+            "muted",
+            "muted-foreground",
+            "accent",
+            "accent-foreground",
+            "destructive",
+            "destructive-foreground",
+            "border",
+            "input",
+            "ring",
+            "chart-1",
+            "chart-2",
+            "chart-3",
+            "chart-4",
+            "chart-5",
+            "sidebar",
+            "sidebar-foreground",
+            "sidebar-primary",
+            "sidebar-primary-foreground",
+            "sidebar-accent",
+            "sidebar-accent-foreground",
+            "sidebar-border",
+            "sidebar-ring",
+            "radius",
+            "font-sans",
+            "font-serif",
+            "font-mono",
+            "tracking-normal",
+            "spacing",
+            "shadow-2xs",
+            "shadow-xs",
+            "shadow-sm",
+            "shadow",
+            "shadow-md",
+            "shadow-lg",
+            "shadow-xl",
+            "shadow-2xl"
+          ],
+          "additionalProperties": false
+        },
+        "dark": {
+          "type": "object",
+          "properties": {
+            "background": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "card": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "card-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "popover": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "popover-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "primary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "primary-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "secondary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "secondary-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "muted": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "muted-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "accent": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "accent-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "destructive": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "destructive-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "border": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "input": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "ring": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-1": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-2": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-3": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-4": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "chart-5": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-primary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-primary-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-accent": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-accent-foreground": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-border": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "sidebar-ring": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "radius": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "font-sans": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "font-serif": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "font-mono": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "tracking-normal": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "spacing": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-2xs": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-xs": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-sm": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-md": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-lg": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-xl": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "shadow-2xl": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "required": [
+            "background",
+            "foreground",
+            "card",
+            "card-foreground",
+            "popover",
+            "popover-foreground",
+            "primary",
+            "primary-foreground",
+            "secondary",
+            "secondary-foreground",
+            "muted",
+            "muted-foreground",
+            "accent",
+            "accent-foreground",
+            "destructive",
+            "destructive-foreground",
+            "border",
+            "input",
+            "ring",
+            "chart-1",
+            "chart-2",
+            "chart-3",
+            "chart-4",
+            "chart-5",
+            "sidebar",
+            "sidebar-foreground",
+            "sidebar-primary",
+            "sidebar-primary-foreground",
+            "sidebar-accent",
+            "sidebar-accent-foreground",
+            "sidebar-border",
+            "sidebar-ring",
+            "radius",
+            "font-sans",
+            "font-serif",
+            "font-mono",
+            "tracking-normal",
+            "spacing",
+            "shadow-2xs",
+            "shadow-xs",
+            "shadow-sm",
+            "shadow",
+            "shadow-md",
+            "shadow-lg",
+            "shadow-xl",
+            "shadow-2xl"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "theme",
+        "light",
+        "dark"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "name",
+    "source",
+    "tokens"
+  ],
+  "additionalProperties": false
+}
