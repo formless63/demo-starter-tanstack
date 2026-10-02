@@ -234,3 +234,7 @@ Markdown / Code Content is completed and reference-enabled with no hard dependen
 ## Combined content-module acceptance
 
 Both independently reviewed source heads passed full hosted CI: Rich Text `4754559bba71c36c357325f9b4d1231d3808d0cf` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37034217024)) and File UI `73c442b9b8729e17c8cb30a6879d87da80f31c5b` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37036091357)). This combined integration retains their accepted runtime and all inherited gates. The published combined head still requires its own complete hosted CI before merge; source success is not a combined-CI claim.
+
+## Internationalization (in progress)
+
+No hard capability edges. The reference `/i18n-test` resolves a server locale once and supplies canonical resources and initial formatted values; application routing/document attributes remain application-owned. Opt-in native i18next/react-i18next, no detection, persistence, backend loader or HTML translation. See [contract](../capabilities/internationalization/CAPABILITY.md) and [evaluation](../INTERNATIONALIZATION_MODULE_EVALUATION.md). Full generated install/production/removal and native browser gates are required before completion.

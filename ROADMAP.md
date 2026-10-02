@@ -102,7 +102,7 @@ Starter authentication is a baseline requirement, not a capability edge.
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
 | PWA / Offline | None | Notifications, Realtime | None | Planned |
-| Internationalization | None | UI-facing capabilities | None | Planned |
+| Internationalization | None | UI-facing capabilities | None | In progress |
 
 ## Dependency direction
 

@@ -1741,7 +1741,7 @@
       "id": "internationalization",
       "displayName": "Internationalization",
       "kind": "client-platform",
-      "status": "planned",
+      "status": "in-progress",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
@@ -1757,7 +1757,18 @@
       ],
       "baselineRequirements": [],
       "externalRequirements": [],
-      "summary": "Locale routing, message formatting, and translation conventions for UI-facing capabilities."
+      "summary": "Explicit request-local locale, bounded plain-text messages, CLDR plurals and Intl formatting; application-owned routing.",
+      "documentationPath": "capabilities/internationalization/CAPABILITY.md",
+      "evaluationDocument": "INTERNATIONALIZATION_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "internationalization",
+        "sourceDirectory": "capabilities/internationalization/.add-on",
+        "manifestPath": "capabilities/internationalization/.add-on/info.json",
+        "distributablePath": "capabilities/internationalization/add-on.json",
+        "cleanInstallFixture": "capabilities/internationalization/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
     }
   ]
 }

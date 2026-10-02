@@ -91,6 +91,8 @@ jobs:
       - run: bun run file-ui:protocol
       - run: bun run file-ui:protocol:node
       - run: bun run file-ui:compat
+      - run: bun run internationalization:typecheck
+      - run: bun run internationalization:unit
       - run: bun run markdown-code:typecheck
       - run: bun run markdown-code:unit
       - run: bun run markdown-code:dom
@@ -148,6 +150,7 @@ jobs:
       - run: bun run build
       - run: bun run file-ui:http
       - run: bun run file-ui:browser
+      - run: bun run add-ons:verify:reference internationalization
       - run: bun run add-ons:verify:reference markdown-code
       - run: bun run test:e2e
       - run: docker compose up -d worker

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+assert.equal(JSON.parse(await readFile('package.json','utf8')).name,'internationalization-clean-install');
+process.env.NODE_ENV='production';
+const runtime=await import(pathToFileURL(resolve('dist/server/server.js')).href);
+assert.equal(typeof runtime.default.fetch,'function');
+const response=await runtime.default.fetch(new Request('http://fixture.local/i18n-fixture'));
+assert.equal(response.status,200);const html=await response.text();
+assert.ok(html.includes('dir="rtl"'));assert.ok(html.includes('مرحبًا Ada'));assert.ok(html.includes('عنصران'));assert.ok(html.includes('&lt;img'));assert.ok(!html.includes('<img src=x'));
+console.info('Generated TanStack production Node handler Arabic SSR and escaped literal passed');
