@@ -91,6 +91,8 @@ jobs:
       - run: bun run file-ui:protocol
       - run: bun run file-ui:protocol:node
       - run: bun run file-ui:compat
+      - run: bun run internationalization:router
+      - run: bun run internationalization:packaging
       - run: bun run internationalization:typecheck
       - run: bun run internationalization:unit
       - run: bun run markdown-code:typecheck

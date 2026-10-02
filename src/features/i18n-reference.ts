@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createExamplePayload } from "../integrations/internationalization/example";
+import { createExamplePayload } from "../integrations/internationalization/I18nExample";
 export const getI18nReference = createServerFn({ method: "GET" })
 	.inputValidator((input: { locale?: string }) => ({
 		locale:

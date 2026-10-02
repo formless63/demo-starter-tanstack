@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { renderToString } from 'react-dom/server';
 import { createI18n, createPayload, validateConfig } from '../src/integrations/internationalization/i18n';
-import { exampleConfig, createExamplePayload, I18nExample } from '../src/integrations/internationalization/example';
+import { exampleConfig, createExamplePayload, I18nExample } from '../src/integrations/internationalization/I18nExample';
 const en = await createExamplePayload('en');
 const de = await createExamplePayload('de');
 const ar = await createExamplePayload('ar');
@@ -20,7 +20,7 @@ assert.equal((await createPayload(exampleConfig,'xx')).locale,'en');
 assert.equal((await createPayload(exampleConfig,'__proto__')).locale,'en');
 assert.equal(german.payload.formatted.currency,german.number(1234.5,'currency'));
 const html = renderToString(<I18nExample initial={ar}/>);
-assert.ok(html.includes('dir="rtl"'));assert.ok(html.includes('&lt;img'));assert.ok(!html.includes('<img'));
+assert.ok(html.includes('disabled=""'),'SSR controls cannot accept a click before hydration handlers attach');assert.ok(html.includes('dir="rtl"'));assert.ok(html.includes('&lt;img'));assert.ok(!html.includes('<img'));
 for (const messages of [JSON.parse('{"__proto__":"x"}'),{constructor:'bad'},{key:'{{broken}'},{key:'{{-raw}}'},{key:'$t(secret)'},{key:'{{value, currency}}'},{key:'x'.repeat(8193)},{key:()=> 'x'},{key:['x']},Object.defineProperty({},'secret',{enumerable:true,get:()=>{throw new Error('Getter must never run');}})]) {
  assert.throws(() => validateConfig({...exampleConfig,locales:{en:{direction:'ltr',messages:messages as never}}}),/Invalid internationalization/);
 }
