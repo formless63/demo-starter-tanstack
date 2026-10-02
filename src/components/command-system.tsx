@@ -1,25 +1,80 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { type RegisterableHotkey, useHotkey } from "@tanstack/react-hotkeys";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-type Command = { id: string; label: string; execute: () => void };
+type Command = {
+	id: string;
+	label: string;
+	keywords?: readonly string[];
+	disabled?: boolean;
+	execute: () => void | Promise<void>;
+};
+
+export function createCommandRegistry(initial: readonly Command[] = []) {
+	const commands = new Map(initial.map((command) => [command.id, command]));
+	return {
+		register(command: Command) {
+			commands.set(command.id, command);
+			return () => {
+				commands.delete(command.id);
+			};
+		},
+		list: () => [...commands.values()],
+	};
+}
 
 export function CommandPalette({ commands }: { commands: readonly Command[] }) {
 	const [open, setOpen] = useState(false);
 	const [query, setQuery] = useState("");
 	const [active, setActive] = useState(0);
+	const [pending, setPending] = useState<string | null>(null);
+	const [error, setError] = useState<string | null>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
-	const filtered = commands.filter((command) =>
-		command.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
+	const mounted = useRef(true);
+	const runToken = useRef(0);
+	const running = useRef(false);
+	const filtered = useMemo(
+		() =>
+			commands.filter(
+				(command) =>
+					!command.disabled &&
+					[command.label, ...(command.keywords ?? [])].some((value) =>
+						value.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
+					),
+			),
+		[commands, query],
 	);
 	useHotkey("Mod+K" as RegisterableHotkey, () => setOpen(true), {
 		ignoreInputs: true,
 	});
 	useEffect(() => {
+		return () => {
+			mounted.current = false;
+			runToken.current += 1;
+		};
+	}, []);
+	useEffect(() => {
 		if (!open) return;
 		const id = requestAnimationFrame(() => inputRef.current?.focus());
 		return () => cancelAnimationFrame(id);
 	}, [open]);
+	const run = async (command: Command) => {
+		if (running.current) return;
+		running.current = true;
+		const token = ++runToken.current;
+		setPending(command.id);
+		setError(null);
+		try {
+			await command.execute();
+			if (mounted.current && token === runToken.current) setOpen(false);
+		} catch (cause) {
+			if (mounted.current && token === runToken.current)
+				setError(cause instanceof Error ? cause.message : "Command failed");
+		} finally {
+			running.current = false;
+			if (mounted.current && token === runToken.current) setPending(null);
+		}
+	};
 	return (
 		<Dialog.Root open={open} onOpenChange={setOpen}>
 			<Dialog.Trigger className="sr-only">Open command menu</Dialog.Trigger>
@@ -36,10 +91,13 @@ export function CommandPalette({ commands }: { commands: readonly Command[] }) {
 							event.preventDefault();
 							setActive((value) => Math.max(value - 1, 0));
 						}
-						if (event.key === "Enter" && filtered[active]) {
+						if (
+							event.key === "Enter" &&
+							event.target === inputRef.current &&
+							filtered[active]
+						) {
 							event.preventDefault();
-							filtered[active].execute();
-							setOpen(false);
+							void run(filtered[active]);
 						}
 					}}
 				>
@@ -55,24 +113,38 @@ export function CommandPalette({ commands }: { commands: readonly Command[] }) {
 							setActive(0);
 						}}
 						aria-label="Search commands"
+						role="combobox"
+						aria-controls="command-palette-options"
+						aria-expanded={open}
+						aria-activedescendant={
+							filtered[active] ? `command-${filtered[active].id}` : undefined
+						}
 						placeholder="Type a command…"
 						className="w-full border-b bg-transparent px-4 py-3 outline-none"
 					/>
-					<div role="listbox" aria-label="Command menu" className="p-2">
+					<div
+						id="command-palette-options"
+						role="listbox"
+						aria-label="Command menu"
+						className="p-2"
+					>
 						{filtered.map((command, index) => (
 							<button
 								key={command.id}
 								type="button"
 								role="option"
+								id={`command-${command.id}`}
+								disabled={pending !== null}
 								aria-selected={index === active}
 								className="block w-full rounded-md px-3 py-2 text-left aria-selected:bg-accent"
 								onMouseEnter={() => setActive(index)}
+								onFocus={() => setActive(index)}
 								onClick={() => {
-									command.execute();
-									setOpen(false);
+									void run(command);
 								}}
 							>
 								{command.label}
+								{pending === command.id && " (Running…)"}
 							</button>
 						))}
 						{filtered.length === 0 && (
@@ -81,6 +153,14 @@ export function CommandPalette({ commands }: { commands: readonly Command[] }) {
 							</p>
 						)}
 					</div>
+					{error && (
+						<p
+							role="alert"
+							className="border-t px-4 py-2 text-sm text-destructive"
+						>
+							{error}
+						</p>
+					)}
 				</Dialog.Popup>
 			</Dialog.Portal>
 		</Dialog.Root>

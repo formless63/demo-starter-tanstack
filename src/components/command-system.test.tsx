@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CommandPalette } from "./command-system";
+import { CommandPalette, createCommandRegistry } from "./command-system";
 
 describe("reference command palette", () => {
 	afterEach(() => cleanup());
@@ -20,7 +20,7 @@ describe("reference command palette", () => {
 		const trigger = screen.getByRole("button", { name: "Open command menu" });
 		trigger.focus();
 		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
-		const input = await screen.findByRole("textbox", {
+		const input = await screen.findByRole("combobox", {
 			name: "Search commands",
 		});
 		expect(document.activeElement).toBe(input);
@@ -46,5 +46,43 @@ describe("reference command palette", () => {
 		const html = renderToString(<CommandPalette commands={[]} />);
 		expect(html).toContain("Open command menu");
 		expect(html).not.toContain('role="dialog"');
+	});
+
+	it("tracks a focused second option instead of executing the first", async () => {
+		const first = vi.fn();
+		const second = vi.fn();
+		render(
+			<CommandPalette
+				commands={[
+					{ id: "one", label: "One", execute: first },
+					{ id: "two", label: "Two", execute: second },
+				]}
+			/>,
+		);
+		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+		const input = await screen.findByRole("combobox");
+		const options = screen.getAllByRole("option");
+		const secondOption = options.at(1);
+		if (!secondOption) throw new Error("second option missing");
+		secondOption.focus();
+		await waitFor(() =>
+			expect(input.getAttribute("aria-activedescendant")).toBe("command-two"),
+		);
+		fireEvent.keyDown(secondOption, { key: "Enter" });
+		fireEvent.click(secondOption);
+		expect(first).not.toHaveBeenCalled();
+		expect(second).toHaveBeenCalledTimes(1);
+	});
+
+	it("unregisters commands without retaining stale entries", () => {
+		const registry = createCommandRegistry();
+		const dispose = registry.register({
+			id: "one",
+			label: "One",
+			execute: vi.fn(),
+		});
+		expect(registry.list()).toHaveLength(1);
+		dispose();
+		expect(registry.list()).toHaveLength(0);
 	});
 });

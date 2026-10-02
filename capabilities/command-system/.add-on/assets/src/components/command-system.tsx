@@ -21,6 +21,19 @@ export type CommandPaletteProps = {
 	triggerLabel?: string;
 };
 
+export function createCommandRegistry(initial: readonly AppCommand[] = []) {
+	const commands = new Map(initial.map((command) => [command.id, command]));
+	return {
+		register(command: AppCommand) {
+			commands.set(command.id, command);
+			return () => {
+				commands.delete(command.id);
+			};
+		},
+		list: () => [...commands.values()],
+	};
+}
+
 export function CommandPalette({
 	commands,
 	open: controlledOpen,
@@ -35,7 +48,17 @@ export function CommandPalette({
 	const [pending, setPending] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
+	const mounted = useRef(true);
+	const runToken = useRef(0);
+	const running = useRef(false);
 	const open = controlledOpen ?? uncontrolledOpen;
+	useEffect(
+		() => () => {
+			mounted.current = false;
+			runToken.current += 1;
+		},
+		[],
+	);
 	const setOpen = (value: boolean) => {
 		if (controlledOpen === undefined) setUncontrolledOpen(value);
 		onOpenChange?.(value);
@@ -69,16 +92,20 @@ export function CommandPalette({
 	}, [commands, query]);
 
 	const run = async (command: AppCommand) => {
-		if (pending !== null) return;
+		if (running.current) return;
+		running.current = true;
+		const token = ++runToken.current;
 		setPending(command.id);
 		setError(null);
 		try {
 			await command.execute();
-			setOpen(false);
+			if (mounted.current && token === runToken.current) setOpen(false);
 		} catch (cause) {
-			setError(cause instanceof Error ? cause.message : "Command failed");
+			if (mounted.current && token === runToken.current)
+				setError(cause instanceof Error ? cause.message : "Command failed");
 		} finally {
-			setPending(null);
+			running.current = false;
+			if (mounted.current && token === runToken.current) setPending(null);
 		}
 	};
 
@@ -100,7 +127,11 @@ export function CommandPalette({
 							event.preventDefault();
 							setActive((value) => Math.max(value - 1, 0));
 						}
-						if (event.key === "Enter" && filtered[active]) {
+						if (
+							event.key === "Enter" &&
+							event.target === inputRef.current &&
+							filtered[active]
+						) {
 							event.preventDefault();
 							void run(filtered[active]);
 						}
@@ -118,11 +149,18 @@ export function CommandPalette({
 							setActive(0);
 						}}
 						aria-label="Search commands"
+						role="combobox"
+						aria-controls="command-palette-options"
+						aria-expanded={open}
+						aria-activedescendant={
+							filtered[active] ? `command-${filtered[active].id}` : undefined
+						}
 						placeholder="Type a command…"
 						className="w-full border-b bg-transparent px-4 py-3 outline-none"
 					/>
 					<div
 						role="listbox"
+						id="command-palette-options"
 						aria-label={label}
 						className="max-h-80 overflow-auto p-2"
 					>
@@ -130,10 +168,12 @@ export function CommandPalette({
 							<button
 								type="button"
 								role="option"
+								id={`command-${command.id}`}
 								aria-selected={index === active}
 								key={command.id}
 								disabled={pending !== null}
 								onMouseEnter={() => setActive(index)}
+								onFocus={() => setActive(index)}
 								onClick={() => void run(command)}
 								className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left aria-selected:bg-accent"
 							>
