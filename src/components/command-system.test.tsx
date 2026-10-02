@@ -107,4 +107,20 @@ describe("reference command palette", () => {
 			expect(screen.getByRole("alert").textContent).toContain("failed"),
 		);
 	});
+
+	it("clears execution ownership after success so reopening can run again", async () => {
+		const execute = vi.fn(async () => {});
+		render(
+			<CommandPalette commands={[{ id: "again", label: "Again", execute }]} />,
+		);
+		const trigger = screen.getByRole("button", { name: "Open command menu" });
+		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+		fireEvent.click(await screen.findByRole("option", { name: "Again" }));
+		await waitFor(() =>
+			expect(document.querySelector('[role="dialog"]')).toBeNull(),
+		);
+		fireEvent.click(trigger);
+		fireEvent.click(await screen.findByRole("option", { name: "Again" }));
+		await waitFor(() => expect(execute).toHaveBeenCalledTimes(2));
+	});
 });

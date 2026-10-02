@@ -59,6 +59,10 @@ export function CommandPalette({
 	const runToken = useRef(0);
 	const running = useRef(false);
 	const open = controlledOpen ?? uncontrolledOpen;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: presentation generation intentionally tracks open transitions.
+	useEffect(() => {
+		runToken.current += 1;
+	}, [open]);
 	useEffect(() => {
 		mounted.current = true;
 		return () => {
@@ -113,7 +117,7 @@ export function CommandPalette({
 				setError(cause instanceof Error ? cause.message : "Command failed");
 		} finally {
 			running.current = false;
-			if (mounted.current && token === runToken.current) setPending(null);
+			if (mounted.current) setPending(null);
 		}
 	};
 
