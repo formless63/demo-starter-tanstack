@@ -805,7 +805,7 @@
 			"summary": "Database-backed release and targeting controls without a required SaaS provider."
 		},
 		{
-			"id": "invoice-ninja", "displayName": "Invoice Ninja", "kind": "business-integration", "status": "planned", "defaultInstalled": false,
+			"id": "invoice-ninja", "displayName": "Invoice Ninja", "kind": "business-integration", "status": "in-progress", "defaultInstalled": false,
 			"requires": ["jobs", "webhooks"], "integratesWith": ["organizations", "audit-log", "notifications"], "baselineRequirements": [],
 			"externalRequirements": [{ "name": "Invoice Ninja", "required": true, "description": "Invoice Ninja instance and API credentials." }],
 			"summary": "Durable Invoice Ninja synchronization and webhook integration."
