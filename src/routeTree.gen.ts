@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as ChartsTestRouteImport } from './routes/charts-test'
+import { Route as MarkdownTestRouteImport } from './routes/markdown-test'
 import { Route as AdminOpsRouteImport } from './routes/admin.ops'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiOpenapiDotjsonRouteImport } from './routes/api/openapi[.]json'
@@ -48,6 +49,11 @@ const AppRoute = AppRouteImport.update({
 const ChartsTestRoute = ChartsTestRouteImport.update({
   id: '/charts-test',
   path: '/charts-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarkdownTestRoute = MarkdownTestRouteImport.update({
+  id: '/markdown-test',
+  path: '/markdown-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminOpsRoute = AdminOpsRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/markdown-test': typeof MarkdownTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
@@ -197,6 +204,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/markdown-test': typeof MarkdownTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
@@ -225,6 +233,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/markdown-test': typeof MarkdownTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
@@ -254,6 +263,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/charts-test'
+    | '/markdown-test'
     | '/admin/ops'
     | '/api/health'
     | '/api/openapi.json'
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/charts-test'
+    | '/markdown-test'
     | '/admin/ops'
     | '/api/health'
     | '/api/openapi.json'
@@ -308,6 +319,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/charts-test'
+    | '/markdown-test'
     | '/admin/ops'
     | '/api/health'
     | '/api/openapi.json'
@@ -336,6 +348,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   ChartsTestRoute: typeof ChartsTestRoute
+  MarkdownTestRoute: typeof MarkdownTestRoute
   AdminOpsRoute: typeof AdminOpsRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiOpenapiDotjsonRoute: typeof ApiOpenapiDotjsonRoute
@@ -373,6 +386,13 @@ declare module '@tanstack/react-router' {
       path: '/charts-test'
       fullPath: '/charts-test'
       preLoaderRoute: typeof ChartsTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/markdown-test': {
+      id: '/markdown-test'
+      path: '/markdown-test'
+      fullPath: '/markdown-test'
+      preLoaderRoute: typeof MarkdownTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/ops': {
@@ -560,6 +580,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   ChartsTestRoute: ChartsTestRoute,
+  MarkdownTestRoute: MarkdownTestRoute,
   AdminOpsRoute: AdminOpsRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiOpenapiDotjsonRoute: ApiOpenapiDotjsonRoute,
