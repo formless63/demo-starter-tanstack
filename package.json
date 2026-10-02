@@ -121,6 +121,15 @@
     "file-ui:reconcile": "bun scripts/file-ui-reconcile.ts",
     "file-ui:protocol:node": "bun build scripts/file-ui-protocol.ts --target=node --outfile=/tmp/file-ui-protocol-node.mjs && node /tmp/file-ui-protocol-node.mjs",
     "file-ui:http": "bun scripts/file-ui-http.ts",
+    "flow-canvas:unit": "bun scripts/flow-canvas-unit.tsx",
+    "flow-canvas:browser": "bun scripts/flow-canvas-browser.tsx",
+    "flow-canvas:typecheck": "tsc --noEmit -p capabilities/flow-canvas/test/tsconfig.json",
+    "flow-canvas:dom": "vitest run --config vitest.flow-canvas.config.ts",
+    "internationalization:unit": "bun scripts/internationalization-unit.tsx",
+    "internationalization:typecheck": "tsc --noEmit -p capabilities/internationalization/test/tsconfig.json",
+    "internationalization:browser": "bun scripts/internationalization-browser.tsx",
+    "internationalization:packaging": "bun scripts/internationalization-packaging.ts",
+    "internationalization:router": "bun --conditions=browser scripts/internationalization-router.tsx",
     "pwa:unit": "bun scripts/pwa-unit.ts",
     "pwa:browser": "bun scripts/pwa-browser.ts",
     "pwa:packaging": "bun scripts/pwa-packaging.ts"
@@ -181,7 +190,10 @@
     "tailwindcss": "^4.1.18",
     "tw-animate-css": "^1.3.6",
     "zod": "^4.3.6",
-    "zod-openapi": "^6.0.2"
+    "zod-openapi": "^6.0.2",
+    "@xyflow/react": "12.12.0",
+    "i18next": "26.4.2",
+    "react-i18next": "17.0.15"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.5",

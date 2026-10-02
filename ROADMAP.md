@@ -18,7 +18,7 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, `AI`, `Search`, `Realtime`, `Notifications`, `Import / Export`, `Ops / Admin`, `Invoice Ninja`, `Stripe`, `Medusa`, `Charts / Visualization`, `Command System`, `Data Table`, `Markdown / Code Content`, `File UI`, and `Rich Text / Tiptap` are twenty-three completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
+`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, `AI`, `Search`, `Realtime`, `Notifications`, `Import / Export`, `Ops / Admin`, `Invoice Ninja`, `Stripe`, `Medusa`, `Charts / Visualization`, `Command System`, `Data Table`, `Markdown / Code Content`, `File UI`, `Rich Text / Tiptap`, `Flow / Canvas`, and `Internationalization` are twenty-five completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
 
 `defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
@@ -95,14 +95,14 @@ Starter authentication is a baseline requirement, not a capability edge.
 | Charts / Visualization | None | Data Table, Realtime | None | Done |
 | File UI | Object Storage | Jobs, Search | None | Done |
 | Rich Text / Tiptap | None | Object Storage, Markdown / Code, Realtime, Organizations | None | Done |
-| Flow / Canvas | None | Realtime, Object Storage, Audit Log | None | Planned |
+| Flow / Canvas | None | Realtime, Object Storage, Audit Log | None | Done |
 
 ### Client / platform
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
 | PWA / Offline | None | Notifications, Realtime | None | In progress |
-| Internationalization | None | UI-facing capabilities | None | Planned |
+| Internationalization | None | UI-facing capabilities | None | Done |
 
 ## Dependency direction
 
@@ -154,7 +154,7 @@ Architecture pre-wave remediation keeps the sparse dependency graph unchanged: b
 
 Agent-led existing-material onboarding, portable `.project` profiles/provenance/skill reviews, semantic theme import/generation and Light/Dark/System policy are baseline starter tooling. See `docs/PROJECT-ONBOARDING.md` and `docs/APPEARANCE.md`. They introduce no capability IDs or hard dependency edges and do not advance a planned runtime capability. Deferred profile selections remain unavailable until implemented through capability governance.
 
-Bounded baseline maintenance aligns Better Auth/API Key and the bundled Drizzle adapter at 1.7.7, canonical Jobs process roles/native attempt context and routing-safe transactional enqueue, and Project input limits (name 120, description 1000). All twenty-three completed capabilities remain opt-in for clean consumers and enabled in the root reference; baseline maintenance adds no hard capability edges.
+Bounded baseline maintenance aligns Better Auth/API Key and the bundled Drizzle adapter at 1.7.7, canonical Jobs process roles/native attempt context and routing-safe transactional enqueue, and Project input limits (name 120, description 1000). All twenty-five completed capabilities remain opt-in for clean consumers and enabled in the root reference; baseline maintenance adds no hard capability edges.
 
 Search v1 uses explicit simple PostgreSQL18 full-text search, weighted A/B STORED vectors and GIN in application-owned tables, ts_rank_cd normalization32 and bounded canonical numeric-float4 keysets with six-digit timestamps and opaque IDs. The disposable lifecycle database survives the generic final removal build before rows/vector/GIN/history checks and teardown. The root Projects POST integration enforces existing owners. Add-on assets install no universal search table or production domain migration.
 
@@ -168,5 +168,9 @@ File UI is completed, reference-enabled, opt-in, and requires only Object Storag
 ## Combined content-module acceptance
 
 Both independently reviewed source heads passed full hosted CI: Rich Text `4754559bba71c36c357325f9b4d1231d3808d0cf` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37034217024)) and File UI `73c442b9b8729e17c8cb30a6879d87da80f31c5b` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37036091357)). This combined integration retains their accepted runtime and all inherited gates. The published combined head still requires its own complete hosted CI before merge; source success is not a combined-CI claim.
+
+## Flow / Canvas and Internationalization acceptance
+
+Flow / Canvas source `a1a020cf7e75340e4f833c62db0d0b0e6b38d117` passed all 26 hosted jobs ([run 37051676575](https://github.com/formless63/demo-starter-tanstack/actions/runs/37051676575)); Internationalization source `d422d4b24d9ea4a5904870564041465d8e050ef2` passed all 26 hosted jobs ([run 37052978536](https://github.com/formless63/demo-starter-tanstack/actions/runs/37052978536)). Both sources and their composition were independently reviewed. The combined integration preserves accepted main ancestry, both exact source parents, runtime source bytes, authored/compiled parity, migrations and all inherited gates. There are now twenty-five completed, reference-enabled capabilities; every generated-consumer default remains false. The new combined head still requires its own complete hosted CI, including native development/production Chromium, provider verification and all generated-consumer install/removal lifecycles, before merge. Source CI success is not a combined-CI result.
 
 PWA / Offline is in progress: independent opt-in native injectManifest, exact three-file public allowlist, no data or SSR cache, natural-tab-close updates and SAME-URL two-phase retirement. Root reference wiring is prepared; hosted native browser/lifecycle and full CI gate completion.

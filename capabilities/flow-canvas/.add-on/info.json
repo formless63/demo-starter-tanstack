@@ -1,0 +1,28 @@
+{
+  "id": "flow-canvas",
+  "name": "flow-canvas",
+  "displayName": "Flow / Canvas",
+  "description": "Bounded controlled graph editing with native React Flow and semantic SSR.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "@xyflow/react": "12.12.0"
+    },
+    "devDependencies": {
+      "@playwright/test": "1.63.0"
+    },
+    "scripts": {
+      "flow-canvas:unit": "bun scripts/flow-canvas-unit.tsx",
+      "flow-canvas:browser": "bun scripts/flow-canvas-browser.tsx"
+    }
+  }
+}

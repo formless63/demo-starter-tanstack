@@ -50,4 +50,6 @@ Markdown / Code Content pins stable markdown-it 15.0.2 and Shiki 4.5.0. Explicit
 
 Rich Text / Tiptap v1 pins React, ProseMirror bridge and Starter Kit together at 3.31.4; client execution stays dynamically imported after mount. File UI introduces no runtime package beyond existing Object Storage. Both are completed, reference-enabled and default-off after accepted source hosted gates; combined exact-head CI remains required before merge.
 
+Flow / Canvas stages native @xyflow/react 12.12.0 behind client-only enhancement. Root Vite noDiscovery has a scoped explicit @xyflow/react entry; preserve other dependencies/configuration. Module removal may prune this entry only if unused.
+
 PWA pins native vite-plugin-pwa 1.3.0 and workbox-build 7.4.1, using only build-time manifest injection. Browser Cache/ServiceWorker APIs implement a three-file credential-free integrity boundary. No runtime library, account/provider, permission expansion or hard capability dependency.

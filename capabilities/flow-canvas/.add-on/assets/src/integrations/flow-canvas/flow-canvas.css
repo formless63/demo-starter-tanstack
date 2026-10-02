@@ -1,0 +1,57 @@
+.flow-editor {
+	border: 1px solid var(--border, #888);
+	border-radius: 0.5rem;
+	padding: 1rem;
+	color: var(--foreground, #111);
+	background: var(--background, #fff);
+}
+.flow-visual {
+	height: 24rem;
+	border: 1px solid var(--border, #888);
+	margin-block: 1rem;
+}
+.flow-editor fieldset:not(.flow-visual) {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+}
+.flow-editor button,
+.flow-editor input,
+.flow-editor select {
+	border: 1px solid var(--border, #888);
+	border-radius: 0.25rem;
+	padding: 0.4rem;
+	background: var(--background, #fff);
+	color: var(--foreground, #111);
+}
+.flow-editor button:focus-visible,
+.flow-editor input:focus-visible,
+.flow-editor select:focus-visible {
+	outline: 3px solid var(--ring, #2563eb);
+	outline-offset: 2px;
+}
+.flow-editor button:disabled {
+	opacity: 0.55;
+}
+.flow-editor .react-flow__node {
+	min-width: 8rem;
+	padding: 0.75rem;
+	border: 1px solid var(--border, #888);
+	border-radius: 0.4rem;
+	background: var(--background, #fff);
+	color: var(--foreground, #111);
+}
+.flow-editor .react-flow__node.selected {
+	outline: 3px solid var(--ring, #2563eb);
+}
+.flow-editor .react-flow__controls-button {
+	color: #111;
+	background: #fff;
+}
+@media (prefers-reduced-motion: reduce) {
+	.flow-editor * {
+		animation: none !important;
+		transition: none !important;
+	}
+}

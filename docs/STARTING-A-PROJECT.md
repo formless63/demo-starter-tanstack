@@ -262,6 +262,12 @@ Remove `src/components/file-ui.tsx`, `src/integrations/file-ui`, `src/routes/app
 
 Remove application routes/loaders/component and CSS imports first (the reference owns `/markdown-test` and `src/features/markdown-reference.ts`). Remove `src/integrations/markdown-code`, module fixture scripts and `markdown-code:*` scripts; uninstall `markdown-it` and `shiki` if unused elsewhere. Keep Playwright and Bun types when other tests need them. Regenerate routes, typecheck and rebuild. No migrations or persisted data are involved. Retaining authored add-on source is a separate choice; remove reference enablement when present but keep catalog identity. See the [exact contract](../capabilities/markdown-code/CAPABILITY.md).
 
+### Removing Flow / Canvas
+
+Remove application `FlowCanvas`/graph helper/CSS imports and the root-only `/flow-test` route (or your own graph routes), then `src/integrations/flow-canvas` and `scripts/flow-canvas-*`. Remove `flow-canvas:*` package scripts and @xyflow/react only if no other feature uses it. Remove the scoped client `optimizeDeps.include` entry when unused. Root-specific e2e/DOM checks and their CI commands must follow the runtime removal. Regenerate routes, reinstall, typecheck and rebuild. Stored graph documents belong to your application and are retained. Keeping `capabilities/flow-canvas` authoring source is a separate choice from installing its runtime.
+
+Internationalization removal: first remove `src/routes/i18n-test.tsx` and `src/features/i18n-reference.ts`, then runtime `src/integrations/internationalization`, root `scripts/internationalization-*`, its package scripts and unused i18next/react-i18next dependencies. Retain shared Playwright and reusable capability source unless separately pruning it. Remove reference enablement, regenerate routes, reinstall, typecheck and rebuild; no data or migration is deleted. See [full contract](../capabilities/internationalization/CAPABILITY.md).
+
 ## PWA / Offline removal
 
 First deploy `retired: true` at the SAME historical worker URL/scope and retain its tombstone for returning clients. Allow old tabs to close naturally; verify only owned caches disappear. Then remove runtime imports/build integration/dependencies, keeping that exact public retirement script through subsequent builds. Deleting source or unregistering one browser does not retire production clients. See the full [two-phase contract](../capabilities/pwa-offline/CAPABILITY.md).
