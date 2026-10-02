@@ -12,14 +12,16 @@ const color = (value: string | undefined) =>
 	value && /^#[a-f\d]{6}([a-f\d]{2})?$/i.test(value) ? value : undefined;
 function CodeBlock({
 	node,
+	revision,
 }: {
 	node: Extract<MarkdownNode, { kind: "code" }>;
+	revision: unknown;
 }) {
 	const [status, setStatus] = useState("");
 	const [ready, setReady] = useState(false);
 	const pending = useRef(false);
 	const generation = useRef(0);
-	// biome-ignore lint/correctness/useExhaustiveDependencies: Reset pending copy state when code changes.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Reset pending copy state when the original document identity or code changes.
 	useEffect(() => {
 		generation.current++;
 		pending.current = false;
@@ -28,7 +30,7 @@ function CodeBlock({
 		return () => {
 			generation.current++;
 		};
-	}, [node.text]);
+	}, [node.text, revision]);
 	const copy = async () => {
 		if (pending.current) return;
 		pending.current = true;
@@ -90,12 +92,13 @@ function CodeBlock({
 		</figure>
 	);
 }
-function render(node: MarkdownNode, key: string): ReactNode {
+function render(node: MarkdownNode, key: string, revision: unknown): ReactNode {
 	if (node.kind === "text") return node.text;
-	if (node.kind === "code") return <CodeBlock node={node} key={key} />;
+	if (node.kind === "code")
+		return <CodeBlock node={node} revision={revision} key={key} />;
 	if (!tags.has(node.tag)) return null;
 	const children = node.children.map((child, index) =>
-		render(child, `${key}-${index}`),
+		render(child, `${key}-${index}`, revision),
 	);
 	if (node.tag === "a")
 		return createElement(
@@ -130,7 +133,9 @@ export function MarkdownContent({
 	const normalized = normalizeMarkdownDocument(document);
 	return (
 		<section className="markdown-content" aria-label={label}>
-			{normalized.nodes.map((node, index) => render(node, `node-${index}`))}
+			{normalized.nodes.map((node, index) =>
+				render(node, `node-${index}`, document),
+			)}
 		</section>
 	);
 }

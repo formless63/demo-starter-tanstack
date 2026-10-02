@@ -114,3 +114,9 @@ if (existsSync(authored)) {
  for (const path of ['src/integrations/markdown-code/types.ts','src/integrations/markdown-code/markdown.server.ts','src/integrations/markdown-code/MarkdownContent.tsx','src/integrations/markdown-code/markdown-code.css','scripts/markdown-code-unit.tsx','scripts/markdown-code-browser.tsx','scripts/markdown-code-example.tsx','scripts/markdown-code-client.tsx','scripts/markdown-code-remove.ts','scripts/markdown-code-fixture-route.ts','scripts/markdown-code-production.mjs','capabilities/markdown-code/CAPABILITY.md']) assert.equal(readFileSync(join(root,path),'utf8'),readFileSync(join(authored,path),'utf8'),`Authored/installed parity: ${path}`);
  console.info('Markdown authored/installed source parity passed');
 }
+
+const grammarDocument = await parseMarkdown("# Heading\n\nParagraph with [link](/safe), **bold**, and `inline`.\n\n> Quote\n\n- Item\n  - Nested\n\n| Name | Value |\n| --- | --- |\n| A | B |\n\n```typescript\nconst answer = 42;\n```\n");
+assert.deepEqual(normalizeMarkdownDocument(grammarDocument), grammarDocument, "Valid parser output survives defensive HTML grammar unchanged");
+
+const canonicalTextDocument = await parseMarkdown("Paired 😀 and CRLF\r\n\r\nNUL \u0000 becomes replacement.\n\n```text\n😀\r\n```\n");
+assert.deepEqual(normalizeMarkdownDocument(canonicalTextDocument), canonicalTextDocument, "Parser canonical text and paired surrogates survive normalization");
