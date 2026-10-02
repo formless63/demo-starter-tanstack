@@ -6,8 +6,9 @@ import pg from "pg";
 import {drizzle} from "drizzle-orm/node-postgres";
 import {migrate} from "drizzle-orm/node-postgres/migrator";
 import {PgBoss} from "pg-boss";
+import {trackFixturePool} from "./stripe-fixture-pool";
 const adminUrl=process.env.STRIPE_FIXTURE_DATABASE_URL??process.env.DATABASE_URL;assert.ok(adminUrl);assert.ok(process.env.STRIPE_WORKER_SCRIPT,"Explicit existing standalone Jobs worker bundle required");
-const admin=new pg.Pool({connectionString:adminUrl});const name=`stripe_worker_${randomUUID().replaceAll("-","")}`;const url=new URL(adminUrl);url.pathname=`/${name}`;const pool=new pg.Pool({connectionString:url.toString()});const boss=new PgBoss({connectionString:url.toString(),migrate:true});
+const admin=new pg.Pool({connectionString:adminUrl});const name=`stripe_worker_${randomUUID().replaceAll("-","")}`;const url=new URL(adminUrl);url.pathname=`/${name}`;const pool=new pg.Pool({connectionString:url.toString()});const closePool=trackFixturePool(pool);const boss=new PgBoss({connectionString:url.toString(),migrate:true});
 let worker:ReturnType<typeof spawn>|undefined;let logs="";let exitCode:number|null|undefined;
 try {
  await admin.query(`CREATE DATABASE "${name}"`);await migrate(drizzle(pool),{migrationsFolder:"drizzle"});await boss.start();await boss.createQueue("stripe.process",{retryLimit:5,retryDelay:30,retryBackoff:true,retryDelayMax:900,expireInSeconds:45});
@@ -21,4 +22,4 @@ try {
  while(Date.now()<until){assert.equal(exitCode,undefined,"Standalone worker exited before consumption");const job=await boss.getJobById("stripe.process",jobId);if(job?.state==="completed"){assert.deepEqual(job.output,{status:"ignored",errorCode:process.env.STRIPE_FIXTURE_POLICY==="denied"?"forbidden":"unconfigured"});completed=true;break;}await new Promise(resolve=>setTimeout(resolve,100));}
  assert.ok(completed,"Standalone worker did not consume within fixture deadline");assert.equal((await pool.query("select status,error_code,first_dispatch_at from stripe_operation where id=$1",[operation])).rows[0].status,"failed");assert.ok(logs.includes("stripe.process"));assert.ok(!logs.includes("cus_worker_private"));assert.ok(!logs.includes("sk_test"));
  console.info("Actual standalone production Node Jobs worker registered/consumed Stripe with missing configuration, safe output/logs and no provider transport.");
-} finally {if(worker&&exitCode===undefined){worker.kill("SIGTERM");await Promise.race([new Promise(resolve=>worker?.once("exit",resolve)),new Promise(resolve=>setTimeout(resolve,5000))]);if(exitCode===undefined)worker.kill("SIGKILL");}await boss.stop({graceful:true});await pool.end();await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);await admin.end();}
+} finally {if(worker&&exitCode===undefined){worker.kill("SIGTERM");await Promise.race([new Promise(resolve=>worker?.once("exit",resolve)),new Promise(resolve=>setTimeout(resolve,5000))]);if(exitCode===undefined)worker.kill("SIGKILL");}await boss.stop({graceful:true});try{await closePool();await admin.query(`DROP DATABASE IF EXISTS "${name}"`);}finally{await admin.end();}}
