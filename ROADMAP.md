@@ -82,7 +82,7 @@ Starter authentication is a baseline requirement, not a capability edge.
 | --- | --- | --- | --- | --- |
 | Invoice Ninja | Jobs, Webhooks | Organizations, Audit Log, Notifications | Invoice Ninja | Planned |
 | Stripe | Jobs, Webhooks | Organizations, Authorization, Audit Log, Notifications | Stripe | Planned |
-| Medusa | Jobs, Webhooks | Object Storage, Organizations, Search | Medusa | Planned |
+| Medusa | Jobs, Webhooks | Object Storage, Organizations, Search | Medusa 2.21.2 | In progress |
 
 ### Operations / UI infrastructure
 

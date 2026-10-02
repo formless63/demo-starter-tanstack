@@ -817,7 +817,7 @@
 			"summary": "Stripe billing integration with durable webhook and reconciliation workflows."
 		},
 		{
-			"id": "medusa", "displayName": "Medusa", "kind": "business-integration", "status": "planned", "defaultInstalled": false,
+			"id": "medusa", "displayName": "Medusa", "kind": "business-integration", "status": "in-progress", "defaultInstalled": false,
 			"requires": ["jobs", "webhooks"], "integratesWith": ["object-storage", "organizations", "search"], "baselineRequirements": [],
 			"externalRequirements": [{ "name": "Medusa", "required": true, "description": "Medusa commerce backend and credentials." }],
 			"summary": "Medusa commerce synchronization using reliable background and webhook processing."
