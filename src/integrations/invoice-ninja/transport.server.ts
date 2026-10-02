@@ -136,3 +136,68 @@ export async function providerRequest(
 		throw new InvoiceNinjaError("unavailable");
 	}
 }
+
+/** Closed creation transport. The caller must durably mark dispatch before invoking this write. No retry. */
+export async function createProviderDraft(
+	connection: Connection,
+	intent: import("./schema").FrozenDraft,
+	options: {
+		signal?: AbortSignal;
+		timeoutMs?: number;
+		fetch?: typeof fetch;
+		environment?: string;
+	} = {},
+) {
+	const cfg = validateConnection(connection, options.environment);
+	const duration = options.timeoutMs ?? 15000;
+	if (!Number.isFinite(duration) || duration <= 0 || duration > 15000)
+		throw new InvoiceNinjaError("invalid_input");
+	const deadline = AbortSignal.timeout(duration);
+	const signal = options.signal
+		? AbortSignal.any([deadline, options.signal])
+		: deadline;
+	const payload = {
+		client_id: intent.clientRemoteId,
+		currency_id: intent.policy.currencyId,
+		date: intent.input.invoiceDate,
+		...(intent.input.dueDate ? { due_date: intent.input.dueDate } : {}),
+		...(intent.input.numbering.mode === "explicit"
+			? { number: intent.input.numbering.number }
+			: {}),
+		line_items: intent.input.lines.map((line) => ({
+			notes: line.description,
+			quantity: line.quantity,
+			cost: line.unitCost,
+		})),
+	};
+	const body = JSON.stringify(payload);
+	if (Buffer.byteLength(body) > 256 * 1024)
+		throw new InvoiceNinjaError("limit_exceeded");
+	try {
+		signal.throwIfAborted();
+		const response = await (options.fetch ?? fetch)(
+			`${cfg.baseUrl}/api/v1/invoices`,
+			{
+				method: "POST",
+				body,
+				signal,
+				redirect: "error",
+				headers: {
+					"Content-Type": "application/json",
+					"X-API-TOKEN": cfg.apiToken,
+					"X-Requested-With": "XMLHttpRequest",
+					Accept: "application/json",
+				},
+			},
+		);
+		return {
+			status: response.status,
+			body: await readBounded(response.body, 2 * 1024 * 1024, signal),
+		};
+	} catch (error) {
+		if (deadline.aborted) throw new InvoiceNinjaError("deadline_exceeded");
+		if (options.signal?.aborted) throw new InvoiceNinjaError("cancelled");
+		if (error instanceof InvoiceNinjaError) throw error;
+		throw new InvoiceNinjaError("unavailable");
+	}
+}

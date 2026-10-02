@@ -16,6 +16,7 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiOpenapiDotjsonRouteImport } from './routes/api/openapi[.]json'
 import { Route as ApiTransfersStageRouteImport } from './routes/api/transfers-stage'
 import { Route as AppApiKeysRouteImport } from './routes/app.api-keys'
+import { Route as AppInvoicesRouteImport } from './routes/app.invoices'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppProjectsRouteImport } from './routes/app.projects'
 import { Route as AppTransfersRouteImport } from './routes/app.transfers'
@@ -23,6 +24,8 @@ import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiOpsSummaryRouteImport } from './routes/api/ops/summary'
 import { Route as ApiV1ProjectsRouteImport } from './routes/api/v1/projects'
+import { Route as ApiIntegrationsInvoiceNinjaActionRouteImport } from './routes/api/integrations/invoice-ninja/$action'
+import { Route as ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRouteImport } from './routes/api/integrations/invoice-ninja/webhooks/$connection.$event'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -57,6 +60,11 @@ const ApiTransfersStageRoute = ApiTransfersStageRouteImport.update({
 const AppApiKeysRoute = AppApiKeysRouteImport.update({
   id: '/api-keys',
   path: '/api-keys',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInvoicesRoute = AppInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
   getParentRoute: () => AppRoute,
 } as any)
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
@@ -94,6 +102,18 @@ const ApiV1ProjectsRoute = ApiV1ProjectsRouteImport.update({
   path: '/api/v1/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiIntegrationsInvoiceNinjaActionRoute =
+  ApiIntegrationsInvoiceNinjaActionRouteImport.update({
+    id: '/api/integrations/invoice-ninja/$action',
+    path: '/api/integrations/invoice-ninja/$action',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute =
+  ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRouteImport.update({
+    id: '/api/integrations/invoice-ninja/webhooks/$connection/$event',
+    path: '/api/integrations/invoice-ninja/webhooks/$connection/$event',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/invoices': typeof AppInvoicesRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
@@ -110,6 +131,8 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
+  '/api/integrations/invoice-ninja/$action': typeof ApiIntegrationsInvoiceNinjaActionRoute
+  '/api/integrations/invoice-ninja/webhooks/$connection/$event': typeof ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -119,6 +142,7 @@ export interface FileRoutesByTo {
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/invoices': typeof AppInvoicesRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
@@ -126,6 +150,8 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
+  '/api/integrations/invoice-ninja/$action': typeof ApiIntegrationsInvoiceNinjaActionRoute
+  '/api/integrations/invoice-ninja/webhooks/$connection/$event': typeof ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -136,6 +162,7 @@ export interface FileRoutesById {
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/invoices': typeof AppInvoicesRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
@@ -143,6 +170,8 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
+  '/api/integrations/invoice-ninja/$action': typeof ApiIntegrationsInvoiceNinjaActionRoute
+  '/api/integrations/invoice-ninja/webhooks/$connection/$event': typeof ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -154,6 +183,7 @@ export interface FileRouteTypes {
     | '/api/openapi.json'
     | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/invoices'
     | '/app/notifications'
     | '/app/projects'
     | '/app/transfers'
@@ -161,6 +191,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
+    | '/api/integrations/invoice-ninja/$action'
+    | '/api/integrations/invoice-ninja/webhooks/$connection/$event'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -170,6 +202,7 @@ export interface FileRouteTypes {
     | '/api/openapi.json'
     | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/invoices'
     | '/app/notifications'
     | '/app/projects'
     | '/app/transfers'
@@ -177,6 +210,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
+    | '/api/integrations/invoice-ninja/$action'
+    | '/api/integrations/invoice-ninja/webhooks/$connection/$event'
   id:
     | '__root__'
     | '/'
@@ -186,6 +221,7 @@ export interface FileRouteTypes {
     | '/api/openapi.json'
     | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/invoices'
     | '/app/notifications'
     | '/app/projects'
     | '/app/transfers'
@@ -193,6 +229,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
+    | '/api/integrations/invoice-ninja/$action'
+    | '/api/integrations/invoice-ninja/webhooks/$connection/$event'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -206,6 +244,8 @@ export interface RootRouteChildren {
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiOpsSummaryRoute: typeof ApiOpsSummaryRoute
   ApiV1ProjectsRoute: typeof ApiV1ProjectsRoute
+  ApiIntegrationsInvoiceNinjaActionRoute: typeof ApiIntegrationsInvoiceNinjaActionRoute
+  ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute: typeof ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -259,6 +299,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppApiKeysRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/invoices': {
+      id: '/app/invoices'
+      path: '/invoices'
+      fullPath: '/app/invoices'
+      preLoaderRoute: typeof AppInvoicesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/notifications': {
       id: '/app/notifications'
       path: '/notifications'
@@ -308,11 +355,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/integrations/invoice-ninja/$action': {
+      id: '/api/integrations/invoice-ninja/$action'
+      path: '/api/integrations/invoice-ninja/$action'
+      fullPath: '/api/integrations/invoice-ninja/$action'
+      preLoaderRoute: typeof ApiIntegrationsInvoiceNinjaActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/integrations/invoice-ninja/webhooks/$connection/$event': {
+      id: '/api/integrations/invoice-ninja/webhooks/$connection/$event'
+      path: '/api/integrations/invoice-ninja/webhooks/$connection/$event'
+      fullPath: '/api/integrations/invoice-ninja/webhooks/$connection/$event'
+      preLoaderRoute: typeof ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AppRouteChildren {
   AppApiKeysRoute: typeof AppApiKeysRoute
+  AppInvoicesRoute: typeof AppInvoicesRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppProjectsRoute: typeof AppProjectsRoute
   AppTransfersRoute: typeof AppTransfersRoute
@@ -320,6 +382,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppApiKeysRoute: AppApiKeysRoute,
+  AppInvoicesRoute: AppInvoicesRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppProjectsRoute: AppProjectsRoute,
   AppTransfersRoute: AppTransfersRoute,
@@ -338,17 +401,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiOpsSummaryRoute: ApiOpsSummaryRoute,
   ApiV1ProjectsRoute: ApiV1ProjectsRoute,
+  ApiIntegrationsInvoiceNinjaActionRoute:
+    ApiIntegrationsInvoiceNinjaActionRoute,
+  ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute:
+    ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

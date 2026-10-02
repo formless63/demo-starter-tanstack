@@ -31,3 +31,12 @@ The authored/compiled 0.1.0 add-on packages only the boundary foundation. Its ge
 fixture runs the same protocol tests under Bun and actual Node24, builds, removes
 these files while retaining Jobs/Webhooks, and rebuilds. This does not establish
 durable runtime installation/removal or the v1 capability completion gates.
+
+The in-progress root now includes provider-owned bindings, projections, ledger and
+inbox schemas, explicit lease/revision worker transitions, transactional handoff
+seams, user-scoped native routes and a reference invoices page. These runtime
+assets are undergoing fixture and packaging verification; completion is not claimed.
+The trusted authorizeReconciliation seam denies absent application wiring and does
+not invent an actor from callbacks. User operations retain and recheck their actor.
+Only server wiring creates/retire bindings. Draft policy is deny-by-default and
+must identify verified company configuration before dispatch.
