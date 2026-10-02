@@ -1,5 +1,6 @@
+import { DataTable, type DataTableColumn, type DataTableInstance } from "../.add-on/assets/src/components/data-table";
 // @vitest-environment jsdom
-import { afterEach, expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { act } from "react";
 import { hydrateRoot } from "react-dom/client";
@@ -58,4 +59,58 @@ test("SSR markup hydrates without recoverable errors", async () => {
  expect(errors).toEqual([]);
  await act(async () => root.unmount());
  container.remove();
+});
+
+test("manual totals are cleared when returning to bounded client pagination", () => {
+ render(<Example />);
+ fireEvent.click(screen.getByRole("button",{name:"Toggle manual"}));
+ fireEvent.click(screen.getByRole("button",{name:"Next"}));
+ expect(screen.getByLabelText("Page").textContent).toBe("2");
+ fireEvent.click(screen.getByRole("button",{name:"Toggle manual"}));
+ expect(screen.getByLabelText("Page").textContent).toBe("1");
+ fireEvent.click(screen.getByRole("button",{name:"Next"}));
+ expect(screen.getByLabelText("Page").textContent).toBe("2");
+ expect((screen.getByRole("button",{name:"Next"}) as HTMLButtonElement).disabled).toBe(true);
+ fireEvent.click(screen.getByRole("button",{name:"Next"}));
+ expect(screen.getByLabelText("Page").textContent).toBe("2");
+});
+
+test("controlled slices transfer back to internal owners and can be controlled again", () => {
+ const rows=[{id:"a",name:"Ada"},{id:"b",name:"Bea"},{id:"c",name:"Cy"}];
+ const columns:DataTableColumn<typeof rows[number]>[]=[{accessorKey:"name",header:"Name"}];
+ const callbacks={sorting:vi.fn(),globalFilter:vi.fn(),pagination:vi.fn(),columnVisibility:vi.fn(),rowSelection:vi.fn()};
+ let table:DataTableInstance<typeof rows[number]>;
+ const common={data:rows,columns,getRowId:(row:typeof rows[number])=>row.id,ariaLabel:"Owners",children:(value:DataTableInstance<typeof rows[number]>)=>{table=value;return null;}};
+ const controlled={sorting:[{id:"name",desc:false}],onSortingChange:callbacks.sorting,globalFilter:"",onGlobalFilterChange:callbacks.globalFilter,pagination:{pageIndex:0,pageSize:2},onPaginationChange:callbacks.pagination,columnVisibility:{},onColumnVisibilityChange:callbacks.columnVisibility,rowSelection:{},onRowSelectionChange:callbacks.rowSelection};
+ const view=render(<DataTable {...common} {...controlled} />);
+ view.rerender(<DataTable {...common} />);
+ act(()=> {table.setSorting([{id:"name",desc:true}]);});
+ expect(screen.getByRole("table").querySelector("tbody tr")?.textContent).toBe("Cy");
+ act(()=> {table.setGlobalFilter("Bea");});
+ expect(screen.getByRole("table").querySelector("tbody tr")?.textContent).toBe("Bea");
+ act(()=> {table.setGlobalFilter("");table.setPagination({pageIndex:1,pageSize:2});});
+ expect(screen.getByRole("table").querySelector("tbody tr")?.textContent).toBe("Ada");
+ act(()=> {table.setColumnVisibility({name:false});table.setRowSelection({a:true});});
+ expect(table!.state.columnVisibility).toEqual({name:false});
+ expect(table!.state.rowSelection).toEqual({a:true});
+ for(const callback of Object.values(callbacks))expect(callback).not.toHaveBeenCalled();
+ view.rerender(<DataTable {...common} {...controlled} />);
+ expect(screen.getByRole("table").querySelector("tbody tr")?.textContent).toBe("Ada");
+ act(()=> {table.setSorting([{id:"name",desc:true}]);});
+ expect(callbacks.sorting).toHaveBeenCalledTimes(1);
+ expect(screen.getByRole("table").querySelector("tbody tr")?.textContent).toBe("Ada");
+});
+
+test("rowCount is cleared independently when manual pagination is disabled", () => {
+ const rows=[{id:"a"},{id:"b"},{id:"c"}];
+ const columns:DataTableColumn<typeof rows[number]>[]=[{accessorKey:"id",header:"ID"}];
+ let table:DataTableInstance<typeof rows[number]>;
+ const common={data:rows,columns,getRowId:(row:typeof rows[number])=>row.id,ariaLabel:"Rows",children:(value:DataTableInstance<typeof rows[number]>)=>{table=value;return null;}};
+ const view=render(<DataTable {...common} manualPagination rowCount={100} />);
+ act(()=> {table.setPageSize(2);});
+ expect(table!.getPageCount()).toBe(50);
+ view.rerender(<DataTable {...common} manualPagination={false} />);
+ expect(table!.getPageCount()).toBe(2);
+ act(()=> {table.nextPage();});
+ expect(table!.getCanNextPage()).toBe(false);
 });

@@ -61,6 +61,16 @@ try {
  await page.getByRole("button",{name:"Next",exact:true}).click();
  assert.equal(await page.getByLabel("Page",{exact:true}).textContent(),"2");
  assert.deepEqual(await names(),["Ada30","Bea10","Cy20"]);
+ await page.getByLabel("Filter",{exact:true}).fill("");
+ await page.getByRole("button",{name:"Toggle manual"}).click();
+ await page.getByRole("button",{name:"Next",exact:true}).click();
+ assert.equal(await page.getByRole("button",{name:"Next",exact:true}).isEnabled(),false);
+ await page.getByRole("button",{name:"Toggle ownership"}).click();
+ await page.getByLabel("Filter",{exact:true}).fill("missing");
+ assert.deepEqual(await names(),["No results."]);
+ assert.equal(await page.getByLabel("Parent filter",{exact:true}).textContent(),"");
+ await page.getByRole("button",{name:"Toggle ownership"}).click();
+ assert.deepEqual(await names(),["Ada30"]);
  const uncontrolled = page.getByRole("table",{name:"Uncontrolled",exact:true});
  await uncontrolled.getByRole("button",{name:"Name",exact:true}).click();
  await uncontrolled.getByRole("button",{name:"Name",exact:true}).click();
