@@ -12,6 +12,7 @@ import {
 
 const vendor = vi.hoisted(() => ({
 	renders: [] as ReactFlowProps[],
+ handles: [] as Record<string,unknown>[],
 	setViewport: vi.fn(async () => true),
 }));
 
@@ -23,7 +24,7 @@ vi.mock("@xyflow/react", () => ({
 		vendor.renders.push(props);
 		return <div data-testid="vendor-flow" />;
 	},
-	Handle: () => null,
+	Handle: (props:Record<string,unknown>) => {vendor.handles.push(props);return null;},
 	Background: () => null,
 	Controls: () => null,
 	Position: { Top: "top", Bottom: "bottom" },
@@ -73,6 +74,7 @@ function latest(): ReactFlowProps {
 
 beforeEach(() => {
 	vendor.renders = [];
+ vendor.handles=[];
 	vendor.setViewport.mockClear();
 });
 afterEach(() => {
@@ -310,4 +312,36 @@ describe("FlowCanvasClient vendor boundary (actual component)", () => {
 		expect(options.onSelect).toHaveBeenCalledWith("a");
 		expect(options.onPropose).not.toHaveBeenCalled();
 	});
+});
+
+for(const readOnly of [false,true])test(`native handles forward connectability start/end when readOnly=${readOnly}`,()=>{
+ render(<FlowCanvasClient {...properties({readOnly})}/>);
+ const flow=latest();const NodeComponent=flow.nodeTypes?.default;
+ if(!NodeComponent)throw new Error('Expected shipped plain node renderer');
+ render(<NodeComponent id="rendered" data={{label:'Node'}} isConnectable={flow.nodesConnectable??true} selected={false} dragging={false} draggable deletable selectable zIndex={0} type="default" positionAbsoluteX={0} positionAbsoluteY={0}/>);
+ expect(vendor.handles).toHaveLength(2);
+ for(const handle of vendor.handles){expect(handle.isConnectable).toBe(!readOnly);expect(handle.isConnectableStart).toBe(!readOnly);expect(handle.isConnectableEnd).toBe(!readOnly);}
+});
+test('false-only native deselection clears the semantic target; unrelated false changes do not',()=>{
+ const options=properties();render(<FlowCanvasClient {...options}/>);
+ act(()=>latest().onNodesChange?.([{id:nodeId(1),type:'select',selected:false}]));expect(options.onSelect).not.toHaveBeenCalled();
+ act(()=>latest().onNodesChange?.([{id:nodeId(0),type:'select',selected:false}]));expect(options.onSelect).toHaveBeenCalledExactlyOnceWith('');expect(options.onPropose).not.toHaveBeenCalled();
+});
+for(const reversed of [false,true])test(`selection batches prefer replacement selection regardless of order ${reversed}`,()=>{
+ const options=properties();render(<FlowCanvasClient {...options}/>);
+ const changes=[{id:nodeId(0),type:'select' as const,selected:false},{id:nodeId(1),type:'select' as const,selected:true}];
+ act(()=>latest().onNodesChange?.(reversed?changes.reverse():changes));expect(options.onSelect).toHaveBeenCalledExactlyOnceWith('b');expect(options.onPropose).not.toHaveBeenCalled();
+});
+test('retained native selection callbacks use current selection and final per-node state',()=>{
+ const options=properties();const view=render(<FlowCanvasClient {...options}/>);const previous=latest();
+ view.rerender(<FlowCanvasClient {...options} selected="b"/>);
+ act(()=>previous.onNodesChange?.([{id:nodeId(1,previous),type:'select',selected:true},{id:nodeId(1,previous),type:'select',selected:false}]));
+ expect(options.onSelect).toHaveBeenCalledExactlyOnceWith('');
+});
+
+test('read-only native callbacks cannot emit proposals even when directly retained/invoked',()=>{
+ const options=properties();const view=render(<FlowCanvasClient {...options}/>);const previous=latest();
+ view.rerender(<FlowCanvasClient {...options} readOnly/>);
+ act(()=>{previous.onConnect?.(connection(previous));previous.onViewportChange?.({x:50,y:50,zoom:2});previous.onNodesChange?.([{id:nodeId(0,previous),type:'position',position:{x:25,y:50}}]);latest().onConnect?.(connection());});
+ expect(options.onPropose).not.toHaveBeenCalled();expect(options.nextId).not.toHaveBeenCalled();
 });
