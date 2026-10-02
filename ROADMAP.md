@@ -18,7 +18,7 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, `AI`, `Search`, `Realtime`, `Notifications`, `Import / Export`, `Ops / Admin`, `Invoice Ninja`, `Stripe`, `Medusa`, `Charts / Visualization`, `Command System`, and `Data Table` are twenty completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
+`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, `AI`, `Search`, `Realtime`, `Notifications`, `Import / Export`, `Ops / Admin`, `Invoice Ninja`, `Stripe`, `Medusa`, `Charts / Visualization`, `Command System`, `Data Table`, and `Markdown / Code Content` are twenty-one completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
 
 `defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
@@ -91,7 +91,7 @@ Starter authentication is a baseline requirement, not a capability edge.
 | Ops / Admin | Starter authentication + Node runtime | Observability, Jobs, Audit Log, Object Storage, Cache / Coordination, Webhooks | None | Done |
 | Command System | None | Search, Authorization | None | Done |
 | Data Table | None | Search, Organizations, Authorization | None | Done |
-| Markdown / Code Content | None | Object Storage, AI | None | In progress |
+| Markdown / Code Content | None | Object Storage, AI | None | Done |
 | Charts / Visualization | None | Data Table, Realtime | None | Done |
 | File UI | Object Storage | Jobs, Search | None | Planned |
 | Rich Text / Tiptap | None | Object Storage, Markdown / Code, Realtime, Organizations | None | Planned |
@@ -154,7 +154,7 @@ Architecture pre-wave remediation keeps the sparse dependency graph unchanged: b
 
 Agent-led existing-material onboarding, portable `.project` profiles/provenance/skill reviews, semantic theme import/generation and Light/Dark/System policy are baseline starter tooling. See `docs/PROJECT-ONBOARDING.md` and `docs/APPEARANCE.md`. They introduce no capability IDs or hard dependency edges and do not advance a planned runtime capability. Deferred profile selections remain unavailable until implemented through capability governance.
 
-Bounded baseline maintenance aligns Better Auth/API Key and the bundled Drizzle adapter at 1.7.7, canonical Jobs process roles/native attempt context and routing-safe transactional enqueue, and Project input limits (name 120, description 1000). All twenty completed capabilities remain opt-in for clean consumers and enabled in the root reference; baseline maintenance adds no hard capability edges.
+Bounded baseline maintenance aligns Better Auth/API Key and the bundled Drizzle adapter at 1.7.7, canonical Jobs process roles/native attempt context and routing-safe transactional enqueue, and Project input limits (name 120, description 1000). All twenty-one completed capabilities remain opt-in for clean consumers and enabled in the root reference; baseline maintenance adds no hard capability edges.
 
 Search v1 uses explicit simple PostgreSQL18 full-text search, weighted A/B STORED vectors and GIN in application-owned tables, ts_rank_cd normalization32 and bounded canonical numeric-float4 keysets with six-digit timestamps and opaque IDs. The disposable lifecycle database survives the generic final removal build before rows/vector/GIN/history checks and teardown. The root Projects POST integration enforces existing owners. Add-on assets install no universal search table or production domain migration.
 
