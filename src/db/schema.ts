@@ -180,3 +180,9 @@ export const projects = pgTable(
 export { auditEvents } from "../integrations/audit-log/schema";
 export { transfers } from "../integrations/import-export/schema";
 export { notifications } from "../integrations/notifications/schema";
+export {
+	stripeBindings,
+	stripeInbox,
+	stripeOperations,
+	stripeProjections,
+} from "../integrations/stripe/schema";
