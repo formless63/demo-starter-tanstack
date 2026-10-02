@@ -1,0 +1,26 @@
+{
+  "id": "charts-visualization",
+  "name": "charts-visualization",
+  "displayName": "Charts / Visualization",
+  "description": "Accessible SSR-safe bar, line, and area chart primitives with a data-table fallback.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [],
+  "packageAdditions": {
+    "dependencies": {
+      "recharts": "3.10.1"
+    }
+  },
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "files": {
+    "capabilities/charts-visualization/CAPABILITY.md": "# Charts / Visualization capability\n\nThis optional client capability provides SSR-safe accessible line, bar, and area chart primitives. It has no hard capability dependencies, migrations, server processes, environment variables, or provider credentials. Recharts supplies the client enhancement; a deterministic SVG frame is emitted during SSR and hydration, then enhancement starts in an effect. Responsive observers are cleaned up on unmount. A semantic data-table fallback is always included, invalid/missing values remain readable as “Not available”, and animation is disabled for reduced-motion safety.\n\nInstall `capabilities/charts-visualization/add-on.json` through the normal TanStack CLI custom add-on flow. For removal, stop using `Chart`, delete its owned source/tests, run `bun remove recharts`, then run `bun run typecheck && bun run build`; unrelated source and data remain untouched. No migration or persisted data cleanup is required.\n",
+    "src/integrations/charts/Chart.tsx": "import { useEffect, useId, useState } from \"react\";\nimport {\n\tArea,\n\tAreaChart,\n\tBar,\n\tBarChart,\n\tCartesianGrid,\n\tLine,\n\tLineChart,\n\tResponsiveContainer,\n\tXAxis,\n\tYAxis,\n} from \"recharts\";\n\nexport type ChartDatum = { label: string; value: number | null | undefined };\nexport type ChartKind = \"bar\" | \"line\" | \"area\";\nexport interface ChartProps {\n\tdata: readonly ChartDatum[];\n\tkind?: ChartKind;\n\ttitle: string;\n\tdescription?: string;\n\tclassName?: string;\n}\n\nfunction validData(data: readonly ChartDatum[]) {\n\treturn data.filter((item): item is { label: string; value: number } =>\n\t\tNumber.isFinite(item.value),\n\t);\n}\n\nexport function Chart({\n\tdata,\n\tkind = \"line\",\n\ttitle,\n\tdescription,\n\tclassName,\n}: ChartProps) {\n\tconst titleId = useId();\n\tconst descriptionId = useId();\n\tconst [enhanced, setEnhanced] = useState(false);\n\tconst chartData = validData(data);\n\tuseEffect(() => {\n\t\tsetEnhanced(true);\n\t\treturn () => setEnhanced(false);\n\t}, []);\n\tconst common = {\n\t\tdata: chartData,\n\t\tmargin: { top: 8, right: 12, bottom: 8, left: 0 },\n\t} as const;\n\tconst content =\n\t\tkind === \"bar\" ? (\n\t\t\t<BarChart {...common}>\n\t\t\t\t<CartesianGrid vertical={false} />\n\t\t\t\t<XAxis dataKey=\"label\" />\n\t\t\t\t<YAxis />\n\t\t\t\t<Bar dataKey=\"value\" fill=\"currentColor\" isAnimationActive={false} />\n\t\t\t</BarChart>\n\t\t) : kind === \"area\" ? (\n\t\t\t<AreaChart {...common}>\n\t\t\t\t<CartesianGrid vertical={false} />\n\t\t\t\t<XAxis dataKey=\"label\" />\n\t\t\t\t<YAxis />\n\t\t\t\t<Area\n\t\t\t\t\tdataKey=\"value\"\n\t\t\t\t\ttype=\"monotone\"\n\t\t\t\t\tfill=\"currentColor\"\n\t\t\t\t\tfillOpacity={0.14}\n\t\t\t\t\tstroke=\"currentColor\"\n\t\t\t\t\tisAnimationActive={false}\n\t\t\t\t/>\n\t\t\t</AreaChart>\n\t\t) : (\n\t\t\t<LineChart {...common}>\n\t\t\t\t<CartesianGrid vertical={false} />\n\t\t\t\t<XAxis dataKey=\"label\" />\n\t\t\t\t<YAxis />\n\t\t\t\t<Line\n\t\t\t\t\tdataKey=\"value\"\n\t\t\t\t\ttype=\"monotone\"\n\t\t\t\t\tstroke=\"currentColor\"\n\t\t\t\t\tstrokeWidth={2}\n\t\t\t\t\tdot={false}\n\t\t\t\t\tisAnimationActive={false}\n\t\t\t\t/>\n\t\t\t</LineChart>\n\t\t);\n\treturn (\n\t\t<div className={className} aria-busy={!enhanced}>\n\t\t\t<div\n\t\t\t\trole=\"img\"\n\t\t\t\taria-labelledby={`${titleId}${description ? ` ${descriptionId}` : \"\"}`}\n\t\t\t>\n\t\t\t\t<h2 id={titleId} className=\"sr-only\">\n\t\t\t\t\t{title}\n\t\t\t\t</h2>\n\t\t\t\t{description && (\n\t\t\t\t\t<p id={descriptionId} className=\"sr-only\">\n\t\t\t\t\t\t{description}\n\t\t\t\t\t</p>\n\t\t\t\t)}\n\t\t\t\t{enhanced ? (\n\t\t\t\t\t<ResponsiveContainer width=\"100%\" height={240}>\n\t\t\t\t\t\t{content}\n\t\t\t\t\t</ResponsiveContainer>\n\t\t\t\t) : (\n\t\t\t\t\t<svg\n\t\t\t\t\t\taria-hidden=\"true\"\n\t\t\t\t\t\tviewBox=\"0 0 100 40\"\n\t\t\t\t\t\twidth=\"100%\"\n\t\t\t\t\t\theight=\"240\"\n\t\t\t\t\t/>\n\t\t\t\t)}\n\t\t\t</div>\n\t\t\t<table className=\"sr-only\">\n\t\t\t\t<caption>{title}</caption>\n\t\t\t\t<thead>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th scope=\"col\">Label</th>\n\t\t\t\t\t\t<th scope=\"col\">Value</th>\n\t\t\t\t\t</tr>\n\t\t\t\t</thead>\n\t\t\t\t<tbody>\n\t\t\t\t\t{data.map((item) => (\n\t\t\t\t\t\t<tr key={`${item.label}-${String(item.value)}`}>\n\t\t\t\t\t\t\t<th scope=\"row\">{item.label}</th>\n\t\t\t\t\t\t\t<td>\n\t\t\t\t\t\t\t\t{Number.isFinite(item.value) ? item.value : \"Not available\"}\n\t\t\t\t\t\t\t</td>\n\t\t\t\t\t\t</tr>\n\t\t\t\t\t))}\n\t\t\t\t</tbody>\n\t\t\t</table>\n\t\t</div>\n\t);\n}\n"
+  },
+  "deletedFiles": []
+}
