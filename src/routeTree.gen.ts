@@ -23,6 +23,8 @@ import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiOpsSummaryRouteImport } from './routes/api/ops/summary'
 import { Route as ApiV1ProjectsRouteImport } from './routes/api/v1/projects'
+import { Route as ApiIntegrationsStripeActionRouteImport } from './routes/api/integrations/stripe/$action'
+import { Route as ApiIntegrationsStripeWebhooksConnectionIdRouteImport } from './routes/api/integrations/stripe/webhooks/$connectionId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,6 +96,18 @@ const ApiV1ProjectsRoute = ApiV1ProjectsRouteImport.update({
   path: '/api/v1/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiIntegrationsStripeActionRoute =
+  ApiIntegrationsStripeActionRouteImport.update({
+    id: '/api/integrations/stripe/$action',
+    path: '/api/integrations/stripe/$action',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiIntegrationsStripeWebhooksConnectionIdRoute =
+  ApiIntegrationsStripeWebhooksConnectionIdRouteImport.update({
+    id: '/api/integrations/stripe/webhooks/$connectionId',
+    path: '/api/integrations/stripe/webhooks/$connectionId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +124,8 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
+  '/api/integrations/stripe/$action': typeof ApiIntegrationsStripeActionRoute
+  '/api/integrations/stripe/webhooks/$connectionId': typeof ApiIntegrationsStripeWebhooksConnectionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +142,8 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
+  '/api/integrations/stripe/$action': typeof ApiIntegrationsStripeActionRoute
+  '/api/integrations/stripe/webhooks/$connectionId': typeof ApiIntegrationsStripeWebhooksConnectionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +161,8 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
+  '/api/integrations/stripe/$action': typeof ApiIntegrationsStripeActionRoute
+  '/api/integrations/stripe/webhooks/$connectionId': typeof ApiIntegrationsStripeWebhooksConnectionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +181,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
+    | '/api/integrations/stripe/$action'
+    | '/api/integrations/stripe/webhooks/$connectionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +199,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
+    | '/api/integrations/stripe/$action'
+    | '/api/integrations/stripe/webhooks/$connectionId'
   id:
     | '__root__'
     | '/'
@@ -193,6 +217,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
+    | '/api/integrations/stripe/$action'
+    | '/api/integrations/stripe/webhooks/$connectionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -206,6 +232,8 @@ export interface RootRouteChildren {
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiOpsSummaryRoute: typeof ApiOpsSummaryRoute
   ApiV1ProjectsRoute: typeof ApiV1ProjectsRoute
+  ApiIntegrationsStripeActionRoute: typeof ApiIntegrationsStripeActionRoute
+  ApiIntegrationsStripeWebhooksConnectionIdRoute: typeof ApiIntegrationsStripeWebhooksConnectionIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -308,6 +336,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/integrations/stripe/$action': {
+      id: '/api/integrations/stripe/$action'
+      path: '/api/integrations/stripe/$action'
+      fullPath: '/api/integrations/stripe/$action'
+      preLoaderRoute: typeof ApiIntegrationsStripeActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/integrations/stripe/webhooks/$connectionId': {
+      id: '/api/integrations/stripe/webhooks/$connectionId'
+      path: '/api/integrations/stripe/webhooks/$connectionId'
+      fullPath: '/api/integrations/stripe/webhooks/$connectionId'
+      preLoaderRoute: typeof ApiIntegrationsStripeWebhooksConnectionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -338,17 +380,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiOpsSummaryRoute: ApiOpsSummaryRoute,
   ApiV1ProjectsRoute: ApiV1ProjectsRoute,
+  ApiIntegrationsStripeActionRoute: ApiIntegrationsStripeActionRoute,
+  ApiIntegrationsStripeWebhooksConnectionIdRoute:
+    ApiIntegrationsStripeWebhooksConnectionIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
