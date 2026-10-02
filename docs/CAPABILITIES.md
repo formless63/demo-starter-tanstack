@@ -21,6 +21,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 | `api-platform` | `api-platform` | Done | Enabled | No | `better-auth`, `drizzle` | None | None beyond baseline PostgreSQL | [API Platform](../capabilities/api-platform/CAPABILITY.md) |
 | `observability` | `observability` | Done | Enabled | No | None | None | Optional OTLP | [Observability](../capabilities/observability/CAPABILITY.md) |
 | `object-storage` | `object-storage` | Done | Enabled | No | None | None | S3 only when used | [Object Storage](../capabilities/object-storage/CAPABILITY.md) |
+| `charts-visualization` | `charts-visualization` | Done | Enabled | No | None | None | None | [Charts](../capabilities/charts-visualization/CAPABILITY.md) |
 
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 

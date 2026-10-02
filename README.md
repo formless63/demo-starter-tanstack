@@ -33,6 +33,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | API Platform | Done | Optional | Baseline Better Auth + PostgreSQL/Drizzle + server runtime | User-owned machine keys, typed permissions, native v1 API, OpenAPI 3.1.1, Scalar | [API Platform contract](capabilities/api-platform/CAPABILITY.md) |
 | Observability | Done | Optional | Baseline Start + Node runtime; no capability dependency | Safe JSON logs, request IDs, server traces/metrics, optional OTLP | [Observability contract](capabilities/observability/CAPABILITY.md) |
 | Object Storage | Done | Optional | No database/auth/capability dependency; S3 when used | Private streaming, signed PUT/GET, multipart and post-upload verification | [Storage contract](capabilities/object-storage/CAPABILITY.md) |
+| Charts / Visualization | Done | Optional | None beyond the baseline client | SSR-safe accessible line, bar, and area primitives with data-table fallback | [Charts contract](capabilities/charts-visualization/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 

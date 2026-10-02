@@ -95,7 +95,7 @@ Starter authentication is a baseline requirement, not a capability edge.
 | Command System | None | Search, Authorization | None | Planned |
 | Data Table | None | Search, Organizations, Authorization | None | Planned |
 | Markdown / Code Content | None | Object Storage, AI | None | Planned |
-| Charts / Visualization | None | Data Table, Realtime | None | Planned |
+| Charts / Visualization | None | Data Table, Realtime | None | Done |
 | File UI | Object Storage | Jobs, Search | None | Planned |
 | Rich Text / Tiptap | None | Object Storage, Markdown / Code, Realtime, Organizations | None | Planned |
 | Flow / Canvas | None | Realtime, Object Storage, Audit Log | None | Planned |
