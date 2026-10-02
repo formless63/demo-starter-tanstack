@@ -250,3 +250,7 @@ Keep all additive provider SQL and cumulative snapshots described in the [integr
 ### Remove Data Table
 
 Remove application imports, the component and its browser fixture scripts/package script, then remove the table dependency. Keep Playwright if other tests use it. Follow the exact [Data Table removal contract](../capabilities/data-table/CAPABILITY.md), then typecheck and build. No migrations or stored data are affected.
+
+## Remove File UI
+
+Remove `src/components/file-ui.tsx`, `src/integrations/file-ui`, `src/routes/app.files.tsx`, `src/routes/api/files`, `src/lib/file-ui.server.ts`, `src/lib/file-ui-metadata.server.ts`, the Files navigation link and file-ui scripts/tooling. Keep `src/db/file-ui-schema.ts` and its schema export, SQL0016_file_ui, cumulative migration history and durable receipts. Never delete Object Storage files, configuration, credentials, buckets or objects as UI removal. Regenerate routes, run capability checks, typecheck and rebuild. Generated consumer removal is separately proved by `scripts/file-ui-remove.ts` while preserving a stored marker; no automatic uninstall transaction exists.

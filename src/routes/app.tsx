@@ -84,6 +84,12 @@ function AppShell() {
 					<aside className="border-r p-4 max-md:border-b">
 						<nav className="space-y-1">
 							<Link
+								to="/app/files"
+								className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+							>
+								Files
+							</Link>
+							<Link
 								to="/app/invoices"
 								className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
 							>
