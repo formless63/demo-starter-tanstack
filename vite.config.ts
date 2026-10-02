@@ -15,6 +15,7 @@ const config = defineConfig({
 				noDiscovery: true,
 				include: [
 					"@tanstack/react-hotkeys",
+					"recharts",
 					"use-sync-external-store/shim",
 					"use-sync-external-store/shim/with-selector",
 					"better-auth/react",

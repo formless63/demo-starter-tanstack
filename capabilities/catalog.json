@@ -92,7 +92,9 @@
       "ops-admin",
       "invoice-ninja",
       "stripe",
-      "medusa"
+      "medusa",
+      "charts-visualization",
+      "command-system"
     ]
   },
   "frameworkEvaluations": {
@@ -1505,7 +1507,7 @@
       "id": "command-system",
       "displayName": "Command System",
       "kind": "operations-ui-infrastructure",
-      "status": "in-progress",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
@@ -1514,11 +1516,11 @@
       ],
       "baselineRequirements": [],
       "externalRequirements": [],
-      "summary": "Accessible application commands, shortcuts, and command palette conventions."
-      ,"documentationPath": "capabilities/command-system/CAPABILITY.md"
-      ,"agentSkill": ".agents/skills/capability-change/SKILL.md"
-      ,"evaluationDocument": "COMMAND_SYSTEM_MODULE_EVALUATION.md"
-      ,"tanstackAddOn": {
+      "summary": "Accessible application commands, shortcuts, and command palette conventions.",
+      "documentationPath": "capabilities/command-system/CAPABILITY.md",
+      "agentSkill": ".agents/skills/capability-change/SKILL.md",
+      "evaluationDocument": "COMMAND_SYSTEM_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
         "addOnId": "command-system",
         "sourceDirectory": "capabilities/command-system/.add-on",
         "manifestPath": "capabilities/command-system/.add-on/info.json",
@@ -1563,7 +1565,7 @@
       "id": "charts-visualization",
       "displayName": "Charts / Visualization",
       "kind": "operations-ui-infrastructure",
-      "status": "planned",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
@@ -1572,7 +1574,18 @@
       ],
       "baselineRequirements": [],
       "externalRequirements": [],
-      "summary": "Accessible application charts and reusable visualization conventions."
+      "summary": "Accessible application charts and reusable visualization conventions.",
+      "documentationPath": "capabilities/charts-visualization/CAPABILITY.md",
+      "evaluationDocument": "CHARTS_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "charts-visualization",
+        "sourceDirectory": "capabilities/charts-visualization/.add-on",
+        "manifestPath": "capabilities/charts-visualization/.add-on/info.json",
+        "distributablePath": "capabilities/charts-visualization/add-on.json",
+        "cleanInstallFixture": "capabilities/charts-visualization/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
     },
     {
       "id": "file-ui",

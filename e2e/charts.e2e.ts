@@ -1,0 +1,33 @@
+import { expect, test } from "@playwright/test";
+
+test("hydrates charts, updates kinds, exposes table fallback, and remounts cleanly", async ({ page }) => {
+	await page.emulateMedia({ reducedMotion: "reduce" });
+	await page.goto("/charts-test");
+	const errors: string[] = [];
+	page.on("pageerror", (error) => errors.push(error.message));
+	await expect(page.locator(".recharts-line-curve")).toHaveCount(1);
+	await expect(page.getByRole("table")).toHaveCount(2);
+	const labelled = await page.locator('[role="img"]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("aria-labelledby")));
+	expect(new Set(labelled).size).toBe(2);
+	const lineGeometry = await page.locator(".recharts-line-curve").getAttribute("d");
+	await page.getByRole("button", { name: "Update data" }).click();
+	await expect.poll(() => page.locator(".recharts-line-curve").getAttribute("d")).not.toBe(lineGeometry);
+	await page.getByRole("button", { name: "Bar" }).click();
+	await expect(page.getByTestId("primary-chart").locator(".recharts-rectangle")).toHaveCount(3);
+	const barGeometry = await page.getByTestId("primary-chart").locator(".recharts-rectangle").evaluateAll((nodes) => nodes.map((node) => node.outerHTML));
+	expect(barGeometry.some((geometry) => geometry.includes("height") || geometry.includes("d="))).toBe(true);
+	expect(barGeometry.join(",")).not.toBe(lineGeometry);
+	await page.getByRole("button", { name: "Area" }).click();
+	await expect(page.locator(".recharts-area-curve")).toHaveCount(1);
+	expect(await page.locator("animate, animateTransform").count()).toBe(0);
+	await page.getByRole("button", { name: "Unmount" }).click();
+	await expect(page.getByTestId("primary-chart")).toHaveCount(0);
+	await page.getByRole("button", { name: "Mount" }).click();
+	await expect(page.locator(".recharts-area-curve")).toHaveCount(1);
+	const wideBox = await page.getByTestId("primary-chart").locator("svg").boundingBox();
+	expect(wideBox?.width).toBeGreaterThan(0);
+	await page.setViewportSize({ width: 400, height: 600 });
+	await expect.poll(async () => (await page.getByTestId("primary-chart").locator("svg").boundingBox())?.width).toBeLessThan(wideBox?.width ?? Infinity);
+	await expect(page.getByRole("table")).toHaveCount(2);
+	expect(errors).toEqual([]);
+});
