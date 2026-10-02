@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import { renderToString } from "react-dom/server";
 import { Example } from "./data-table-example";
 
@@ -70,6 +70,13 @@ try {
  assert.deepEqual(await names(),["No results."]);
  assert.equal(await page.getByLabel("Parent filter",{exact:true}).textContent(),"");
  await page.getByRole("button",{name:"Toggle ownership"}).click();
+ // Restoring the parent query changes the filtered model. Native client
+ // pagination resets to page 1 after that model update is committed.
+ await expect(page.getByLabel("Filter",{exact:true})).toHaveValue("");
+ await expect(page.getByLabel("Page",{exact:true})).toHaveText("1");
+ await expect(table.locator("tbody tr")).toHaveText(["Cy20","Bea10"]);
+ await page.getByLabel("Filter",{exact:true}).fill("Ada");
+ await expect(page.getByLabel("Parent filter",{exact:true})).toHaveText("Ada");
  assert.deepEqual(await names(),["Ada30"]);
  const uncontrolled = page.getByRole("table",{name:"Uncontrolled",exact:true});
  await uncontrolled.getByRole("button",{name:"Name",exact:true}).click();
