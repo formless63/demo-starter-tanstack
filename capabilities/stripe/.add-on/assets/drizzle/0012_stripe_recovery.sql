@@ -1,0 +1,1 @@
+ALTER TABLE "stripe_operation" ADD COLUMN "checkout_remote_id" varchar(128);

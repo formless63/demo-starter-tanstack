@@ -1,0 +1,47 @@
+{
+  "projectName": "invoice-ninja-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "addOnConfig": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "expectedOfficialAddOns": [
+    "postgres-jobs",
+    "webhooks"
+  ],
+  "expectedFiles": [
+    "src/integrations/invoice-ninja/service.server.ts",
+    "src/lib/invoice-ninja.server.ts",
+    "drizzle/0009_invoice_ninja_v1.sql"
+  ],
+  "verificationCommands": [
+    [
+      "bun",
+      "scripts/invoice-ninja-clean-fixture.ts"
+    ]
+  ],
+  "build": true,
+  "verificationEnvironment": {
+    "DATABASE_URL": "${DATABASE_URL}",
+    "NODE_ENV": "test"
+  },
+  "referenceVerification": {
+    "installedPath": "src/lib/invoice-ninja.server.ts",
+    "commands": [
+      [
+        "bun",
+        "run",
+        "invoice-ninja:unit"
+      ],
+      [
+        "bun",
+        "run",
+        "invoice-ninja:smoke"
+      ]
+    ]
+  }
+}

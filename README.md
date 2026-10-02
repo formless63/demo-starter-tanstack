@@ -49,6 +49,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | Realtime | Done | Optional | Baseline Node; human session integration | Authenticated SSE and WebSocket hints, bounded output; optional Cache fanout | [Realtime contract](capabilities/realtime/CAPABILITY.md) |
 | Notifications | Done | Optional | Jobs + baseline PostgreSQL/Drizzle | Durable recipient-scoped in-app records, atomic delivery enqueue, optional Email/ntfy/hints | [Notifications contract](capabilities/notifications/CAPABILITY.md) |
 | Import / Export | Done | Optional | Jobs + Object Storage; baseline PostgreSQL/Drizzle/Node | Scoped durable bounded CSV transfers and personal Projects round-trip | [Import / Export contract](capabilities/import-export/CAPABILITY.md) |
+| Stripe | In progress | Optional | Jobs + Webhooks | Hosted one-time Checkout, local status and durable scoped reconciliation | [Stripe contract](capabilities/stripe/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -286,3 +287,7 @@ Apply the new reviewed `drizzle/0004_search.sql` through the existing explicit m
 Import / Export is completed: [contract](capabilities/import-export/CAPABILITY.md) and [evaluation](IMPORT_EXPORT_MODULE_EVALUATION.md). It requires Jobs + Object Storage; Notifications/Audit remain optional composition. Clean consumers remain opt-in.
 
 Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
+
+Invoice Ninja v1 is in progress with reference wiring under verification; clean consumers remain opt-in. Its independent add-on now includes scoped durable operations/receipts, native routes, exact monetary projections and data-preserving removal. Final native-provider, lifecycle, browser and production acceptance remains required. See [contract](capabilities/invoice-ninja/CAPABILITY.md).
+
+Medusa v1 is in progress: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers defaultInstalled:false. Native reference routes/UI are included; the pinned disposable native backend/bridge fixture is required in the generic lifecycle. See [contract](capabilities/medusa/CAPABILITY.md). The existing fourteen completed capabilities remain unchanged.

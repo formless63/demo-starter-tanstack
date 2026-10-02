@@ -187,3 +187,11 @@ The integrated migration journal retains both original additive SQL files and ti
 Import / Export is completed: [contract](../capabilities/import-export/CAPABILITY.md) and [evaluation](../IMPORT_EXPORT_MODULE_EVALUATION.md). It requires Jobs + Object Storage; Notifications/Audit remain optional composition. Clean consumers remain opt-in.
 
 Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
+
+Invoice Ninja v1 is in progress with reference wiring under verification; clean consumers remain opt-in. Its independent add-on now includes scoped durable operations/receipts, native routes, exact monetary projections and data-preserving removal. Final native-provider, lifecycle, browser and production acceptance remains required. See [contract](../capabilities/invoice-ninja/CAPABILITY.md).
+
+## Stripe implementation in progress
+
+Stripe is an optional authored/compiled add-on (`stripe`, default installed: No), requiring Jobs and Webhooks. The root native Payments/API/worker wiring is under verification. It is already in the generic CI matrix because its clean fixture exists; this is not readiness promotion. Use `bun run add-ons:test stripe` for independent install/runtime/remove/rebuild and see the [Stripe contract](../capabilities/stripe/CAPABILITY.md) for authorization, immutable write replay, callback durability and retained-data removal.
+
+Medusa v1 is in progress: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers defaultInstalled:false. Native reference routes/UI are included; the pinned disposable native backend/bridge fixture is required in the generic lifecycle. See [contract](../capabilities/medusa/CAPABILITY.md). The existing fourteen completed capabilities remain unchanged.
