@@ -22,15 +22,22 @@ export type CommandPaletteProps = {
 };
 
 export function createCommandRegistry(initial: readonly AppCommand[] = []) {
-	const commands = new Map(initial.map((command) => [command.id, command]));
+	const commands = new Map(
+		initial.map((command) => [
+			command.id,
+			{ command, token: Symbol(command.id) },
+		]),
+	);
 	return {
 		register(command: AppCommand) {
-			commands.set(command.id, command);
+			const token = Symbol(command.id);
+			commands.set(command.id, { command, token });
 			return () => {
-				commands.delete(command.id);
+				if (commands.get(command.id)?.token === token)
+					commands.delete(command.id);
 			};
 		},
-		list: () => [...commands.values()],
+		list: () => [...commands.values()].map(({ command }) => command),
 	};
 }
 
@@ -52,14 +59,15 @@ export function CommandPalette({
 	const runToken = useRef(0);
 	const running = useRef(false);
 	const open = controlledOpen ?? uncontrolledOpen;
-	useEffect(
-		() => () => {
+	useEffect(() => {
+		mounted.current = true;
+		return () => {
 			mounted.current = false;
 			runToken.current += 1;
-		},
-		[],
-	);
+		};
+	}, []);
 	const setOpen = (value: boolean) => {
+		if (value !== open) runToken.current += 1;
 		if (controlledOpen === undefined) setUncontrolledOpen(value);
 		onOpenChange?.(value);
 	};

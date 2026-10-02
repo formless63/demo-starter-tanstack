@@ -2,7 +2,7 @@ import { Dialog } from "@base-ui/react/dialog";
 import { type RegisterableHotkey, useHotkey } from "@tanstack/react-hotkeys";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type Command = {
+export type AppCommand = {
 	id: string;
 	label: string;
 	keywords?: readonly string[];
@@ -10,21 +10,44 @@ type Command = {
 	execute: () => void | Promise<void>;
 };
 
-export function createCommandRegistry(initial: readonly Command[] = []) {
-	const commands = new Map(initial.map((command) => [command.id, command]));
+export function createCommandRegistry(initial: readonly AppCommand[] = []) {
+	const commands = new Map(
+		initial.map((command) => [
+			command.id,
+			{ command, token: Symbol(command.id) },
+		]),
+	);
 	return {
-		register(command: Command) {
-			commands.set(command.id, command);
+		register(command: AppCommand) {
+			const token = Symbol(command.id);
+			commands.set(command.id, { command, token });
 			return () => {
-				commands.delete(command.id);
+				if (commands.get(command.id)?.token === token)
+					commands.delete(command.id);
 			};
 		},
-		list: () => [...commands.values()],
+		list: () => [...commands.values()].map(({ command }) => command),
 	};
 }
 
-export function CommandPalette({ commands }: { commands: readonly Command[] }) {
-	const [open, setOpen] = useState(false);
+export function CommandPalette({
+	commands,
+	open: controlledOpen,
+	onOpenChange,
+	shortcut = "Mod+K",
+}: {
+	commands: readonly AppCommand[];
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
+	shortcut?: string;
+}) {
+	const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+	const open = controlledOpen ?? uncontrolledOpen;
+	const setOpen = (value: boolean) => {
+		if (value !== open) runToken.current += 1;
+		if (controlledOpen === undefined) setUncontrolledOpen(value);
+		onOpenChange?.(value);
+	};
 	const [query, setQuery] = useState("");
 	const [active, setActive] = useState(0);
 	const [pending, setPending] = useState<string | null>(null);
@@ -44,10 +67,11 @@ export function CommandPalette({ commands }: { commands: readonly Command[] }) {
 			),
 		[commands, query],
 	);
-	useHotkey("Mod+K" as RegisterableHotkey, () => setOpen(true), {
+	useHotkey(shortcut as RegisterableHotkey, () => setOpen(true), {
 		ignoreInputs: true,
 	});
 	useEffect(() => {
+		mounted.current = true;
 		return () => {
 			mounted.current = false;
 			runToken.current += 1;
@@ -58,7 +82,7 @@ export function CommandPalette({ commands }: { commands: readonly Command[] }) {
 		const id = requestAnimationFrame(() => inputRef.current?.focus());
 		return () => cancelAnimationFrame(id);
 	}, [open]);
-	const run = async (command: Command) => {
+	const run = async (command: AppCommand) => {
 		if (running.current) return;
 		running.current = true;
 		const token = ++runToken.current;

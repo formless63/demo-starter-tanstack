@@ -85,4 +85,26 @@ describe("reference command palette", () => {
 		dispose();
 		expect(registry.list()).toHaveLength(0);
 	});
+
+	it("latches duplicate clicks while async work is pending and reports rejection", async () => {
+		let reject!: (error: Error) => void;
+		const execute = vi.fn(
+			() =>
+				new Promise<void>((_, fail) => {
+					reject = fail;
+				}),
+		);
+		render(
+			<CommandPalette commands={[{ id: "slow", label: "Slow", execute }]} />,
+		);
+		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+		const option = await screen.findByRole("option", { name: "Slow" });
+		fireEvent.click(option);
+		fireEvent.click(option);
+		expect(execute).toHaveBeenCalledTimes(1);
+		reject(new Error("failed"));
+		await waitFor(() =>
+			expect(screen.getByRole("alert").textContent).toContain("failed"),
+		);
+	});
 });
