@@ -16,14 +16,18 @@ const adminUrl=process.env.STRIPE_FIXTURE_DATABASE_URL??process.env.DATABASE_URL
 assert.ok(adminUrl,"Explicit disposable fixture PostgreSQL URL required");
 const admin=new pg.Pool({connectionString:adminUrl});const name=`stripe_fixture_${randomUUID().replaceAll("-","")}`;const url=new URL(adminUrl);url.pathname=`/${name}`;
 const pool=new pg.Pool({connectionString:url.toString()});const db=drizzle(pool,{schema});const boss=new PgBoss({connectionString:url.toString(),migrate:true});
+let holdGet=false;let releaseGet:(()=>void)|undefined;
+function releaseHeldGet(){releaseGet?.();}
 let allow=true;let callbackAllow=true;let outcome="normal";let posts=0;let gets=0;let paymentStatus="unpaid";let checkoutState="complete";let paymentState="succeeded";
 const bodies:string[]=[];let offerPrice="price_fixture";const acceptedKeys=new Map<string,string>();const keys:(string|string[]|undefined)[]=[];
-const server=createServer((req,res)=>{let body="";req.on("data",v=>body+=v);req.on("end",()=>{
+const server=createServer((req,res)=>{let body="";req.on("data",v=>body+=v);req.on("end",async()=>{
  res.setHeader("content-type","application/json");if(req.method==="POST"){posts++;bodies.push(body);keys.push(req.headers["idempotency-key"]);if(outcome==="disconnect"){req.socket.destroy();return;}if(outcome==="slow"){res.writeHead(200);res.write('{"id":"');return;}if(outcome==="cached500"){res.writeHead(500);res.end('{"error":{"type":"api_error","message":"financial-do-not-log"}}');return;}if(outcome==="reject"){res.writeHead(400);res.end('{"error":{"type":"invalid_request_error","message":"financial-do-not-log"}}');return;}}
  else gets++;
+ const paymentStatusSnapshot=paymentStatus;
+ if(holdGet&&req.method==="GET"){holdGet=false;await new Promise<void>(resolve=>{releaseGet=resolve;});}
  if(req.url?.startsWith("/v1/payment_intents/")){res.end(JSON.stringify({id:"pi_fixture",object:"payment_intent",livemode:false,status:paymentState,currency:"usd",amount:2500,amount_received:2500,metadata:{private:"do-not-expose"}}));return;}
  const nativeKey=String(req.headers["idempotency-key"]??"");if(req.method==="POST"&&!acceptedKeys.has(nativeKey))acceptedKeys.set(nativeKey,acceptedKeys.size===0?"cs_fixture":`cs_${acceptedKeys.size}`);const sessionId=req.method==="POST"?acceptedKeys.get(nativeKey):decodeURIComponent((req.url??"").split("/").at(-1)??"");
- res.end(JSON.stringify({id:sessionId,object:"checkout.session",livemode:false,customer:"cus_fixture",status:checkoutState,payment_status:paymentStatus,currency:"usd",amount_total:2500,url:"https://checkout.stripe.com/private",payment_intent:"pi_fixture",customer_details:{email:"private@example.test"},metadata:{owner:"forged"}}));
+ res.end(JSON.stringify({id:sessionId,object:"checkout.session",livemode:false,customer:"cus_fixture",status:checkoutState,payment_status:paymentStatusSnapshot,currency:"usd",amount_total:2500,url:"https://checkout.stripe.com/private",payment_intent:"pi_fixture",customer_details:{email:"private@example.test"},metadata:{owner:"forged"}}));
 });});
 await new Promise<void>(resolve=>server.listen(0,"127.0.0.1",resolve));const address=server.address();assert.ok(address&&typeof address!=="string");
 const config={id:"default",secretKey:"sk_test_fixture",accountId:"acct_fixture",mode:"test" as const,webhookSecrets:["whsec_fixture"],endpoint:`http://127.0.0.1:${address.port}/`};
@@ -48,6 +52,23 @@ try {
  await assert.rejects(db.transaction(async tx=>{await service.receiveInTransaction(tx,config,hints);throw Error("rollback");}));assert.equal((await db.select().from(stripeInbox)).length,0);assert.equal((await pool.query("select count(*)::int as count from pgboss.job")).rows[0].count,before);
  await db.transaction(tx=>service.receiveInTransaction(tx,config,hints));await db.transaction(tx=>service.receiveInTransaction(tx,config,{...hints,bodySHA256:"b".repeat(64)}));const receipts=await db.select().from(stripeInbox);assert.equal(receipts.length,1);assert.equal(receipts[0].bodySHA256,hints.bodySHA256);
  paymentStatus="paid";await worker.jobs["stripe.process"].handler({inboxId:receipts[0].id},context);assert.equal((await service.getCheckout(scopeA,{bindingId:result.bindingId})).paymentStatus,"paid");
+ // Same ID, new authenticated bytes: preserve original ownership and coalesce rechecks.
+ const receiptJobs=async()=>Number((await pool.query("select count(*)::int n from pgboss.job where data ? 'inboxId'")).rows[0].n);
+ const collisionCount=await receiptJobs();const conflicting={...hints,remoteId:"cs_unbound",bodySHA256:"c".repeat(64)};
+ await db.transaction(tx=>service.receiveInTransaction(tx,config,conflicting));await db.transaction(tx=>service.receiveInTransaction(tx,config,conflicting));
+ const [collision]=await db.select().from(stripeInbox).where(eq(stripeInbox.id,receipts[0].id));
+ assert.equal(collision.state,"received");assert.equal(collision.remoteHint,"cs_fixture");assert.equal(collision.bodySHA256,hints.bodySHA256);assert.equal(collision.bindingId,receipts[0].bindingId);assert.equal(await receiptJobs(),collisionCount+1);
+ holdGet=true;releaseGet=undefined;const activeCollision=worker.jobs["stripe.process"].handler({inboxId:collision.id},context);
+ for(let n=0;!releaseGet&&n<500;n++)await new Promise(resolve=>setTimeout(resolve,10));assert.ok(releaseGet,"Authoritative GET is held during receipt processing");
+ try{
+  paymentStatus="unpaid";const during={...hints,remoteId:"cs_another_unbound",bodySHA256:"d".repeat(64)};
+  await db.transaction(tx=>service.receiveInTransaction(tx,config,during));await db.transaction(tx=>service.receiveInTransaction(tx,config,during));
+  assert.equal(await receiptJobs(),collisionCount+1,"Active collisions record one follow-up without parallel enqueue");
+ }finally{releaseHeldGet();await activeCollision;}
+ assert.equal((await db.select().from(stripeInbox).where(eq(stripeInbox.id,collision.id)))[0].state,"received");assert.equal(await receiptJobs(),collisionCount+2);
+ await worker.jobs["stripe.process"].handler({inboxId:collision.id},context);
+ assert.equal((await service.getCheckout(scopeA,{bindingId:result.bindingId})).paymentStatus,"unpaid");
+ assert.equal((await db.select().from(stripeInbox).where(eq(stripeInbox.id,collision.id)))[0].reconcileAgain,false);
  paymentStatus="unpaid";await db.transaction(tx=>service.receiveInTransaction(tx,config,{...hints,eventId:"evt_outoforder",type:"checkout.session.async_payment_failed"}));const [later]=await db.select().from(stripeInbox).where(eq(stripeInbox.eventId,"evt_outoforder"));await worker.jobs["stripe.process"].handler({inboxId:later.id},context);assert.equal((await service.getCheckout(scopeA,{bindingId:result.bindingId})).paymentStatus,"unpaid");
  await db.transaction(tx=>service.receiveInTransaction(tx,config,{...hints,eventId:"evt_unbound",remoteId:"cs_forged"}));const [ignored]=await db.select().from(stripeInbox).where(eq(stripeInbox.eventId,"evt_unbound"));assert.equal(ignored.state,"ignored");
  const [payment]=await db.select().from(stripeBindings).where(eq(stripeBindings.resourceKind,"payment"));assert.ok(payment);
@@ -84,4 +105,4 @@ try {
  const sqlFiles=JSON.parse(await readFile("drizzle/meta/_journal.json","utf8")).entries;assert.equal(sqlFiles.length>=1,true);assert.ok(await readFile("drizzle/0011_stripe_v1.sql","utf8"));
  assert.ok((await db.select().from(stripeProjections)).length>=2);assert.equal(keys[0],`gs-stripe:${op}`);assert.ok(new URLSearchParams(bodies[0]).get("automatic_tax[enabled]") === "false");
  console.info("Stripe disposable PostgreSQL18 ownership/ledger/receipt rollback/privacy/cutoff fixtures passed; no provider API requests.");
-} finally {await boss.stop({graceful:true});server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));await pool.end();await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);await admin.end();}
+} finally {releaseHeldGet();await boss.stop({graceful:true});server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));await pool.end();await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);await admin.end();}
