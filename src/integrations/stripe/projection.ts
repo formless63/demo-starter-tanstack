@@ -28,7 +28,7 @@ export function checkoutProjection(
 		paymentStatus: ["paid", "unpaid", "no_payment_required"].includes(
 			state.payment_status,
 		)
-			? state.payment_status
+			? (state.payment_status as CheckoutProjection["paymentStatus"])
 			: "unknown",
 		currency: currency(state.currency),
 		amountTotal: amount(state.amount_total),
@@ -54,7 +54,9 @@ export function paymentProjection(
 	return {
 		bindingId,
 		remoteId: state.id,
-		status: statuses.includes(state.status) ? state.status : "unknown",
+		status: statuses.includes(state.status)
+			? (state.status as PaymentProjection["status"])
+			: "unknown",
 		currency: currency(state.currency),
 		amount: amount(state.amount),
 		amountReceived: amount(state.amount_received),
