@@ -1,0 +1,39 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { Chart, type ChartKind } from "#/integrations/charts/Chart";
+
+export const Route = createFileRoute("/charts-test")({ component: ChartsTest });
+
+function ChartsTest() {
+	const [kind, setKind] = useState<ChartKind>("line");
+	const data = [
+		{ label: "Jan", value: 2 },
+		{ label: "Feb", value: 5 },
+		{ label: "Mar", value: 3 },
+	];
+	return (
+		<main>
+			<h1>Charts test fixture</h1>
+			<nav aria-label="Chart type">
+				<button type="button" onClick={() => setKind("line")}>
+					Line
+				</button>
+				<button type="button" onClick={() => setKind("bar")}>
+					Bar
+				</button>
+				<button type="button" onClick={() => setKind("area")}>
+					Area
+				</button>
+			</nav>
+			<section>
+				<Chart
+					data={data}
+					kind={kind}
+					title={`${kind} chart`}
+					description="Three monthly values"
+				/>
+				<Chart data={data} kind="bar" title="Second chart" />
+			</section>
+		</main>
+	);
+}
