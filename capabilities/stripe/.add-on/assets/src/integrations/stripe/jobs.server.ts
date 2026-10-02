@@ -438,6 +438,7 @@ export function createStripeJobs(wiring: StripeWiring) {
 			return { status: "ignored" };
 		const token = randomUUID();
 		let binding: StripeBinding | undefined;
+		let claimedAttempt = false;
 		try {
 			const [current] = await db
 				.select()
@@ -465,7 +466,6 @@ export function createStripeJobs(wiring: StripeWiring) {
 					.where(
 						and(
 							eq(stripeInbox.id, id),
-							eq(stripeInbox.revision, initial.revision),
 							or(
 								eq(stripeInbox.state, "received"),
 								eq(stripeInbox.state, "failed"),
@@ -475,6 +475,7 @@ export function createStripeJobs(wiring: StripeWiring) {
 					.returning();
 				if (!claimed) throw new StripeCapabilityError("conflict");
 			});
+			claimedAttempt = true;
 			if (!binding) throw new StripeCapabilityError("conflict");
 			const bound = binding;
 			const state = await retrieve(bound, signal);
@@ -482,10 +483,19 @@ export function createStripeJobs(wiring: StripeWiring) {
 			await db.transaction(async (tx) => {
 				await authorizeCallback(bound, signal);
 				await finishProjection(tx, bound, token, state, null, signal);
+				const [receipt] = await tx
+					.select()
+					.from(stripeInbox)
+					.where(
+						and(eq(stripeInbox.id, id), eq(stripeInbox.attemptToken, token)),
+					)
+					.for("update");
+				if (!receipt) throw new StripeCapabilityError("conflict");
 				const [finished] = await tx
 					.update(stripeInbox)
 					.set({
-						state: "processed",
+						state: receipt.reconcileAgain ? "received" : "processed",
+						reconcileAgain: false,
 						updatedAt: new Date(),
 						attemptToken: null,
 						leaseUntil: null,
@@ -496,6 +506,7 @@ export function createStripeJobs(wiring: StripeWiring) {
 					)
 					.returning();
 				if (!finished) throw new StripeCapabilityError("conflict");
+				if (receipt.reconcileAgain) await wiring.enqueue(tx, { inboxId: id });
 				signal.throwIfAborted();
 			});
 			return { status: "processed" };
@@ -523,6 +534,7 @@ export function createStripeJobs(wiring: StripeWiring) {
 					.update(stripeInbox)
 					.set({
 						state: retry ? "received" : "failed",
+						reconcileAgain: false,
 						updatedAt: new Date(),
 						attemptToken: null,
 						leaseUntil: null,
@@ -531,14 +543,12 @@ export function createStripeJobs(wiring: StripeWiring) {
 					.where(
 						and(
 							eq(stripeInbox.id, id),
-							or(
-								eq(stripeInbox.attemptToken, token),
-								and(
-									isNull(stripeInbox.attemptToken),
-									eq(stripeInbox.revision, initial.revision),
-									eq(stripeInbox.state, "received"),
-								),
-							),
+							claimedAttempt
+								? eq(stripeInbox.attemptToken, token)
+								: and(
+										isNull(stripeInbox.attemptToken),
+										eq(stripeInbox.state, "received"),
+									),
 						),
 					);
 			});

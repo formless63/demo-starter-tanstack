@@ -465,6 +465,41 @@ export function createStripeCapability(wiring: StripeWiring) {
 			.onConflictDoNothing()
 			.returning();
 		if (receipt && bound) await wiring.enqueue(tx, { inboxId: receipt.id });
+		if (!receipt) {
+			const [existing] = await tx
+				.select()
+				.from(stripeInbox)
+				.where(
+					and(
+						eq(stripeInbox.accountId, config.accountId),
+						eq(stripeInbox.mode, config.mode),
+						eq(stripeInbox.eventId, hint.eventId),
+					),
+				)
+				.for("update");
+			if (
+				existing &&
+				existing.bodySHA256 !== hint.bodySHA256 &&
+				existing.lastConflictSHA256 !== hint.bodySHA256
+			) {
+				// Retain original identity/ownership. A collision only requests its latest state.
+				const processing = existing.state === "processing";
+				const requeue = Boolean(
+					existing.bindingId && !processing && existing.state !== "received",
+				);
+				await tx
+					.update(stripeInbox)
+					.set({
+						lastConflictSHA256: hint.bodySHA256,
+						reconcileAgain: processing || existing.reconcileAgain,
+						...(requeue ? { state: "received" as const, errorCode: null } : {}),
+						revision: sql`${stripeInbox.revision}+1`,
+						updatedAt: now,
+					})
+					.where(eq(stripeInbox.id, existing.id));
+				if (requeue) await wiring.enqueue(tx, { inboxId: existing.id });
+			}
+		}
 		return { accepted: true as const };
 	}
 	async function cancelOperation(context: TrustedContext, input: unknown) {

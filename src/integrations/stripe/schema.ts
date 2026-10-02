@@ -1,4 +1,5 @@
 import {
+	boolean,
 	index,
 	integer,
 	jsonb,
@@ -161,6 +162,8 @@ export const stripeInbox = pgTable(
 		mode: varchar("mode", { length: 4 }).$type<"test" | "live">().notNull(),
 		eventId: varchar("event_id", { length: 128 }).notNull(),
 		bodySHA256: varchar("body_sha256", { length: 64 }).notNull(),
+		lastConflictSHA256: varchar("last_conflict_sha256", { length: 64 }),
+		reconcileAgain: boolean("reconcile_again").notNull().default(false),
 		eventType: text("event_type").notNull(),
 		bindingId: uuid("binding_id").references(() => stripeBindings.id),
 		remoteHint: varchar("remote_hint", { length: 128 }),
