@@ -20,6 +20,7 @@ type Operation = {
 	error: { message: string } | null;
 };
 function InvoiceNinjaPage() {
+	const [mounted, setMounted] = useState(false);
 	const [items, setItems] = useState<Invoice[]>([]);
 	const [cursor, setCursor] = useState<string | null>(null);
 	const [binding, setBinding] = useState("");
@@ -32,9 +33,13 @@ function InvoiceNinjaPage() {
 	const [quantity, setQuantity] = useState("1");
 	const [cost, setCost] = useState("0");
 	const [key, setKey] = useState("");
-	useEffect(() => () => controller.current?.abort(), []);
+	useEffect(() => {
+		setMounted(true);
+		return () => controller.current?.abort();
+	}, []);
 	async function call(action: string, input: unknown) {
-		if (controller.current && !controller.current.signal.aborted) return null;
+		if (!mounted || (controller.current && !controller.current.signal.aborted))
+			return null;
 		const abort = new AbortController();
 		controller.current = abort;
 		setBusy(true);
@@ -94,7 +99,11 @@ function InvoiceNinjaPage() {
 				invoice totals and lifecycle.
 			</p>
 			<div className="flex gap-3">
-				<button type="button" onClick={() => void refresh()} disabled={busy}>
+				<button
+					type="button"
+					onClick={() => void refresh()}
+					disabled={!mounted || busy}
+				>
 					Refresh local invoices
 				</button>
 				{busy && (
@@ -124,7 +133,7 @@ function InvoiceNinjaPage() {
 						</p>
 						<button
 							type="button"
-							disabled={busy}
+							disabled={!mounted || busy}
 							onClick={() =>
 								void command("requestInvoiceReconciliation", {
 									invoiceBindingId: invoice.bindingId,
@@ -139,13 +148,13 @@ function InvoiceNinjaPage() {
 			{cursor && (
 				<button
 					type="button"
-					disabled={busy}
+					disabled={!mounted || busy}
 					onClick={() => void refresh(cursor)}
 				>
 					Load more
 				</button>
 			)}
-			<fieldset className="space-y-3 rounded-lg border p-4">
+			<fieldset disabled={!mounted} className="space-y-3 rounded-lg border p-4">
 				<legend>Bound client</legend>
 				<label className="block">
 					Client binding ID
@@ -157,7 +166,7 @@ function InvoiceNinjaPage() {
 				</label>
 				<button
 					type="button"
-					disabled={busy || !binding}
+					disabled={!mounted || busy || !binding}
 					onClick={() =>
 						void command("requestClientReconciliation", {
 							clientBindingId: binding,
@@ -168,7 +177,7 @@ function InvoiceNinjaPage() {
 				</button>
 				<button
 					type="button"
-					disabled={busy || !binding}
+					disabled={!mounted || busy || !binding}
 					onClick={async () => {
 						const value = await call("getClient", { bindingId: binding });
 						if (value) setMessage(`Client synchronized ${value.syncedAt}.`);
@@ -243,7 +252,7 @@ function InvoiceNinjaPage() {
 						onChange={(e) => setCost(e.target.value)}
 					/>
 				</label>
-				<button disabled={busy || !binding} type="submit">
+				<button disabled={!mounted || busy || !binding} type="submit">
 					Request draft
 				</button>
 			</form>
@@ -253,7 +262,7 @@ function InvoiceNinjaPage() {
 					{operation.error && <p>{operation.error.message}</p>}
 					<button
 						type="button"
-						disabled={busy}
+						disabled={!mounted || busy}
 						onClick={async () => {
 							const value = await call("getOperation", {
 								operationId: operation.id,
@@ -265,7 +274,7 @@ function InvoiceNinjaPage() {
 					</button>
 					<button
 						type="button"
-						disabled={busy || operation.status !== "queued"}
+						disabled={!mounted || busy || operation.status !== "queued"}
 						onClick={async () => {
 							const value = await call("cancelOperation", {
 								operationId: operation.id,
