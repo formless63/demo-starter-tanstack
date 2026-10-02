@@ -14,6 +14,9 @@ const config = defineConfig({
 			optimizeDeps: {
 				noDiscovery: true,
 				include: [
+					"@tanstack/react-hotkeys",
+					"use-sync-external-store/shim",
+					"use-sync-external-store/shim/with-selector",
 					"better-auth/react",
 					"better-auth/client/plugins",
 					"@scalar/api-reference-react",
