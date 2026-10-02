@@ -100,7 +100,8 @@
       "file-ui",
       "rich-text",
       "flow-canvas",
-      "internationalization"
+      "internationalization",
+      "pwa-offline"
     ]
   },
   "frameworkEvaluations": {
@@ -1747,7 +1748,7 @@
       "id": "pwa-offline",
       "displayName": "PWA / Offline",
       "kind": "client-platform",
-      "status": "in-progress",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
@@ -1756,7 +1757,7 @@
       ],
       "baselineRequirements": [],
       "externalRequirements": [],
-      "summary": "Installability, service-worker lifecycle, caching, and offline UX conventions.",
+      "summary": "Explicit registration, integrity-checked public-only offline notice, natural updates and same-URL two-phase retirement.",
       "documentationPath": "capabilities/pwa-offline/CAPABILITY.md",
       "agentSkill": ".agents/skills/capability-change/SKILL.md",
       "evaluationDocument": "PWA_OFFLINE_MODULE_EVALUATION.md",
