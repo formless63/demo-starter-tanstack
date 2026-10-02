@@ -815,6 +815,9 @@
 			"requires": ["jobs", "webhooks"], "integratesWith": ["organizations", "authorization", "audit-log", "notifications"], "baselineRequirements": [],
 			"externalRequirements": [{ "name": "Stripe", "required": true, "description": "Stripe account, API credentials, and webhook endpoint." }],
 			"documentationPath": "capabilities/stripe/CAPABILITY.md",
+			"evaluationDocument": "STRIPE_MODULE_EVALUATION.md",
+			"scripts": ["stripe:unit", "stripe:durable"],
+			"tanstackAddOn": {"addOnId": "stripe", "sourceDirectory": "capabilities/stripe/.add-on", "manifestPath": "capabilities/stripe/.add-on/info.json", "distributablePath": "capabilities/stripe/add-on.json", "cleanInstallFixture": "capabilities/stripe/test/clean-install.json", "dependsOn": ["postgres-jobs", "webhooks"], "conflictsWith": []},
 			"summary": "Hosted one-time Checkout and scoped durable reconciliation (implementation in progress)."
 		},
 		{

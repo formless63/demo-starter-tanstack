@@ -1,0 +1,19 @@
+{
+  "reviewedOverrides": [
+    {
+      "path": "src/integrations/jobs/registry.ts",
+      "dependency": "jobs",
+      "reason": "Retains starter.echo/Webhooks and composes stripe.process; removal retains dependencies."
+    },
+    {
+      "path": "src/integrations/jobs/registry.ts",
+      "dependency": "webhooks",
+      "reason": "Retains starter.echo/Webhooks and composes stripe.process; removal retains dependencies."
+    },
+    {
+      "path": "drizzle.config.ts",
+      "dependency": "jobs",
+      "reason": "Retains baseline schema and includes provider tables for explicit migrations."
+    }
+  ]
+}
