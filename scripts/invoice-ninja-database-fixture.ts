@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
+import { readFile, writeFile, mkdtemp, mkdir, copyFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { randomUUID } from 'node:crypto'
 import { createServer } from 'node:http'
 import { once } from 'node:events'
@@ -38,7 +40,7 @@ const server = createServer(async (request, response) => {
   if (request.method === 'POST' && responseMode === 'disconnect') { request.socket.destroy(); return }
   if (responseMode === 'missing') { response.writeHead(404); response.end('{}'); return }
   const isClient = request.url?.includes('/clients/')
-  const payload = JSON.stringify({ data: isClient ? { id: 'client-owned', email: 'PRIVATE_CONTACT' } : { id: 'invoice-owned', client_id: 'client-owned', status_id: status, number: 'FIXTURE-1', amount, balance: '0', last_sent_date: '', auto_bill_enabled: false, is_deleted: false, updated_at: 1790907000, private_notes: 'PRIVATE_NOTES' } })
+  const payload = JSON.stringify({ data: isClient ? { id: 'client-owned', email: 'PRIVATE_CONTACT' } : { id: request.method === 'POST' ? 'invoice-owned' : request.url!.split('/').at(-1)!, client_id: 'client-owned', status_id: status, number: 'FIXTURE-1', amount, balance: '0', last_sent_date: '', auto_bill_enabled: false, is_deleted: false, updated_at: 1790907000, private_notes: 'PRIVATE_NOTES' } })
   if (holdNext && request.method === 'GET') { holdNext = false; entered?.(); await new Promise<void>(resolve => { release = resolve }) }
   response.setHeader('content-type', 'application/json'); response.end(payload)
 })
@@ -61,7 +63,27 @@ const service = createInvoiceNinja({ database: db,
 const operationId = (value: { operationId: string } | { id: string }) => 'operationId' in value ? value.operationId : value.id
 const receipt = (suffix: string) => new Request(`${baseUrl}/fixture`, { method: 'POST', headers: { 'X-Invoice-Ninja-Webhook-Secret': 'disposable-webhook-secret-32-chars-long' }, body: JSON.stringify({ id: 'invoice-owned', note: `PRIVATE_${suffix}` }) })
 try {
+  const journal = JSON.parse(await readFile('drizzle/meta/_journal.json', 'utf8'))
+  const start = journal.entries.findIndex((entry: { tag: string }) => entry.tag === '0009_invoice_ninja_v1')
+  let previousHistory: unknown[] = []
+  if (start > 0) {
+    const directory = await mkdtemp(`${tmpdir()}/invoice-upgrade-`)
+    try {
+      await mkdir(`${directory}/meta`)
+      await writeFile(`${directory}/meta/_journal.json`, JSON.stringify({ ...journal, entries: journal.entries.slice(0, start) }))
+      for (const entry of journal.entries.slice(0, start)) await copyFile(`drizzle/${entry.tag}.sql`, `${directory}/${entry.tag}.sql`)
+      await migrate(db, { migrationsFolder: directory })
+      await pool.query("insert into \"user\"(id,name,email,email_verified,created_at,updated_at) values('invoice-upgrade-owner','Upgrade marker','upgrade@example.test',true,now(),now())")
+      await pool.query("insert into project(id,name,owner_id,created_at,updated_at) values('invoice-upgrade-project','Retained main data','invoice-upgrade-owner',now(),now())")
+      previousHistory = (await pool.query('select * from drizzle.__drizzle_migrations order by id')).rows
+    }
+    finally { await rm(directory, { recursive: true, force: true }) }
+  }
   await migrate(db, { migrationsFolder: 'drizzle' }); await migrate(db, { migrationsFolder: 'drizzle' })
+  if (start > 0) {
+    assert.equal((await pool.query("select name from project where id='invoice-upgrade-project'")).rows[0].name, 'Retained main data')
+    assert.deepEqual((await pool.query('select * from drizzle.__drizzle_migrations order by id')).rows.slice(0, previousHistory.length), previousHistory)
+  }
   await boss.start(); await boss.createQueue('invoice-ninja.operation'); await boss.createQueue('invoice-ninja.receipt')
   const client = await db.transaction(tx => service.createBinding(tx, owner, { localResourceId: 'client', connectionId: 'default', resourceKind: 'client', remoteId: 'client-owned' }))
   const input = { clientBindingId: client, idempotencyKey: 'first', invoiceDate: '2026-10-02', numbering: { mode: 'explicit', number: 'FIXTURE-1' }, lines: [{ description: 'Disposable fixture', quantity: '1.2500', unitCost: '20.0000' }] }
@@ -91,6 +113,16 @@ try {
   await service.runOperation(ambiguous); assert.equal((await service.getOperation(owner, { operationId: ambiguous })).status, 'reconciliation_required')
   const beforeDuplicate = posts; await service.runOperation(ambiguous); assert.equal(posts, beforeDuplicate)
   responseMode = 'ok'
+  await assert.rejects(service.resolveAmbiguousDraft(foreign, { operationId: ambiguous }, { mode: 'confirm-not-created' }), { code: 'not_found' })
+  await service.resolveAmbiguousDraft(owner, { operationId: ambiguous }, { mode: 'confirm-not-created' })
+  assert.equal((await service.getOperation(owner, { operationId: ambiguous })).status, 'failed')
+  responseMode = 'disconnect'
+  const attach = operationId(await service.requestDraftInvoice(owner, { ...input, idempotencyKey: 'attach' }))
+  await service.runOperation(attach); responseMode = 'ok'; const priorAttachPosts = posts
+  await service.resolveAmbiguousDraft(owner, { operationId: attach }, { mode: 'attach-existing', remoteId: 'invoice-recovered' })
+  assert.equal(posts, priorAttachPosts, 'Operator resolution performs GET only and never retries POST')
+  const resolved = await service.getOperation(owner, { operationId: attach }); assert.equal(resolved.status, 'succeeded')
+  assert.equal((await service.getInvoice(owner, { bindingId: resolved.bindingId! })).remoteId, 'invoice-recovered')
   const hint = receipt('one'); await service.receive(hint, 'default', 'invoice-updated'); await service.receive(receipt('one'), 'default', 'invoice-updated')
   let receipts = await db.select().from(inbox); assert.equal(receipts.length, 1)
   status = '4'; await service.runReceipt(receipts[0]!.id)
@@ -106,7 +138,9 @@ try {
   await db.update(operations).set({ leaseUntil: new Date(0) }).where(eq(operations.id, refresh))
   await db.update(bindings).set({ leaseUntil: new Date(0) }).where(eq(bindings.id, completed.bindingId))
   await db.transaction(tx => service.recover(tx))
-  status = '4'; amount = '25'; await service.runOperation(refresh); release!(); await late
+  release!(); await late
+  assert.equal((await service.getOperation(owner, { operationId: refresh })).status, 'queued', 'Late expired attempt cannot fail an explicitly recovered queued operation')
+  status = '4'; amount = '25'; await service.runOperation(refresh)
   assert.equal((await service.getInvoice(owner, { bindingId: completed.bindingId })).status, 'paid')
   assert.equal((await service.getInvoice(owner, { bindingId: completed.bindingId })).amount, '25')
   responseMode = 'missing'; const missing = operationId(await service.requestInvoiceReconciliation(owner, { invoiceBindingId: completed.bindingId })); await service.runOperation(missing)
@@ -115,7 +149,7 @@ try {
   assert(jobs.every(row => Object.keys(row.data).length === 1)); assert(!JSON.stringify(jobs).includes('PRIVATE'))
   await db.transaction(tx => service.retireBinding(tx, owner, { bindingId: completed.bindingId }))
   await assert.rejects(service.getInvoice(owner, { bindingId: completed.bindingId }), { code: 'not_found' })
-  assert.equal((await db.select().from(invoices)).length, 1)
+  assert.equal((await db.select().from(invoices)).length, 2)
   if (process.env.INVOICE_FIXTURE_REMOVE === 'true') {
     const bun = process.env.INVOICE_FIXTURE_BUN; assert(bun)
     const snapshot = async () => (await pool.query(`select

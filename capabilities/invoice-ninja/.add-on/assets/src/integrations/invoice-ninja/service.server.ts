@@ -629,6 +629,7 @@ export function createInvoiceNinja(w: Wiring) {
 		let row: Operation | undefined;
 		let b: Binding | undefined;
 		let dispatched = false;
+		let attemptClaimed = false;
 		try {
 			const [initial] = await db
 				.select()
@@ -693,6 +694,7 @@ export function createInvoiceNinja(w: Wiring) {
 				if (!claimed) throw new InvoiceNinjaError("conflict");
 				row = claimed;
 			});
+			attemptClaimed = true;
 			if (!b || !row) throw new InvoiceNinjaError("unavailable");
 			let state: Record<string, unknown> | null;
 			if (row.kind === "create_draft") {
@@ -816,13 +818,12 @@ export function createInvoiceNinja(w: Wiring) {
 					.where(
 						and(
 							eq(operations.id, operationId),
-							or(
-								and(
-									eq(operations.status, "dispatching"),
-									eq(operations.leaseToken, token),
-								),
-								eq(operations.status, "queued"),
-							),
+							attemptClaimed
+								? and(
+										eq(operations.status, "dispatching"),
+										eq(operations.leaseToken, token),
+									)
+								: eq(operations.status, "queued"),
 						),
 					);
 				if (b) await releaseBinding(tx, b.id, token);
@@ -1089,6 +1090,139 @@ export function createInvoiceNinja(w: Wiring) {
 		}
 		return { processed: stale.length + receipts.length };
 	}
+	/** Explicit trusted operator decision; never exposed by the reference browser routes. */
+	async function resolveAmbiguousDraft(
+		ctx: TrustedContext,
+		input: unknown,
+		decision: unknown,
+	) {
+		const { operationId } = parse(operationRef, input);
+		const resolution = parse(
+			z.discriminatedUnion("mode", [
+				z.strictObject({
+					mode: z.literal("attach-existing"),
+					remoteId: opaqueId,
+				}),
+				z.strictObject({ mode: z.literal("confirm-not-created") }),
+			]),
+			decision,
+		);
+		const signal = workerSignal(ctx.signal);
+		await scope(ctx, signal);
+		const [row] = await db
+			.select()
+			.from(operations)
+			.where(
+				and(
+					eq(operations.id, operationId),
+					eq(operations.scopeKind, ctx.scope.kind),
+					eq(operations.scopeId, ctx.scope.id),
+				),
+			);
+		if (!row || row.kind !== "create_draft" || !row.bindingId)
+			throw new InvoiceNinjaError("not_found");
+		if (row.status !== "reconciliation_required")
+			throw new InvoiceNinjaError("conflict");
+		const parent = await bound(db, row.bindingId, ctx, "client", signal);
+		if (
+			row.remoteId &&
+			(resolution.mode !== "attach-existing" ||
+				row.remoteId !== resolution.remoteId)
+		)
+			throw new InvoiceNinjaError("conflict");
+		let state: Record<string, unknown> | undefined;
+		if (resolution.mode === "attach-existing") {
+			const response = await providerRequest(
+				await connection(row.connectionId, signal),
+				"invoice",
+				resolution.remoteId,
+				{ signal },
+			);
+			if (response.status !== 200)
+				throw new InvoiceNinjaError(
+					response.status === 404 ? "not_found" : "unavailable",
+				);
+			state = entity(response.body);
+			if (
+				remoteId(state.id) !== resolution.remoteId ||
+				state.client_id !== parent.remoteId
+			)
+				throw new InvoiceNinjaError("conflict");
+		}
+		return transaction(async (tx) => {
+			const [current] = await tx
+				.select()
+				.from(operations)
+				.where(eq(operations.id, row.id))
+				.for("update");
+			if (
+				!current ||
+				current.status !== "reconciliation_required" ||
+				current.revision !== row.revision
+			)
+				throw new InvoiceNinjaError("conflict");
+			await tx
+				.select({ id: bindings.id })
+				.from(bindings)
+				.where(eq(bindings.id, parent.id))
+				.for("update");
+			const source = await bound(tx, parent.id, ctx, "client", signal);
+			let target = source,
+				unsupported = false;
+			if (resolution.mode === "attach-existing") {
+				const resolvedState = state;
+				if (!resolvedState) throw new InvoiceNinjaError("unsupported");
+				const token = randomUUID();
+				target = {
+					...source,
+					id: randomUUID(),
+					resourceKind: "invoice",
+					localResourceId: row.id,
+					remoteId: resolution.remoteId,
+					createdAt: new Date(),
+					revision: 0,
+					leaseToken: token,
+					leaseUntil: new Date(Date.now() + 45000),
+				};
+				const [inserted] = await tx
+					.insert(bindings)
+					.values(target)
+					.onConflictDoNothing()
+					.returning();
+				if (!inserted) throw new InvoiceNinjaError("conflict");
+				unsupported = await saveProjection(
+					tx,
+					target,
+					token,
+					resolvedState,
+					ctx,
+					signal,
+				);
+				await releaseBinding(tx, target.id, token);
+			}
+			await tx
+				.update(operations)
+				.set({
+					status:
+						resolution.mode === "confirm-not-created" || unsupported
+							? "failed"
+							: "succeeded",
+					bindingId: target.id,
+					remoteId:
+						resolution.mode === "attach-existing" ? resolution.remoteId : null,
+					errorCode:
+						resolution.mode === "confirm-not-created"
+							? "cancelled"
+							: unsupported
+								? "unsupported"
+								: null,
+					updatedAt: new Date(),
+					revision: sql`${operations.revision}+1`,
+				})
+				.where(eq(operations.id, row.id));
+			signal.throwIfAborted();
+		});
+	}
 	async function repairReceipt(tx: Database, inboxId: string) {
 		parse(uuid, inboxId);
 		const [row] = await tx
@@ -1134,5 +1268,6 @@ export function createInvoiceNinja(w: Wiring) {
 		runReceipt,
 		recover,
 		repairReceipt,
+		resolveAmbiguousDraft,
 	};
 }
