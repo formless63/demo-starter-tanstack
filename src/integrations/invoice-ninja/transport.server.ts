@@ -23,6 +23,8 @@ export function validateConnection(
 			originalLiteral &&
 			((isIP(host) === 4 && host.split(".")[0] === "127") || host === "::1");
 		if (
+			value.baseUrl.includes("#") ||
+			authority?.includes("@") ||
 			u.username ||
 			u.password ||
 			u.hash ||

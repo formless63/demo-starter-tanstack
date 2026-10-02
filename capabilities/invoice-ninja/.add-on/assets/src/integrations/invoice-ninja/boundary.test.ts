@@ -79,6 +79,8 @@ describe("Invoice Ninja boundaries (local protocol fixtures, not provider compat
 			"http://0x7f000001",
 			"https://user:pass@example.com",
 			"https://example.com/#fragment",
+			"https://example.com/#",
+			"https://@example.com",
 		])
 			expect(() =>
 				validateConnection({ baseUrl: url, apiToken: "token" }, "test"),
