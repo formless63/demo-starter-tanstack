@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+assert.equal(JSON.parse(await readFile('package.json','utf8')).name,'flow-canvas-clean-install');
+process.env.NODE_ENV='production';
+const runtime=await import(pathToFileURL(resolve('dist/server/server.js')).href);
+const response=await runtime.default.fetch(new Request('http://fixture.local/flow-fixture'));
+assert.equal(response.status,200);const html=await response.text();assert.ok(html.includes('Graph nodes'));assert.ok(html.includes('Primary graph'));assert.ok(!html.includes('react-flow__renderer'));
+console.info('Generated consumer native production handler semantic SSR passed');

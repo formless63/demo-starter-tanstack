@@ -14,6 +14,7 @@ const config = defineConfig({
 			optimizeDeps: {
 				noDiscovery: true,
 				include: [
+					"@xyflow/react",
 					"@tanstack/react-hotkeys",
 					"recharts",
 					"use-sync-external-store/shim",

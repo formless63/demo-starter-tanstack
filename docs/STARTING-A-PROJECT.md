@@ -254,3 +254,7 @@ Remove application imports, the component and its browser fixture scripts/packag
 ### Remove Markdown / Code Content
 
 Remove application routes/loaders/component and CSS imports first (the reference owns `/markdown-test` and `src/features/markdown-reference.ts`). Remove `src/integrations/markdown-code`, module fixture scripts and `markdown-code:*` scripts; uninstall `markdown-it` and `shiki` if unused elsewhere. Keep Playwright and Bun types when other tests need them. Regenerate routes, typecheck and rebuild. No migrations or persisted data are involved. Retaining authored add-on source is a separate choice; remove reference enablement when present but keep catalog identity. See the [exact contract](../capabilities/markdown-code/CAPABILITY.md).
+
+### Removing Flow / Canvas
+
+Remove application `FlowCanvas`/graph helper/CSS imports and the root-only `/flow-test` route (or your own graph routes), then `src/integrations/flow-canvas` and `scripts/flow-canvas-*`. Remove `flow-canvas:*` package scripts and @xyflow/react only if no other feature uses it. Remove the scoped client `optimizeDeps.include` entry when unused. Root-specific e2e/DOM checks and their CI commands must follow the runtime removal. Regenerate routes, reinstall, typecheck and rebuild. Stored graph documents belong to your application and are retained. Keeping `capabilities/flow-canvas` authoring source is a separate choice from installing its runtime.
