@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	I18nProvider,
 	type LocaleLoader,
@@ -104,41 +104,117 @@ function Content() {
 export function I18nExample({
 	initial,
 	load = exampleLoader,
+	onLocaleCommitted,
 }: {
 	initial: I18nPayload;
 	load?: LocaleLoader;
+	onLocaleCommitted?: (locale: string) => void | Promise<void>;
 }) {
-	const { payload, status, change, cancel } = useLocaleLoader(initial, load);
+	const [interactive, setInteractive] = useState(false);
+	const [navigating, setNavigating] = useState(false);
+	const navigationGeneration = useRef(0);
+	const acceptedUrl = useRef<string | null>(null);
+	const pendingUrl = useRef<string | null>(null);
 	useEffect(() => {
-		const pop = () => {
-			void change(
-				new URL(window.location.href).searchParams.get("locale") ??
-					initial.defaultLocale,
+		acceptedUrl.current = window.location.href;
+		setInteractive(true);
+		return () => {
+			navigationGeneration.current++;
+		};
+	}, []);
+	const { payload, status, change, cancel } = useLocaleLoader(initial, load);
+	const restoreUrl = useCallback(
+		(expected: string | null) => {
+			if (
+				!onLocaleCommitted &&
+				expected &&
+				acceptedUrl.current &&
+				window.location.href === expected
+			) {
+				window.history.replaceState(
+					window.history.state,
+					"",
+					acceptedUrl.current,
+				);
+			}
+		},
+		[onLocaleCommitted],
+	);
+	useEffect(() => {
+		if (onLocaleCommitted) return;
+		const pop = async () => {
+			const id = ++navigationGeneration.current;
+			const url = window.location.href;
+			pendingUrl.current = url;
+			const success = await change(
+				new URL(url).searchParams.get("locale") ?? initial.defaultLocale,
 			);
+			if (navigationGeneration.current !== id) return;
+			if (success) acceptedUrl.current = url;
+			else restoreUrl(url);
+			pendingUrl.current = null;
 		};
 		window.addEventListener("popstate", pop);
 		return () => window.removeEventListener("popstate", pop);
-	}, [change, initial.defaultLocale]);
+	}, [change, initial.defaultLocale, onLocaleCommitted, restoreUrl]);
+	const cancelChange = () => {
+		navigationGeneration.current++;
+		cancel();
+		restoreUrl(pendingUrl.current);
+		pendingUrl.current = null;
+	};
 	const select = async (locale: string) => {
-		if (!(await change(locale))) return;
+		const id = ++navigationGeneration.current;
+		const priorUrl = window.location.href;
+		pendingUrl.current = priorUrl;
+		const success = await change(locale);
+		if (navigationGeneration.current !== id) return;
+		if (!success) {
+			restoreUrl(priorUrl);
+			pendingUrl.current = null;
+			return;
+		}
+		pendingUrl.current = null;
+		if (onLocaleCommitted) {
+			setNavigating(true);
+			try {
+				await onLocaleCommitted(locale);
+			} finally {
+				if (navigationGeneration.current === id) setNavigating(false);
+			}
+			return;
+		}
 		const url = new URL(window.location.href);
 		url.searchParams.set("locale", locale);
 		window.history.pushState(null, "", url);
+		acceptedUrl.current = url.href;
 	};
+	// A router-hosted page only renders the router’s committed canonical payload.
+	// Preloaded local state must not outlive a cancelled native navigation.
+	const displayedPayload = onLocaleCommitted ? initial : payload;
 	return (
 		<div>
 			<nav aria-label="Example language">
 				{["en", "de", "ar"].map((locale) => (
-					<button type="button" key={locale} onClick={() => select(locale)}>
+					<button
+						disabled={!interactive || navigating}
+						type="button"
+						key={locale}
+						onClick={() => select(locale)}
+					>
 						{locale}
 					</button>
 				))}
 			</nav>
-			<button type="button" onClick={cancel}>
+			<button
+				disabled={!interactive || navigating}
+				type="button"
+				onClick={cancelChange}
+			>
 				Cancel locale change
 			</button>
 			<output>{status}</output>
-			<I18nProvider key={payload.locale} payload={payload}>
+			<I18nProvider key={displayedPayload.locale} payload={displayedPayload}>
 				<Content />
 			</I18nProvider>
 		</div>

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getI18nReference } from "../features/i18n-reference";
-import { I18nExample } from "../integrations/internationalization/example";
+import { I18nExample } from "../integrations/internationalization/I18nExample";
 export const Route = createFileRoute("/i18n-test")({
 	validateSearch: (search: Record<string, unknown>) => ({
 		locale:
@@ -15,10 +15,15 @@ export const Route = createFileRoute("/i18n-test")({
 });
 function Page() {
 	const payload = Route.useLoaderData();
+	const navigate = Route.useNavigate();
 	return (
 		<main>
 			<h1>Internationalization demo</h1>
-			<I18nExample key={payload.locale} initial={payload} />
+			<I18nExample
+				key={payload.locale}
+				initial={payload}
+				onLocaleCommitted={(locale) => navigate({ search: { locale } })}
+			/>
 		</main>
 	);
 }

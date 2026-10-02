@@ -123,7 +123,9 @@
     "file-ui:http": "bun scripts/file-ui-http.ts",
     "internationalization:unit": "bun scripts/internationalization-unit.tsx",
     "internationalization:typecheck": "tsc --noEmit -p capabilities/internationalization/test/tsconfig.json",
-    "internationalization:browser": "bun scripts/internationalization-browser.tsx"
+    "internationalization:browser": "bun scripts/internationalization-browser.tsx",
+    "internationalization:packaging": "bun scripts/internationalization-packaging.ts",
+    "internationalization:router": "bun --conditions=browser scripts/internationalization-router.tsx"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",

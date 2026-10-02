@@ -19,7 +19,8 @@
     "scripts/internationalization-browser.tsx",
     "scripts/internationalization-remove.ts",
     "scripts/internationalization-fixture-route.ts",
-    "scripts/internationalization-production.mjs"
+    "scripts/internationalization-production.mjs",
+    "src/integrations/internationalization/I18nExample.tsx"
   ],
   "build": true,
   "verificationCommands": [
