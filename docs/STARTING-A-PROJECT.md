@@ -226,3 +226,7 @@ Remove `import-export` from `referenceApplication.enabledCapabilities`, keeping 
 Independent add-on assets overlay only the clean Jobs registry and Drizzle configuration; customized consumers must preserve their existing schema/handlers manually. Keep authoring workspaces separately from runtime removal. Run frozen/updated install as appropriate, capabilities/agent checks, typecheck/build and remaining capability lifecycles.
 
 Opt-in Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
+
+## Medusa removal
+
+Stop Medusa producers and the existing worker, settle or expire active45s attempts, then remove `src/routes/app.medusa.tsx`, `src/routes/api/integrations/medusa`, `src/lib/medusa-http.server.ts`, `src/lib/medusa.server.ts`, the Commerce navigation link and Medusa registry import/spread. Retain the Medusa schema, projection/contract declarations, four tables and migration history; remove the remaining Medusa runtime files and scripts. Keep Jobs and Webhooks. Rebuild the route tree, typecheck/build and verify retained rows before restarting remaining handlers. Remote resources and credentials are unaffected; their deletion/revocation requires a separately authorized operator action. The clean fixture proves this lifecycle on its own disposable database.

@@ -179,4 +179,10 @@ export const projects = pgTable(
 
 export { auditEvents } from "../integrations/audit-log/schema";
 export { transfers } from "../integrations/import-export/schema";
+export {
+	medusaBindings,
+	medusaInbox,
+	medusaOperations,
+	medusaProjections,
+} from "../integrations/medusa/schema";
 export { notifications } from "../integrations/notifications/schema";

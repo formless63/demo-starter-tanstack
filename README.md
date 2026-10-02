@@ -286,3 +286,5 @@ Apply the new reviewed `drizzle/0004_search.sql` through the existing explicit m
 Import / Export is completed: [contract](capabilities/import-export/CAPABILITY.md) and [evaluation](IMPORT_EXPORT_MODULE_EVALUATION.md). It requires Jobs + Object Storage; Notifications/Audit remain optional composition. Clean consumers remain opt-in.
 
 Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
+
+Medusa v1 is in progress: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers defaultInstalled:false. Native reference routes/UI are included; actual Medusa 2.21.2 backend/bridge proof remains a release blocker. See [contract](capabilities/medusa/CAPABILITY.md). The existing fourteen completed capabilities remain unchanged.
