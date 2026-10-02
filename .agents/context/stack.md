@@ -48,4 +48,6 @@ Medusa v1 (completed and reference-enabled) uses `src/integrations/medusa` for b
 
 Markdown / Code Content pins stable markdown-it 15.0.2 and Shiki 4.5.0. Explicit server-only fine-grained core/language/theme/Oniguruma imports never enter browser chunks. No new client dependency requires optimizer prebundling. Browser/removal fixtures use baseline Vite and Node APIs, avoiding Bun global fetch types in application TypeScript.
 
+Rich Text / Tiptap v1 pins React, ProseMirror bridge and Starter Kit together at 3.31.4; client execution stays dynamically imported after mount. File UI introduces no runtime package beyond existing Object Storage. Both are completed, reference-enabled and default-off after accepted source hosted gates; combined exact-head CI remains required before merge.
+
 Flow / Canvas stages native @xyflow/react 12.12.0 behind client-only enhancement. Root Vite noDiscovery has a scoped explicit @xyflow/react entry; preserve other dependencies/configuration. Module removal may prune this entry only if unused.

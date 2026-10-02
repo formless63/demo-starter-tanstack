@@ -16,6 +16,9 @@ const config = defineConfig({
 				include: [
 					"@xyflow/react",
 					"@tanstack/react-hotkeys",
+					"@tiptap/react",
+					"@tiptap/starter-kit",
+					"@tiptap/pm/state",
 					"recharts",
 					"use-sync-external-store/shim",
 					"use-sync-external-store/shim/with-selector",

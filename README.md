@@ -2,7 +2,7 @@
 
 A deployable, provider-neutral TanStack Start and React starter with Bun, PostgreSQL/Drizzle, passwordless Better Auth, Tailwind CSS 4, shadcn conventions, Base UI where appropriate, Tabler Icons, Docker/Compose, CI, and optional reusable capabilities.
 
-The root repository is also a reference application. It intentionally enables all twenty-one completed capabilities so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
+The root repository is also a reference application. It intentionally enables all twenty-three completed capabilities so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
 
 ## Start your application
 
@@ -44,6 +44,8 @@ Baseline components are not optional capability modules. Future integrations in 
 | Markdown / Code Content | Done | Optional | None beyond baseline | Server-only bounded parsing/highlighting, native React rendering and accessible copy | [Markdown contract](capabilities/markdown-code/CAPABILITY.md) |
 | Data Table | Done | Optional | None beyond baseline client | Typed native Table v9, controlled state and semantic accessible rendering | [Data Table contract](capabilities/data-table/CAPABILITY.md) |
 | Charts / Visualization | Done | Optional | None beyond baseline client | Accessible SSR-safe line, bar, and area charts with data-table fallback | [Charts contract](capabilities/charts-visualization/CAPABILITY.md) |
+| Rich Text / Tiptap | Done | Optional | None beyond baseline client | Bounded JSON, safe SSR, controlled editor and history boundaries | [Rich Text contract](capabilities/rich-text/CAPABILITY.md) |
+| File UI | Done | Optional | Object Storage | Bounded private upload, durable scoped receipts and safe downloads | [File UI contract](capabilities/file-ui/CAPABILITY.md) |
 | Email | Done | Optional | No database/auth/capability dependency; SMTP when used | Bounded SMTP delivery, safe errors and awaited magic links | [Email contract](capabilities/email/CAPABILITY.md) |
 | Webhooks | Done | Optional | Jobs + baseline Node 24 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
 | Audit Log | Done | Optional | Baseline PostgreSQL + Drizzle | Append-oriented events, bounded safe context, atomic domain writes, keyset queries | [Audit Log contract](capabilities/audit-log/CAPABILITY.md) |
@@ -298,6 +300,13 @@ Invoice Ninja v1 is completed and reference-enabled; clean consumers remain opt-
 
 Stripe v1 is completed and reference-enabled for approved hosted one-time Checkout and scoped durable reconciliation. Jobs and Webhooks are required; clean consumers remain opt-in. Full combined lifecycle, browser, canonical container and worker verification passed using local protocol/persistence fixtures, without sandbox/live payments or financial certification. See [contract](capabilities/stripe/CAPABILITY.md).
 
-Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](capabilities/medusa/CAPABILITY.md). All twenty-one completed capabilities remain opt-in for clean consumers.
+Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](capabilities/medusa/CAPABILITY.md). All twenty-three completed capabilities remain opt-in for clean consumers.
+
+Rich Text / Tiptap: completed, reference-enabled and opt-in. Bounded JSON editing, safe SSR and controlled state. [Contract](capabilities/rich-text/CAPABILITY.md).
+File UI is completed and reference-enabled (opt-in, Object Storage only): [contract](capabilities/file-ui/CAPABILITY.md). Root `/app/files` and the durable adapter passed source hosted verification; generated consumers supply their own trusted identity and production metadata adapter.
+
+## Combined content-module acceptance
+
+Both independently reviewed source heads passed full hosted CI: Rich Text `4754559bba71c36c357325f9b4d1231d3808d0cf` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37034217024)) and File UI `73c442b9b8729e17c8cb30a6879d87da80f31c5b` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37036091357)). This combined integration retains their accepted runtime and all inherited gates. The published combined head still requires its own complete hosted CI before merge; source success is not a combined-CI claim.
 
 Flow / Canvas is staged in progress and remains opt-in. Its native React Flow client enhancement, semantic SSR graph, strict portable JSON and application-owned persistence contract are documented in [Flow / Canvas](capabilities/flow-canvas/CAPABILITY.md). `/flow-test` is the public synthetic reference; it stores no remote data. Completion awaits exact-head hosted gates.

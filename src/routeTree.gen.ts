@@ -14,11 +14,13 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as ChartsTestRouteImport } from './routes/charts-test'
 import { Route as FlowTestRouteImport } from './routes/flow-test'
 import { Route as MarkdownTestRouteImport } from './routes/markdown-test'
+import { Route as RichTextTestRouteImport } from './routes/rich-text-test'
 import { Route as AdminOpsRouteImport } from './routes/admin.ops'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiOpenapiDotjsonRouteImport } from './routes/api/openapi[.]json'
 import { Route as ApiTransfersStageRouteImport } from './routes/api/transfers-stage'
 import { Route as AppApiKeysRouteImport } from './routes/app.api-keys'
+import { Route as AppFilesRouteImport } from './routes/app.files'
 import { Route as AppInvoicesRouteImport } from './routes/app.invoices'
 import { Route as AppMedusaRouteImport } from './routes/app.medusa'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
@@ -27,6 +29,7 @@ import { Route as AppProjectsRouteImport } from './routes/app.projects'
 import { Route as AppTransfersRouteImport } from './routes/app.transfers'
 import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiFilesSplatRouteImport } from './routes/api/files/$'
 import { Route as ApiOpsSummaryRouteImport } from './routes/api/ops/summary'
 import { Route as ApiV1ProjectsRouteImport } from './routes/api/v1/projects'
 import { Route as ApiIntegrationsInvoiceNinjaActionRouteImport } from './routes/api/integrations/invoice-ninja/$action'
@@ -60,6 +63,11 @@ const MarkdownTestRoute = MarkdownTestRouteImport.update({
   path: '/markdown-test',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RichTextTestRoute = RichTextTestRouteImport.update({
+  id: '/rich-text-test',
+  path: '/rich-text-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminOpsRoute = AdminOpsRouteImport.update({
   id: '/admin/ops',
   path: '/admin/ops',
@@ -83,6 +91,11 @@ const ApiTransfersStageRoute = ApiTransfersStageRouteImport.update({
 const AppApiKeysRoute = AppApiKeysRouteImport.update({
   id: '/api-keys',
   path: '/api-keys',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFilesRoute = AppFilesRouteImport.update({
+  id: '/files',
+  path: '/files',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInvoicesRoute = AppInvoicesRouteImport.update({
@@ -123,6 +136,11 @@ const DocsApiRoute = DocsApiRouteImport.update({
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFilesSplatRoute = ApiFilesSplatRouteImport.update({
+  id: '/api/files/$',
+  path: '/api/files/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOpsSummaryRoute = ApiOpsSummaryRouteImport.update({
@@ -172,11 +190,13 @@ export interface FileRoutesByFullPath {
   '/charts-test': typeof ChartsTestRoute
   '/flow-test': typeof FlowTestRoute
   '/markdown-test': typeof MarkdownTestRoute
+  '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/files': typeof AppFilesRoute
   '/app/invoices': typeof AppInvoicesRoute
   '/app/medusa': typeof AppMedusaRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -185,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/files/$': typeof ApiFilesSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
   '/api/integrations/invoice-ninja/$action': typeof ApiIntegrationsInvoiceNinjaActionRoute
@@ -199,11 +220,13 @@ export interface FileRoutesByTo {
   '/charts-test': typeof ChartsTestRoute
   '/flow-test': typeof FlowTestRoute
   '/markdown-test': typeof MarkdownTestRoute
+  '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/files': typeof AppFilesRoute
   '/app/invoices': typeof AppInvoicesRoute
   '/app/medusa': typeof AppMedusaRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -212,6 +235,7 @@ export interface FileRoutesByTo {
   '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/files/$': typeof ApiFilesSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
   '/api/integrations/invoice-ninja/$action': typeof ApiIntegrationsInvoiceNinjaActionRoute
@@ -227,11 +251,13 @@ export interface FileRoutesById {
   '/charts-test': typeof ChartsTestRoute
   '/flow-test': typeof FlowTestRoute
   '/markdown-test': typeof MarkdownTestRoute
+  '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/files': typeof AppFilesRoute
   '/app/invoices': typeof AppInvoicesRoute
   '/app/medusa': typeof AppMedusaRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -240,6 +266,7 @@ export interface FileRoutesById {
   '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/files/$': typeof ApiFilesSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
   '/api/integrations/invoice-ninja/$action': typeof ApiIntegrationsInvoiceNinjaActionRoute
@@ -256,11 +283,13 @@ export interface FileRouteTypes {
     | '/charts-test'
     | '/flow-test'
     | '/markdown-test'
+    | '/rich-text-test'
     | '/admin/ops'
     | '/api/health'
     | '/api/openapi.json'
     | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/files'
     | '/app/invoices'
     | '/app/medusa'
     | '/app/notifications'
@@ -269,6 +298,7 @@ export interface FileRouteTypes {
     | '/app/transfers'
     | '/docs/api'
     | '/api/auth/$'
+    | '/api/files/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
     | '/api/integrations/invoice-ninja/$action'
@@ -283,11 +313,13 @@ export interface FileRouteTypes {
     | '/charts-test'
     | '/flow-test'
     | '/markdown-test'
+    | '/rich-text-test'
     | '/admin/ops'
     | '/api/health'
     | '/api/openapi.json'
     | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/files'
     | '/app/invoices'
     | '/app/medusa'
     | '/app/notifications'
@@ -296,6 +328,7 @@ export interface FileRouteTypes {
     | '/app/transfers'
     | '/docs/api'
     | '/api/auth/$'
+    | '/api/files/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
     | '/api/integrations/invoice-ninja/$action'
@@ -310,11 +343,13 @@ export interface FileRouteTypes {
     | '/charts-test'
     | '/flow-test'
     | '/markdown-test'
+    | '/rich-text-test'
     | '/admin/ops'
     | '/api/health'
     | '/api/openapi.json'
     | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/files'
     | '/app/invoices'
     | '/app/medusa'
     | '/app/notifications'
@@ -323,6 +358,7 @@ export interface FileRouteTypes {
     | '/app/transfers'
     | '/docs/api'
     | '/api/auth/$'
+    | '/api/files/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
     | '/api/integrations/invoice-ninja/$action'
@@ -338,12 +374,14 @@ export interface RootRouteChildren {
   ChartsTestRoute: typeof ChartsTestRoute
   FlowTestRoute: typeof FlowTestRoute
   MarkdownTestRoute: typeof MarkdownTestRoute
+  RichTextTestRoute: typeof RichTextTestRoute
   AdminOpsRoute: typeof AdminOpsRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiOpenapiDotjsonRoute: typeof ApiOpenapiDotjsonRoute
   ApiTransfersStageRoute: typeof ApiTransfersStageRoute
   DocsApiRoute: typeof DocsApiRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiFilesSplatRoute: typeof ApiFilesSplatRoute
   ApiOpsSummaryRoute: typeof ApiOpsSummaryRoute
   ApiV1ProjectsRoute: typeof ApiV1ProjectsRoute
   ApiIntegrationsInvoiceNinjaActionRoute: typeof ApiIntegrationsInvoiceNinjaActionRoute
@@ -390,6 +428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarkdownTestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rich-text-test': {
+      id: '/rich-text-test'
+      path: '/rich-text-test'
+      fullPath: '/rich-text-test'
+      preLoaderRoute: typeof RichTextTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/ops': {
       id: '/admin/ops'
       path: '/admin/ops'
@@ -423,6 +468,13 @@ declare module '@tanstack/react-router' {
       path: '/api-keys'
       fullPath: '/app/api-keys'
       preLoaderRoute: typeof AppApiKeysRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/files': {
+      id: '/app/files'
+      path: '/files'
+      fullPath: '/app/files'
+      preLoaderRoute: typeof AppFilesRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/invoices': {
@@ -481,6 +533,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/files/$': {
+      id: '/api/files/$'
+      path: '/api/files/$'
+      fullPath: '/api/files/$'
+      preLoaderRoute: typeof ApiFilesSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ops/summary': {
       id: '/api/ops/summary'
       path: '/api/ops/summary'
@@ -535,6 +594,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppApiKeysRoute: typeof AppApiKeysRoute
+  AppFilesRoute: typeof AppFilesRoute
   AppInvoicesRoute: typeof AppInvoicesRoute
   AppMedusaRoute: typeof AppMedusaRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
@@ -545,6 +605,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppApiKeysRoute: AppApiKeysRoute,
+  AppFilesRoute: AppFilesRoute,
   AppInvoicesRoute: AppInvoicesRoute,
   AppMedusaRoute: AppMedusaRoute,
   AppNotificationsRoute: AppNotificationsRoute,
@@ -561,12 +622,14 @@ const rootRouteChildren: RootRouteChildren = {
   ChartsTestRoute: ChartsTestRoute,
   FlowTestRoute: FlowTestRoute,
   MarkdownTestRoute: MarkdownTestRoute,
+  RichTextTestRoute: RichTextTestRoute,
   AdminOpsRoute: AdminOpsRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiOpenapiDotjsonRoute: ApiOpenapiDotjsonRoute,
   ApiTransfersStageRoute: ApiTransfersStageRoute,
   DocsApiRoute: DocsApiRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiFilesSplatRoute: ApiFilesSplatRoute,
   ApiOpsSummaryRoute: ApiOpsSummaryRoute,
   ApiV1ProjectsRoute: ApiV1ProjectsRoute,
   ApiIntegrationsInvoiceNinjaActionRoute:

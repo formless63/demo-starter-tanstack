@@ -1,0 +1,75 @@
+{
+  "projectName": "rich-text-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [],
+  "forbiddenOfficialAddOns": [
+    "drizzle",
+    "better-auth",
+    "postgres-jobs",
+    "search"
+  ],
+  "expectedFiles": [
+    "src/integrations/rich-text/document.ts",
+    "src/integrations/rich-text/RichText.tsx",
+    "src/integrations/rich-text/editor.client.tsx",
+    "src/integrations/rich-text/Example.tsx",
+    "capabilities/rich-text/CAPABILITY.md",
+    "scripts/rich-text-browser.tsx",
+    "scripts/rich-text-client.tsx",
+    "scripts/rich-text-browser-checks.ts",
+    "scripts/rich-text-remove.ts",
+    "src/routes/rich-text-test.tsx",
+    "scripts/rich-text-html.ts"
+  ],
+  "build": true,
+  "verificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "x",
+      "playwright",
+      "install",
+      "chromium"
+    ],
+    [
+      "bun",
+      "run",
+      "rich-text:browser"
+    ]
+  ],
+  "postBuildVerificationCommands": [
+    [
+      "bun",
+      "scripts/rich-text-remove.ts"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ]
+  ],
+  "referenceVerification": {
+    "installedPath": "src/integrations/rich-text/RichText.tsx",
+    "commands": [
+      [
+        "bun",
+        "run",
+        "rich-text:unit"
+      ]
+    ]
+  }
+}
