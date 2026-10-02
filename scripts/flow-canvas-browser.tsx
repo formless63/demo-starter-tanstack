@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
-import { chromium, expect } from '@playwright/test';
+import { chromium, expect, type Locator } from '@playwright/test';
 import { renderToString } from 'react-dom/server';
 import { FlowExample } from './flow-canvas-example';
 
@@ -27,22 +27,35 @@ try {
  browser=await chromium.launch({headless:true});const page=await browser.newPage();
  const errors:string[]=[];const outside:string[]=[];const base=`http://127.0.0.1:${(server.address() as AddressInfo).port}`;
  page.on('pageerror',e=>{errors.push(e.message);console.error(e);});page.on('console',m=>{if(m.type()==='error'){errors.push(m.text());console.error(m.text());}});page.on('request',r=>{if(!r.url().startsWith(base))outside.push(r.url());});
+ async function hitPoint(locator:Locator,label:string,disabledHandle=false) {
+  await locator.scrollIntoViewIfNeeded();await expect(locator).toBeVisible();
+  const point=await locator.evaluate((element,disabled)=>{
+   const rect=element.getBoundingClientRect();const x=rect.x+rect.width/2,y=rect.y+rect.height/2;const hit=document.elementFromPoint(x,y);
+   const matches=!!hit&&(disabled?hit.closest('.flow-visual')===element.closest('.flow-visual'):element===hit||element.contains(hit));
+   return {x,y,matches,expected:element.outerHTML.slice(0,240),hit:hit?.outerHTML.slice(0,240),active:document.activeElement?.outerHTML.slice(0,200)};
+  },disabledHandle);
+  assert.ok(point.matches,`${label} must receive the real pointer: ${JSON.stringify(point)}`);return point;
+ }
  await page.goto(base);
  const main=page.getByRole('region',{name:'Primary graph',exact:true});const second=page.getByRole('region',{name:'Independent graph',exact:true});
  await expect(main.getByRole('button',{name:'Add node',exact:true})).toBeEnabled();await expect(main.locator('.react-flow__renderer')).toBeVisible();await expect(main.getByRole('button',{name:'Finish 😀 café (finish)',exact:true})).toBeVisible();
 
  const rendered=main.locator('.react-flow__node').filter({hasText:/^Start$/});
  const currentX=async()=>JSON.parse(await page.getByTestId('graph-json').innerText()).nodes.find((node:{id:string})=>node.id==='start').position.x as number;
- const initialX=await currentX();await rendered.focus();await rendered.press('ArrowRight');await expect.poll(currentX).not.toBe(initialX);
- const beforeDrag=await currentX();const bounds=await rendered.boundingBox();assert.ok(bounds);
- await page.mouse.move(bounds.x+bounds.width/2,bounds.y+bounds.height/2);await page.mouse.down();await page.mouse.move(bounds.x+bounds.width/2+40,bounds.y+bounds.height/2+20,{steps:5});await page.mouse.up();await expect.poll(currentX).not.toBe(beforeDrag);
+ const initialX=await currentX();await rendered.scrollIntoViewIfNeeded();await rendered.focus();await expect(rendered).toBeFocused();
+ // Native React Flow keyboard movement requires explicit selection; focus alone only controls viewport visibility.
+ await rendered.press('Enter');await expect(rendered).toHaveClass(/selected/);await expect(main.getByRole('button',{name:'Start (start)',exact:true})).toHaveAttribute('aria-pressed','true');
+ await rendered.press('ArrowRight');await expect.poll(currentX,{message:'Selected native ArrowRight emits the five-pixel controlled position proposal'}).toBe(initialX+5);
+ const beforeDrag=await currentX();const startPoint=await hitPoint(rendered,'Selected native node');
+ await page.mouse.move(startPoint.x,startPoint.y);await page.mouse.down();await page.mouse.move(startPoint.x+40,startPoint.y+20,{steps:5});await page.mouse.up();await expect.poll(currentX,{message:'Native pointer drag changes the authoritative graph position'}).not.toBe(beforeDrag);
  // The parent rejects both the document proposal and vendor visual state.
  await page.getByLabel('Reject proposals',{exact:true}).check();const rejectedX=await currentX();const beforeTransform=await rendered.getAttribute('style');
- await rendered.focus();await rendered.press('ArrowRight');await expect.poll(currentX).toBe(rejectedX);await expect(rendered).toHaveAttribute('style',beforeTransform!);
+ await rendered.scrollIntoViewIfNeeded();await rendered.focus();await expect(rendered).toBeFocused();await expect(rendered).toHaveClass(/selected/);await rendered.press('ArrowRight');await expect.poll(currentX,{message:'Parent rejection preserves the authoritative keyboard position'}).toBe(rejectedX);await expect(rendered).toHaveAttribute('style',beforeTransform!);
  const viewport=main.locator('.react-flow__viewport');const viewportBefore=await viewport.getAttribute('style');await main.getByRole('button',{name:/zoom in/i}).click();await expect(viewport).toHaveAttribute('style',viewportBefore!);
  await page.getByLabel('Reject proposals',{exact:true}).uncheck();
  // Escape destroys the old gesture; its later mouseup cannot apply another edit.
- const escapeBounds=await rendered.boundingBox();assert.ok(escapeBounds);await rendered.focus();await page.mouse.move(escapeBounds.x+20,escapeBounds.y+20);await page.mouse.down();await page.mouse.move(escapeBounds.x+45,escapeBounds.y+30,{steps:3});await page.keyboard.press('Escape');const escaped=await page.getByTestId('graph-json').innerText();await page.mouse.move(escapeBounds.x+120,escapeBounds.y+80);await page.mouse.up();await expect(page.getByTestId('graph-json')).toHaveText(escaped);
+ await rendered.scrollIntoViewIfNeeded();await rendered.focus();await expect(rendered).toBeFocused();const escapePoint=await hitPoint(rendered,'Escape gesture node');const beforeEscapeDrag=await currentX();
+ await page.mouse.move(escapePoint.x,escapePoint.y);await page.mouse.down();await page.mouse.move(escapePoint.x+25,escapePoint.y+10,{steps:3});await expect.poll(currentX,{message:'Interrupted native drag must first deliver a real position proposal'}).not.toBe(beforeEscapeDrag);await page.keyboard.press('Escape');await expect(main.getByRole('status')).toHaveText('Selection and gesture cleared.');const escaped=await page.getByTestId('graph-json').innerText();await page.mouse.move(escapePoint.x+100,escapePoint.y+60);await page.mouse.up();await expect(page.getByTestId('graph-json')).toHaveText(escaped);
  await main.getByLabel('Node label',{exact:true}).fill('<img src="https://tracker.invalid/x" onerror="alert(1)"> 😀');await main.getByRole('button',{name:'Add node',exact:true}).press('Enter');
  await expect(main.getByRole('list',{name:'Primary graph nodes'}).getByRole('button')).toHaveCount(3);await expect(second.getByRole('list',{name:'Independent graph nodes'}).getByRole('button')).toHaveCount(2);assert.equal(await page.locator('img').count(),0);
  await main.getByLabel('Connection source',{exact:true}).selectOption('start');await main.getByLabel('Connection target',{exact:true}).selectOption('finish');await main.getByRole('button',{name:'Connect nodes',exact:true}).click();await expect(main.getByRole('list',{name:'Primary graph connections'}).getByRole('listitem')).toHaveCount(1);
@@ -62,15 +75,15 @@ try {
 
  await page.getByLabel('Read only',{exact:true}).check();await expect(main.getByRole('button',{name:'Add node',exact:true})).toBeDisabled();
  await expect(main.locator('.react-flow__handle.connectablestart')).toHaveCount(0);await expect(main.locator('.react-flow__handle.connectableend')).toHaveCount(0);
- const readOnlyGraph=await page.getByTestId('graph-json').innerText();const readOnlyStatus=await main.getByRole('status').innerText();const lockedSource=await main.locator('.react-flow__handle.source').first().boundingBox();const lockedTarget=await main.locator('.react-flow__handle.target').nth(1).boundingBox();assert.ok(lockedSource&&lockedTarget);
- await page.mouse.move(lockedSource.x+lockedSource.width/2,lockedSource.y+lockedSource.height/2);await page.mouse.down();await page.mouse.move(lockedTarget.x+lockedTarget.width/2,lockedTarget.y+lockedTarget.height/2,{steps:5});await expect(main.locator('.react-flow__connection')).toHaveCount(0);await page.mouse.up();await expect(page.getByTestId('graph-json')).toHaveText(readOnlyGraph);await expect(main.getByRole('status')).toHaveText(readOnlyStatus);
+ const readOnlyGraph=await page.getByTestId('graph-json').innerText();const readOnlyStatus=await main.getByRole('status').innerText();await main.locator('.flow-visual').scrollIntoViewIfNeeded();const lockedSource=await hitPoint(main.locator('.react-flow__handle.source').first(),'Read-only source node',true);const lockedTarget=await hitPoint(main.locator('.react-flow__handle.target').nth(1),'Read-only target node',true);
+ await page.mouse.move(lockedSource.x,lockedSource.y);await page.mouse.down();await page.mouse.move(lockedTarget.x,lockedTarget.y,{steps:5});await expect(main.locator('.react-flow__connection')).toHaveCount(0);await page.mouse.up();await expect(page.getByTestId('graph-json')).toHaveText(readOnlyGraph);await expect(main.getByRole('status')).toHaveText(readOnlyStatus);
  await page.getByLabel('Read only',{exact:true}).uncheck();
 
  await main.getByRole('button',{name:'Start (start)',exact:true}).click();await main.getByRole('button',{name:'Delete selected node',exact:true}).click();await expect(main.getByRole('button',{name:'Add node',exact:true})).toBeFocused();
  await page.getByRole('button',{name:'Save graph',exact:true}).click();await page.getByRole('button',{name:'Toggle editor',exact:true}).click();await page.getByRole('button',{name:'Resolve request',exact:true}).click();await page.getByRole('button',{name:'Toggle editor',exact:true}).click();await expect(page.getByTestId('dirty')).toHaveText('Unsaved changes');
  await page.getByRole('button',{name:'Load hostile IDs',exact:true}).click();await expect(main.locator('.react-flow__node')).toHaveCount(2);
  const wireIds=await main.locator('.react-flow__node').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('data-id')));assert.ok(wireIds.every(id=>id&&/^graph-[a-f0-9-]+$/.test(id)));
- const hostileNode=main.locator('.react-flow__node').first();await hostileNode.focus();await hostileNode.press('ArrowRight');assert.equal(JSON.parse(await page.getByTestId('graph-json').innerText()).nodes[0].id,'quoted"[id]\\n');
- const sourceHandle=main.locator('.react-flow__node').first().locator('.react-flow__handle.source');const targetHandle=main.locator('.react-flow__node').nth(1).locator('.react-flow__handle.target');await expect(sourceHandle).toBeVisible();await expect(targetHandle).toBeVisible();const sourceBox=await sourceHandle.boundingBox();const targetBox=await targetHandle.boundingBox();assert.ok(sourceBox&&targetBox);await page.mouse.move(sourceBox.x+sourceBox.width/2,sourceBox.y+sourceBox.height/2);await page.mouse.down();await page.mouse.move(targetBox.x+targetBox.width/2,targetBox.y+targetBox.height/2,{steps:8});await page.mouse.up();await expect.poll(async()=>JSON.parse(await page.getByTestId('graph-json').innerText()).edges.length).toBe(1);assert.equal(JSON.parse(await page.getByTestId('graph-json').innerText()).edges[0].source,'quoted"[id]\\n');
+ const hostileNode=main.locator('.react-flow__node').first();await hostileNode.scrollIntoViewIfNeeded();await hostileNode.focus();await expect(hostileNode).toBeFocused();await hostileNode.press('Enter');await expect(hostileNode).toHaveClass(/selected/);const hostileBefore=JSON.parse(await page.getByTestId('graph-json').innerText()).nodes[0].position.x;await hostileNode.press('ArrowRight');await expect.poll(async()=>JSON.parse(await page.getByTestId('graph-json').innerText()).nodes[0].position.x,{message:'Imported hostile-ID node uses real native selected keyboard movement'}).toBe(hostileBefore+5);assert.equal(JSON.parse(await page.getByTestId('graph-json').innerText()).nodes[0].id,'quoted"[id]\\n');
+ const sourceHandle=main.locator('.react-flow__node').first().locator('.react-flow__handle.source');const targetHandle=main.locator('.react-flow__node').nth(1).locator('.react-flow__handle.target');await main.locator('.flow-visual').scrollIntoViewIfNeeded();const sourcePoint=await hitPoint(sourceHandle,'Hostile-ID source handle');const targetPoint=await hitPoint(targetHandle,'Hostile-ID target handle');await page.mouse.move(sourcePoint.x,sourcePoint.y);await page.mouse.down();await page.mouse.move(targetPoint.x,targetPoint.y,{steps:8});await page.mouse.up();await expect.poll(async()=>JSON.parse(await page.getByTestId('graph-json').innerText()).edges.length).toBe(1);assert.equal(JSON.parse(await page.getByTestId('graph-json').innerText()).edges[0].source,'quoted"[id]\\n');
  assert.deepEqual(errors,[]);assert.deepEqual(outside,[]);console.info('Actual Flow SSR/hydration, semantic edits, controlled rejection, isolation, hostile text and persistence races passed');
 } finally {await browser?.close();server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));await rm(directory,{recursive:true,force:true});}
