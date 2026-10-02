@@ -23,6 +23,8 @@ async function call(action: string, input: unknown, signal?: AbortSignal) {
 }
 
 function PaymentsPage() {
+	const [ready, setReady] = useState(false);
+	useEffect(() => setReady(true), []);
 	const [bindingId, setBindingId] = useState("");
 	const [offerId, setOfferId] = useState("standard");
 	const [quantity, setQuantity] = useState(1);
@@ -142,6 +144,7 @@ function PaymentsPage() {
 					Customer binding
 					<input
 						className="rounded-md border p-2"
+						disabled={!ready}
 						value={bindingId}
 						onChange={(e) => setBindingId(e.target.value)}
 						placeholder="Local customer binding UUID"
@@ -153,6 +156,7 @@ function PaymentsPage() {
 						Approved offer
 						<input
 							className="rounded-md border p-2"
+							disabled={!ready}
 							value={offerId}
 							onChange={(e) => setOfferId(e.target.value)}
 							required
@@ -162,6 +166,7 @@ function PaymentsPage() {
 						Quantity
 						<input
 							className="rounded-md border p-2"
+							disabled={!ready}
 							type="number"
 							min={1}
 							max={100}
@@ -175,7 +180,7 @@ function PaymentsPage() {
 					<button
 						className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
 						type="submit"
-						disabled={busy}
+						disabled={!ready || busy}
 					>
 						{busy ? "Recording…" : "Request Checkout"}
 					</button>
@@ -203,6 +208,7 @@ function PaymentsPage() {
 					Operation ID
 					<input
 						className="rounded-md border p-2"
+						disabled={!ready}
 						value={operationId}
 						onChange={(e) => setOperationId(e.target.value)}
 						placeholder="Local operation UUID"

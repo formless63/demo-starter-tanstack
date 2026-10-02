@@ -21,6 +21,8 @@ RUN bun run build \
   && bun build scripts/storage-abort-fixture.ts --target=node --outfile=.output/storage-abort-fixture.mjs \
   && bun build scripts/import-export-operator.ts --target=node --outfile=.output/import-export-operator.mjs \
   && bun build scripts/import-export-fixture.ts --target=node --outfile=.output/import-export-fixture.mjs \
+  && bun build scripts/stripe-unit.ts --target=node --outfile=.output/stripe-unit.mjs \
+  && bun build scripts/stripe-durable-fixture.ts --target=node --outfile=.output/stripe-durable-fixture.mjs \
   && bun build scripts/ai-reference-smoke.ts --target=node --outfile=.output/ai-reference-smoke.mjs
 
 FROM node:24.21.0-alpine AS runtime

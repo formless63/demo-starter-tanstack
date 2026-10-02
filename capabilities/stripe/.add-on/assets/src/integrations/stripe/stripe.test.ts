@@ -257,3 +257,84 @@ test("pinned SDK actual loopback form/auth/version, no retries, cancellation and
 		await new Promise<void>((resolve) => server.close(() => resolve()));
 	}
 });
+
+test("inbound streaming/header caps and server transport request bounds", async () => {
+	const large = signed({
+		...event,
+		data: {
+			object: {
+				...event.data.object,
+				metadata: { private: "x".repeat(1024 * 1024) },
+			},
+		},
+	});
+	await expect(verifyStripeRequest(large, connection)).rejects.toMatchObject({
+		code: "limit_exceeded",
+	});
+	await expect(
+		verifyStripeRequest(
+			new Request("http://127.0.0.1/", {
+				method: "POST",
+				body: "{}",
+				headers: { "stripe-signature": "x".repeat(8193) },
+			}),
+			connection,
+		),
+	).rejects.toMatchObject({ code: "limit_exceeded" });
+	let attempts = 0;
+	const injected: typeof fetch = async () => {
+		attempts++;
+		return Response.json({ id: "cs_fixture", object: "checkout.session" });
+	};
+	await expect(
+		withStripe(
+			connection,
+			undefined,
+			(sdk) =>
+				sdk.checkout.sessions.create({
+					mode: "payment",
+					success_url: "https://app.example/" + "x".repeat(256 * 1024),
+				}),
+			{ fetch: injected },
+		),
+	).rejects.toMatchObject({ code: "limit_exceeded" });
+	expect(attempts).toBe(0);
+});
+test("whole transport deadline cancels slow headers and concurrent clients remain isolated", async () => {
+	let closed = false;
+	const server = createServer((req, res) => {
+		if (req.url?.includes("slow")) {
+			req.on("close", () => {
+				closed = true;
+			});
+			return;
+		}
+		res.setHeader("content-type", "application/json");
+		res.end('{"id":"cs_ok","object":"checkout.session"}');
+	});
+	await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+	const address = server.address();
+	if (!address || typeof address === "string") throw Error("fixture");
+	const config = {
+		...connection,
+		endpoint: `http://127.0.0.1:${address.port}/`,
+	};
+	try {
+		const slow = withStripe(
+			config,
+			undefined,
+			(sdk) => sdk.checkout.sessions.retrieve("cs_slow"),
+			{ milliseconds: 30 },
+		);
+		const normal = withStripe(config, undefined, (sdk) =>
+			sdk.checkout.sessions.retrieve("cs_ok"),
+		);
+		await expect(normal).resolves.toMatchObject({ id: "cs_ok" });
+		await expect(slow).rejects.toMatchObject({ code: "deadline_exceeded" });
+		await new Promise((resolve) => setTimeout(resolve, 20));
+		expect(closed).toBe(true);
+	} finally {
+		server.closeAllConnections();
+		await new Promise<void>((resolve) => server.close(() => resolve()));
+	}
+});

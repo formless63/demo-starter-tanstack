@@ -93,7 +93,8 @@
     "ops:reference:removal": "bun scripts/ops-reference-removal-fixture.ts",
     "add-ons:verify:reference": "bun scripts/add-ons.ts verify-reference",
     "stripe:unit": "bun scripts/stripe-unit.ts",
-    "stripe:durable": "bun scripts/stripe-durable-fixture.ts"
+    "stripe:durable": "bun scripts/stripe-durable-fixture.ts",
+    "stripe:migrations": "bun scripts/stripe-migration-fixture.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",
