@@ -877,9 +877,13 @@
 			"summary": "Accessible application commands, shortcuts, and command palette conventions."
 		},
 		{
-			"id": "data-table", "displayName": "Data Table", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
+			"id": "data-table", "displayName": "Data Table", "kind": "operations-ui-infrastructure", "status": "done", "defaultInstalled": false,
 			"requires": [], "integratesWith": ["search", "organizations", "authorization"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Reusable high-density data browsing, filtering, sorting, and selection UI."
+			"summary": "Reusable high-density data browsing, filtering, sorting, pagination, visibility, and selection UI with caller-owned server modes.",
+			"scripts": [], "environmentVariables": [], "migrations": [], "runtimeServices": [],
+			"documentationPath": "capabilities/data-table/CAPABILITY.md", "agentSkill": ".agents/skills/capability-change/SKILL.md",
+			"evaluationDocument": "DATA_TABLE_MODULE_EVALUATION.md",
+			"tanstackAddOn": { "addOnId": "data-table", "sourceDirectory": "capabilities/data-table/.add-on", "manifestPath": "capabilities/data-table/.add-on/info.json", "distributablePath": "capabilities/data-table/add-on.json", "cleanInstallFixture": "capabilities/data-table/test/clean-install.json", "dependsOn": [], "conflictsWith": [] }
 		},
 		{
 			"id": "markdown-code", "displayName": "Markdown / Code Content", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,

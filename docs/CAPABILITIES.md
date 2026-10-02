@@ -30,6 +30,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 | `search` | `search` | Done | Enabled | No | `drizzle` | None | PostgreSQL only | [Search](../capabilities/search/CAPABILITY.md) |
 | `realtime` | `realtime` | Done | Enabled | No | None | None | Optional Cache backplane | [Realtime](../capabilities/realtime/CAPABILITY.md) |
 | `notifications` | `notifications` | Done | Enabled | No | `postgres-jobs` | Jobs | Optional ntfy; optional Email adapter | [Notifications](../capabilities/notifications/CAPABILITY.md) |
+| `data-table` | `data-table` | Done | No | No | None | None | None | [Data Table](../capabilities/data-table/CAPABILITY.md) |
 
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
@@ -80,6 +81,7 @@ Official TanStack add-on dependencies are resolved by the CLI:
 - AI declares `dependsOn: []`; the fixture proves backendless installation/build, actual local OpenAI-compatible HTTP generation/streaming/structured/cancellation and clean runtime removal/rebuild. Application telemetry remains outside the assets.
 
 - Search declares `dependsOn: ["drizzle"]`; it installs only helpers/smoke/docs. Domains define their generated vector/GIN and create a new reviewed migration. Disposable fixture SQL is never a production model.
+- Data Table declares `dependsOn: []`; it is a client-only semantic table with controlled client/manual server state and no virtualization or provider integration.
 
 These IDs are framework add-on dependencies. They are not entries in the reusable capability `requires` graph. Webhooks requires Jobs; optional integrations remain independent.
 
