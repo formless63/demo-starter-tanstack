@@ -44,7 +44,9 @@ export function validateConnection(input: StripeConnection): StripeConnection {
 			(url.protocol !== "https:" &&
 				!(
 					url.protocol === "http:" &&
-					process.env.NODE_ENV !== "production" &&
+					["development", "test"].includes(
+						process.env.NODE_ENV ?? "development",
+					) &&
 					loopback
 				))
 		)

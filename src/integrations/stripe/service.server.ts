@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { z } from "zod";
 
 import {
 	environmentConnection,
@@ -524,6 +525,62 @@ export function createStripeCapability(wiring: StripeWiring) {
 			.where(eq(stripeBindings.id, id));
 	}
 
+	/** Trusted operator extension; no browser route. Known or explicitly selected existing session is verified by authoritative GET in the worker. Owns its transaction. */
+	async function requestOperationReconciliation(
+		context: TrustedContext,
+		input: unknown,
+	) {
+		const parsed = parse(
+			z.strictObject({
+				operationId: uuid,
+				checkoutRemoteId: opaqueId.optional(),
+			}),
+			input,
+		);
+		await authorize(context);
+		return db.transaction(async (tx) => {
+			const [row] = await tx
+				.select()
+				.from(stripeOperations)
+				.where(
+					and(
+						eq(stripeOperations.id, parsed.operationId),
+						eq(stripeOperations.scopeKind, context.scope.kind),
+						eq(stripeOperations.scopeId, context.scope.id),
+					),
+				)
+				.for("update");
+			if (!row || row.kind !== "create_checkout")
+				throw new StripeCapabilityError("not_found");
+			await binding(context, row.sourceBindingId, "customer", tx);
+			if (row.status !== "reconciliation_required")
+				throw new StripeCapabilityError("conflict");
+			const remoteId = row.checkoutRemoteId ?? parsed.checkoutRemoteId;
+			if (!remoteId) throw new StripeCapabilityError("unsupported");
+			if (
+				row.checkoutRemoteId &&
+				parsed.checkoutRemoteId &&
+				row.checkoutRemoteId !== parsed.checkoutRemoteId
+			)
+				throw new StripeCapabilityError("conflict");
+			await tx
+				.update(stripeOperations)
+				.set({
+					status: "queued",
+					checkoutRemoteId: remoteId,
+					errorCode: null,
+					attemptToken: null,
+					leaseUntil: null,
+					updatedAt: new Date(),
+					revision: sql`${stripeOperations.revision}+1`,
+				})
+				.where(eq(stripeOperations.id, row.id));
+			await wiring.enqueue(tx, { operationId: row.id });
+			context.signal?.throwIfAborted();
+			return { operationId: row.id, status: "queued" as const };
+		});
+	}
+
 	function command<T>(
 		fn: (context: TrustedContext, input: unknown) => Promise<T>,
 	) {
@@ -533,6 +590,14 @@ export function createStripeCapability(wiring: StripeWiring) {
 				return await withinSignal(deadline.signal, () =>
 					fn({ ...context, signal: deadline.signal }, input),
 				);
+			} catch (error) {
+				if (error instanceof StripeCapabilityError) throw error;
+				if (
+					deadline.signal.aborted &&
+					deadline.signal.reason instanceof StripeCapabilityError
+				)
+					throw deadline.signal.reason;
+				throw new StripeCapabilityError("unavailable");
 			} finally {
 				deadline.dispose();
 			}
@@ -540,6 +605,7 @@ export function createStripeCapability(wiring: StripeWiring) {
 	}
 
 	return {
+		requestOperationReconciliation: command(requestOperationReconciliation),
 		cancelOperation: command(cancelOperation),
 		retireBindingInTransaction,
 		authorize,
