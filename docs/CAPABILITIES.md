@@ -26,6 +26,7 @@ All twenty completed capabilities are reference-enabled and opt-in for clean con
 | `object-storage` | `object-storage` | Done | Enabled | No | None | None | S3 only when used | [Object Storage](../capabilities/object-storage/CAPABILITY.md) |
 | `command-system` | `command-system` | Done | Enabled | No | None | None | None | [Command System](../capabilities/command-system/CAPABILITY.md) |
 | `data-table` | `data-table` | Done | Enabled | No | None | None | None | [Data Table](../capabilities/data-table/CAPABILITY.md) |
+| `rich-text` | `rich-text` | In progress | Acceptance staged | No | None | None | None | [Rich Text](../capabilities/rich-text/CAPABILITY.md) |
 | `charts-visualization` | `charts-visualization` | Done | Enabled | No | None | None | None | [Charts / Visualization](../capabilities/charts-visualization/CAPABILITY.md) |
 | `email` | `email` | Done | Enabled | No | None | None | SMTP only when used; optional Mailpit | [Email](../capabilities/email/CAPABILITY.md) |
 | `webhooks` | `webhooks` | Done | Enabled | No | `postgres-jobs` | Jobs | Remote endpoints when used | [Webhooks](../capabilities/webhooks/CAPABILITY.md) |
@@ -220,3 +221,5 @@ The combined root journal preserves entries 0–7 and their SQL/timestamps. Prov
 Snapshot links continue from `0007_snapshot.json`, retaining every preceding schema at each step. SQL filename prefixes deliberately differ from journal indices; `0008` and `0010` are unused SQL prefixes. Do not reorder by filename, rewrite applied SQL or substitute branch-local metadata. Existing branch-specific deployments require an operator review of recorded migration history before upgrading. Clean add-on consumers retain their own provider-local migration journals. Apply explicit application and Jobs migrations before startup; removal preserves the combined history and data.
 
 - Data Table (`data-table`, done, reference-enabled, optional) has no hard dependencies and uses native v9 controlled or internal state. The reference verification imports the authored component and runs the shared SSR/interactive fixture; clean consumers install the same component through the add-on. Hosted real-browser and full lifecycle verification passed. See the [contract](../capabilities/data-table/CAPABILITY.md) and [acceptance evidence](../DATA_TABLE_MODULE_EVALUATION.md).
+
+Rich Text (`rich-text`): in-progress, reference integrated for acceptance, `defaultInstalled: false`, no hard dependencies/services/migrations. Safe JSON/SSR and caller-owned persistence. [Contract](../capabilities/rich-text/CAPABILITY.md), [evaluation](../RICH_TEXT_MODULE_EVALUATION.md).

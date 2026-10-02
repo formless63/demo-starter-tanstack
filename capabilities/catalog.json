@@ -1627,7 +1627,7 @@
       "id": "rich-text",
       "displayName": "Rich Text / Tiptap",
       "kind": "operations-ui-infrastructure",
-      "status": "planned",
+      "status": "in-progress",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
@@ -1638,7 +1638,25 @@
       ],
       "baselineRequirements": [],
       "externalRequirements": [],
-      "summary": "Structured rich-text editing, with Tiptap evaluated as the primary TanStack-repo option."
+      "summary": "Bounded JSON rich-text editing with safe SSR, controlled changes and caller-owned persistence.",
+      "scripts": [
+        "rich-text:browser"
+      ],
+      "environmentVariables": [],
+      "migrations": [],
+      "runtimeServices": [],
+      "documentationPath": "capabilities/rich-text/CAPABILITY.md",
+      "agentSkill": ".agents/skills/capability-change/SKILL.md",
+      "evaluationDocument": "RICH_TEXT_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "rich-text",
+        "sourceDirectory": "capabilities/rich-text/.add-on",
+        "manifestPath": "capabilities/rich-text/.add-on/info.json",
+        "distributablePath": "capabilities/rich-text/add-on.json",
+        "cleanInstallFixture": "capabilities/rich-text/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
     },
     {
       "id": "flow-canvas",

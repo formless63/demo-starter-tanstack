@@ -43,6 +43,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | Command System | Done | Optional | None beyond baseline client | Accessible command palette, shortcuts, and caller-owned command execution | [Command contract](capabilities/command-system/CAPABILITY.md) |
 | Data Table | Done | Optional | None beyond baseline client | Typed native Table v9, controlled state and semantic accessible rendering | [Data Table contract](capabilities/data-table/CAPABILITY.md) |
 | Charts / Visualization | Done | Optional | None beyond baseline client | Accessible SSR-safe line, bar, and area charts with data-table fallback | [Charts contract](capabilities/charts-visualization/CAPABILITY.md) |
+| Rich Text / Tiptap | In progress | Optional | None beyond baseline client | Bounded JSON, safe SSR, controlled editor and history boundaries | [Rich Text contract](capabilities/rich-text/CAPABILITY.md) |
 | Email | Done | Optional | No database/auth/capability dependency; SMTP when used | Bounded SMTP delivery, safe errors and awaited magic links | [Email contract](capabilities/email/CAPABILITY.md) |
 | Webhooks | Done | Optional | Jobs + baseline Node 24 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
 | Audit Log | Done | Optional | Baseline PostgreSQL + Drizzle | Append-oriented events, bounded safe context, atomic domain writes, keyset queries | [Audit Log contract](capabilities/audit-log/CAPABILITY.md) |
@@ -298,3 +299,5 @@ Invoice Ninja v1 is completed and reference-enabled; clean consumers remain opt-
 Stripe v1 is completed and reference-enabled for approved hosted one-time Checkout and scoped durable reconciliation. Jobs and Webhooks are required; clean consumers remain opt-in. Full combined lifecycle, browser, canonical container and worker verification passed using local protocol/persistence fixtures, without sandbox/live payments or financial certification. See [contract](capabilities/stripe/CAPABILITY.md).
 
 Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](capabilities/medusa/CAPABILITY.md). All twenty completed capabilities remain opt-in for clean consumers.
+
+Rich Text / Tiptap: in-progress, reference integrated for acceptance and opt-in. Bounded JSON editing, safe SSR and controlled state. [Contract](capabilities/rich-text/CAPABILITY.md).
