@@ -18,11 +18,19 @@ const html = renderToString(<MarkdownExample document={document}/>);
 assert.ok(html.includes('<h1>Safe content</h1>'));
 const directory = await mkdtemp(join(tmpdir(),'markdown-code-browser-'));
 const scriptDirectory = fileURLToPath(new URL('.',import.meta.url));
-await build({configFile:false,define:{'process.env.NODE_ENV':JSON.stringify('production')},plugins:[react(),{name:'markdown-client-boundary',generateBundle(_options,bundle) {
+// Lifecycle runners use NODE_ENV=test. Align Vite's JSX transform with bundled React.
+const previousNodeEnv = process.env.NODE_ENV;
+process.env.NODE_ENV = 'production';
+try {
+await build({configFile:false,mode:'production',define:{'process.env.NODE_ENV':JSON.stringify('production')},plugins:[react(),{name:'markdown-client-boundary',configResolved(config) { assert.equal(config.isProduction,true,'production JSX must match production React'); },generateBundle(_options,bundle) {
  for (const chunk of Object.values(bundle)) if (chunk.type === 'chunk') {
   for (const id of Object.keys(chunk.modules)) assert.ok(!/node_modules\/(?:shiki|@shikijs|markdown-it|oniguruma)/.test(id),'client bundle excludes parser/highlighter/grammars/WASM');
  }
 }}],build:{outDir:directory,emptyOutDir:true,lib:{entry:join(scriptDirectory,'markdown-code-client.tsx'),formats:['es'],fileName:()=>'client.js'}}});
+} finally {
+ if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+ else process.env.NODE_ENV = previousNodeEnv;
+}
 const json = JSON.stringify(document).replace(/</g,'\\u003c');
 const css = await readFile(join(scriptDirectory,'../src/integrations/markdown-code/markdown-code.css'),'utf8');
 const client = await readFile(join(directory,'client.js'));
