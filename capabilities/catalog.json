@@ -1190,7 +1190,7 @@
       "id": "organizations",
       "displayName": "Organizations / Tenancy",
       "kind": "identity-policy",
-      "status": "done",
+      "status": "planned",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
