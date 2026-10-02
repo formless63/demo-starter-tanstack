@@ -1569,7 +1569,7 @@
       "id": "markdown-code",
       "displayName": "Markdown / Code Content",
       "kind": "operations-ui-infrastructure",
-      "status": "planned",
+      "status": "in-progress",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
@@ -1578,7 +1578,26 @@
       ],
       "baselineRequirements": [],
       "externalRequirements": [],
-      "summary": "Safe Markdown and highlighted code rendering and authoring primitives."
+      "summary": "Safe Markdown and highlighted code rendering and authoring primitives.",
+      "documentationPath": "capabilities/markdown-code/CAPABILITY.md",
+      "agentSkill": ".agents/skills/capability-change/SKILL.md",
+      "evaluationDocument": "MARKDOWN_CODE_MODULE_EVALUATION.md",
+      "scripts": [
+        "markdown-code:unit",
+        "markdown-code:browser"
+      ],
+      "environmentVariables": [],
+      "migrations": [],
+      "runtimeServices": [],
+      "tanstackAddOn": {
+        "addOnId": "markdown-code",
+        "sourceDirectory": "capabilities/markdown-code/.add-on",
+        "manifestPath": "capabilities/markdown-code/.add-on/info.json",
+        "distributablePath": "capabilities/markdown-code/add-on.json",
+        "cleanInstallFixture": "capabilities/markdown-code/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
     },
     {
       "id": "charts-visualization",

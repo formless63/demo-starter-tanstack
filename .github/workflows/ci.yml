@@ -85,6 +85,8 @@ jobs:
       - run: bun run capabilities:check
       - run: bun run data-table:typecheck
       - run: bun run data-table:unit
+      - run: bun run markdown-code:typecheck
+      - run: bun run markdown-code:unit
       - run: bun run project:check
       - run: bun run project:status
       - run: bun run theme:check
@@ -134,6 +136,7 @@ jobs:
       - run: bun run command-system:test
       - run: bun run build
       - run: bunx playwright install --with-deps chromium
+      - run: bun run add-ons:verify:reference markdown-code
       - run: bun run test:e2e
       - run: docker compose up -d worker
       - run: docker compose up -d --wait app
