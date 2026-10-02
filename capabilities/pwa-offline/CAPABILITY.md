@@ -1,6 +1,6 @@
 # PWA / Offline v1
 
-Status: in progress, pending exact-head hosted native browser/lifecycle/full CI. Root reference wiring is prepared at `/pwa-test`; no completion claim. Independently opt-in (`defaultInstalled: false`), no hard capability dependencies. Notifications and Realtime are optional future integrations, not installed or used by v1.
+Status: completed and reference-enabled at `/pwa-test` after full hosted source acceptance. Independently opt-in (`defaultInstalled: false`), no hard capability dependencies. Notifications and Realtime are optional future integrations, not installed or used by v1.
 
 ## Scope and threat model
 
@@ -31,6 +31,10 @@ Removing the source or unregistering one browser is not a production retirement.
 Only after deploying the retirement artifact and verifying active clients should phase two remove component imports/routes, the build helper, feature source/public icons/HTML, PWA dependencies when otherwise unused, and package scripts. Preserve the exact retirement script at `public/pwa-offline-sw.js` (or the original base's deployment path) through all later builds and releases. Retain it as long as old clients may return. Keep reusable authoring source if reinstalling later is desired; do not mistake deletion of authoring source for runtime removal. Unrelated service workers and cache namespaces are never touched.
 
 The generic clean fixture first runs actual Chromium native update/retirement against an isolated production build. It records a fixture-only SHA-256 receipt and retains the exact retirement worker; guarded `pwa-remove.ts` refuses removal without this receipt. The final lean build verifies that the same tombstone survives after imports/dependencies/source are removed. That receipt proves only the disposable test clients, never real deployments. Application operators must execute both deployment phases themselves. No database data/history exist to remove.
+
+## Hosted acceptance
+
+Source `52f6fcb2309daad9b1474a1c2c313914f3403460` passed all 28 jobs in [hosted CI](https://github.com/formless63/demo-starter-tanstack/actions/runs/37066322525), including real Chromium root/scoped workers, credential omission, privacy boundaries, natural multi-tab updates, actual generated Start production lifecycle, owned retirement and final source-removed HTTP rebuild. This documentation/catalog promotion requires its own complete exact-head CI before merge; source success is not a promotion-head CI claim.
 
 ## Verification and limits
 

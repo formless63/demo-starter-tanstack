@@ -15,7 +15,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 ## Completed capabilities
 
-All twenty-five completed capabilities are reference-enabled and opt-in for clean consumers.
+All twenty-six completed capabilities are reference-enabled and opt-in for clean consumers.
 
 | ID | TanStack add-on ID | Status | Reference app | Default installed | Official add-on dependencies | Reusable capability requirements | External | Contract |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -27,6 +27,7 @@ All twenty-five completed capabilities are reference-enabled and opt-in for clea
 | `command-system` | `command-system` | Done | Enabled | No | None | None | None | [Command System](../capabilities/command-system/CAPABILITY.md) |
 | `markdown-code` | `markdown-code` | Done | Enabled | No | None | None | None | [Markdown / Code Content](../capabilities/markdown-code/CAPABILITY.md) |
 | `flow-canvas` | `flow-canvas` | Done | Enabled | No | None | None | None | [Flow / Canvas](../capabilities/flow-canvas/CAPABILITY.md) |
+| `pwa-offline` | `pwa-offline` | Done | Enabled | No | None | None | None | [PWA / Offline](../capabilities/pwa-offline/CAPABILITY.md) |
 | `internationalization` | `internationalization` | Done | Enabled | No | None | None | None | [Internationalization](../capabilities/internationalization/CAPABILITY.md) |
 | `data-table` | `data-table` | Done | Enabled | No | None | None | None | [Data Table](../capabilities/data-table/CAPABILITY.md) |
 | `rich-text` | `rich-text` | Done | Enabled | No | None | None | None | [Rich Text](../capabilities/rich-text/CAPABILITY.md) |
@@ -212,7 +213,7 @@ Stripe is an optional authored/compiled add-on (`stripe`, default installed: No)
 
 ## Medusa
 
-Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](../capabilities/medusa/CAPABILITY.md). All twenty-five completed capabilities remain opt-in for clean consumers.
+Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](../capabilities/medusa/CAPABILITY.md). All twenty-six completed capabilities remain opt-in for clean consumers.
 
 ## Integrated provider migration history
 
@@ -247,8 +248,10 @@ No hard capability edges. The reference `/i18n-test` resolves a server locale on
 
 ## Flow / Canvas and Internationalization acceptance
 
-Flow / Canvas source `a1a020cf7e75340e4f833c62db0d0b0e6b38d117` passed all 26 hosted jobs ([run 37051676575](https://github.com/formless63/demo-starter-tanstack/actions/runs/37051676575)); Internationalization source `d422d4b24d9ea4a5904870564041465d8e050ef2` passed all 26 hosted jobs ([run 37052978536](https://github.com/formless63/demo-starter-tanstack/actions/runs/37052978536)). Both sources and their composition were independently reviewed. The combined integration preserves accepted main ancestry, both exact source parents, runtime source bytes, authored/compiled parity, migrations and all inherited gates. There are now twenty-five completed, reference-enabled capabilities; every generated-consumer default remains false. The new combined head still requires its own complete hosted CI, including native development/production Chromium, provider verification and all generated-consumer install/removal lifecycles, before merge. Source CI success is not a combined-CI result.
+Flow / Canvas source `a1a020cf7e75340e4f833c62db0d0b0e6b38d117` passed all 26 hosted jobs ([run 37051676575](https://github.com/formless63/demo-starter-tanstack/actions/runs/37051676575)); Internationalization source `d422d4b24d9ea4a5904870564041465d8e050ef2` passed all 26 hosted jobs ([run 37052978536](https://github.com/formless63/demo-starter-tanstack/actions/runs/37052978536)). Both sources and their composition were independently reviewed. The combined integration preserves accepted main ancestry, both exact source parents, runtime source bytes, authored/compiled parity, migrations and all inherited gates. That integration brought the catalog to twenty-five completed, reference-enabled capabilities; every generated-consumer default remains false. The new combined head still requires its own complete hosted CI, including native development/production Chromium, provider verification and all generated-consumer install/removal lifecycles, before merge. Source CI success is not a combined-CI result.
 
-## PWA / Offline (in progress)
+## PWA / Offline (completed)
 
-Independent opt-in native injectManifest capability. Only fixed integrity-checked public HTML/icons; no SSR/API/auth/mutation cache. Consumer fallback paths default empty. Reference `/pwa-test` is prepared. See [contract](../capabilities/pwa-offline/CAPABILITY.md) and [evaluation](../PWA_OFFLINE_MODULE_EVALUATION.md). No hard dependencies, migrations or services.
+Independent opt-in native injectManifest capability. Only fixed integrity-checked public HTML/icons; no SSR/API/auth/mutation cache. Consumer fallback paths default empty. Reference `/pwa-test` is enabled. See [contract](../capabilities/pwa-offline/CAPABILITY.md) and [evaluation](../PWA_OFFLINE_MODULE_EVALUATION.md). No hard dependencies, migrations or services.
+
+There are now twenty-six completed, reference-enabled capabilities; all generated-consumer defaults remain false. Source `52f6fcb2309daad9b1474a1c2c313914f3403460` passed all 28 jobs in [hosted CI](https://github.com/formless63/demo-starter-tanstack/actions/runs/37066322525), including real Chromium root/scoped workers, credential omission, privacy boundaries, natural multi-tab updates, actual generated Start production lifecycle, owned retirement and final source-removed HTTP rebuild. This documentation/catalog promotion requires its own complete exact-head CI before merge; source success is not a promotion-head CI claim.
