@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790900547435,
+      "tag": "0011_stripe_v1",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790903169340,
+      "tag": "0012_stripe_recovery",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790910380808,
+      "tag": "0015_stripe_receipt_conflicts",
+      "breakpoints": true
+    }
+  ]
+}

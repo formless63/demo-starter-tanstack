@@ -1,0 +1,15 @@
+# Medusa v1 evaluation
+
+Backend pin: Medusa 2.21.2. Bounded native fetch was selected over @medusajs/js-sdk 2.21.2: four GET paths need neither its Store/cart API nor session authentication. No Medusa backend package enters the starter dependency graph. Basic base64(secret-key + ":") follows the pinned SDK. The bridge uses the existing Standard Webhooks verifier and existing Jobs worker.
+
+Pinned source evidence:
+- [2.21.2 release](https://github.com/medusajs/medusa/releases/tag/v2.21.2).
+- [Admin key transport](https://github.com/medusajs/medusa/blob/v2.21.2/packages/core/js-sdk/src/client.ts).
+- [Product event names](https://github.com/medusajs/medusa/blob/v2.21.2/packages/core/utils/src/product/events.ts).
+- [Order placed producer](https://github.com/medusajs/medusa/blob/v2.21.2/packages/core/core-flows/src/cart/workflows/complete-cart.ts): emits `OrderWorkflowEvents.PLACED` with `data: { id: createdOrder.id }`. The actual fixture emits this source-matched order.placed data through the pinned event bus and installed subscriber. It does not run checkout/payment workflows.
+
+Wire fixtures exercise real loopback HTTP under Bun and Node24, raw exact-decimal parsing, Basic authentication, no redirects/retries, slow headers/body, cancellation, response overflow, protocol signature rotation/tampering/replay, scoped SQL, current authorization, transactional receipt rollback, duplicate hints, explicit page reconciliation and retained tombstones. They are mocked protocol fixtures and do not certify native Medusa compatibility.
+
+The disposable actual Medusa 2.21.2 fixture verifies native Admin Basic authentication, product/order GETs and pages, exact major-unit order total, native product update workflow delivery through the installed application subscriber, and source-matched order.placed event-bus delivery into durable starter receipts plus Jobs handoff, consumed by a standalone Node24 worker through existing pg-boss native attempt signals. This is pinned local compatibility, not financial certification or external deployment proof. The starter must not claim certification, remotely register callbacks, create keys, accept terms, initiate payments or contact provider services during startup. No sandbox or external provider calls are part of these fixtures.
+
+Implementation acceptance: [combined CI run 36977208902](https://github.com/formless63/demo-starter-tanstack/actions/runs/36977208902) passed all 19 jobs at `e27f789f24545a2ac08dcd98102bdb35de87b8b5`, including all 17 independent add-on lifecycles and full root verification. Together with the pinned provider compatibility fixtures, this completes the reusable capability and reference-application acceptance. The full browser, canonical container, explicit migrations, health and standalone-worker gates passed. Future changes still require full exact-head CI. Clean generated consumers remain opt-in (`defaultInstalled: false`); financial certification and operator deployment approval are outside this evidence.
