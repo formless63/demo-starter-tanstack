@@ -12,6 +12,7 @@ import {
 	redirect,
 } from "@tanstack/react-router";
 import { ThemeSelector } from "#/components/theme-selector";
+import { CommandPalette } from "#/components/command-system";
 import { getCurrentUser } from "#/features/projects/projects.functions";
 import { authClient } from "#/lib/auth-client";
 import { safeInternalRedirect } from "#/lib/safe-redirect";
@@ -32,7 +33,26 @@ export const Route = createFileRoute("/app")({
 function AppShell() {
 	const { user } = Route.useRouteContext();
 	return (
-		<div className="min-h-screen bg-muted/30 text-foreground">
+		<>
+			<CommandPalette
+				commands={[
+					{
+						id: "projects",
+						label: "Open projects",
+						execute: () => {
+							window.location.href = "/app/projects";
+						},
+					},
+					{
+						id: "notifications",
+						label: "Open notifications",
+						execute: () => {
+							window.location.href = "/app/notifications";
+						},
+					},
+				]}
+			/>
+			<div className="min-h-screen bg-muted/30 text-foreground">
 			<header className="border-b bg-background">
 				<div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
 					<Link
@@ -114,6 +134,7 @@ function AppShell() {
 					<Outlet />
 				</main>
 			</div>
-		</div>
+			</div>
+		</>
 	);
 }
