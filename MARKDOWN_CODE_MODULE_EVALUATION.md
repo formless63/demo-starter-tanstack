@@ -1,12 +1,12 @@
 # Markdown / Code Content evaluation
 
-2026-10-02: bounded v1 contract frozen in `capabilities/markdown-code/CAPABILITY.md` before implementation. No hard dependencies; default false. Catalog remains in-progress until complete exact-head CI.
+2026-10-02: bounded v1 contract frozen in `capabilities/markdown-code/CAPABILITY.md` before implementation. No hard dependencies; default false. The runtime implementation is accepted after full exact-head CI; completion metadata is promoted in the successor.
 
 Official sources: https://markdown-it.github.io/markdown-it/ and https://github.com/markdown-it/markdown-it ; https://shiki.style/guide/bundles and https://shiki.style/guide/best-performance . Current package registry stable versions are pinned rather than inferred from alpha TanStack packages. https://tanstack.com/highlight/latest explicitly labels Highlight alpha; https://tanstack.com/blog/introducing-tanstack-markdown-and-highlight describes both first alphas. Revisit after stable release and equivalent security/lifecycle proof.
 
 Use markdown-it tokens rather than its HTML renderer. Use Shiki tokens, never its generated HTML; fixed fine-grained server imports keep grammars/engine out of client bundles. Whitelisted serializable nodes preserve SSR and hydration while React performs escaping. Images are alt text only to avoid implicit browser tracking. No server fetch of content links/images. Caller must authorize content before serialization.
 
-Verification results will be recorded as checks finish; no browser or lifecycle success is implied by implementation alone.
+The sections below retain the implementation and correction history. The final hosted acceptance section supersedes earlier pending checkpoints.
 
 ## Local evidence (2026-10-02)
 
@@ -47,3 +47,9 @@ The shared normalizer now enforces flow/phrasing, list and table parent/child gr
 Head `3da8907` exposed the actual clipboard gate blocker once browser errors were logged: `(0, h.jsxDEV) is not a function`. The lifecycle runner supplies `NODE_ENV=test`, so Vite emitted development JSX calls while the fixture's define selected production React exports. This exact failure was reproduced locally by building the prior fixture under `NODE_ENV=test` and executing its compiled client in Node24/jsdom. The standalone build now temporarily aligns `NODE_ENV=production`, asserts Vite's production configuration, and restores the caller's environment in `finally`. The corrected compiled client hydrates without errors and successfully copies after readiness; pre-hydration activation remains disabled. Real hosted Chromium assertions, page-error collection and clipboard readback are unchanged and still required.
 
 The same bounded grammar normalizer also rejects raw CR/NUL and unpaired UTF-16 surrogates before rendering text/code, including individual highlight spans. Eight additional SSR/hydration cases cover these browser/UTF-8 roundtrip hazards and valid paired emoji. Canonical parser CRLF/NUL handling and paired surrogates remain unchanged, verified by exact normalized-document equality.
+
+## Hosted acceptance and metadata promotion
+
+Runtime head `a591a9f0281e925adddcfda5f571ae8d1e4dfc2b` passed [CI run 37025808307](https://github.com/formless63/demo-starter-tanstack/actions/runs/37025808307), including root verification and the Markdown generated-consumer lifecycle. This provides actual Chromium clipboard/hydration/hostile-content proof, development and production reference browser proof, clean generated install/typecheck/build, server/client-boundary inspection and removal/rebuild. All 23 DOM tests pass (19 structural/text/href hydration and four clipboard lifecycle regressions). Independent review closed the known payload and clipboard blockers.
+
+The metadata-only successor marks Markdown done and reference-enabled, bringing the catalog to 21 completed capabilities, all default false. Root/authored/compiled contracts and evidence agree; no runtime source, dependency, lockfile or migration changes are part of promotion. Main was verified at `4222e53eab1e241184ff3eb15c88d1893ddb12af`. Final successor CI and root review remain required before merge.

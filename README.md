@@ -2,7 +2,7 @@
 
 A deployable, provider-neutral TanStack Start and React starter with Bun, PostgreSQL/Drizzle, passwordless Better Auth, Tailwind CSS 4, shadcn conventions, Base UI where appropriate, Tabler Icons, Docker/Compose, CI, and optional reusable capabilities.
 
-The root repository is also a reference application. It intentionally enables all twenty completed capabilities so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
+The root repository is also a reference application. It intentionally enables all twenty-one completed capabilities so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
 
 ## Start your application
 
@@ -41,7 +41,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | Observability | Done | Optional | Baseline Start + Node runtime; no capability dependency | Safe JSON logs, request IDs, server traces/metrics, optional OTLP | [Observability contract](capabilities/observability/CAPABILITY.md) |
 | Object Storage | Done | Optional | No database/auth/capability dependency; S3 when used | Private streaming, signed PUT/GET, multipart and post-upload verification | [Storage contract](capabilities/object-storage/CAPABILITY.md) |
 | Command System | Done | Optional | None beyond baseline client | Accessible command palette, shortcuts, and caller-owned command execution | [Command contract](capabilities/command-system/CAPABILITY.md) |
-| Markdown / Code Content | In progress | Optional | None beyond baseline | Server-only bounded parsing/highlighting, native React rendering and accessible copy | [Markdown contract](capabilities/markdown-code/CAPABILITY.md) |
+| Markdown / Code Content | Done | Optional | None beyond baseline | Server-only bounded parsing/highlighting, native React rendering and accessible copy | [Markdown contract](capabilities/markdown-code/CAPABILITY.md) |
 | Data Table | Done | Optional | None beyond baseline client | Typed native Table v9, controlled state and semantic accessible rendering | [Data Table contract](capabilities/data-table/CAPABILITY.md) |
 | Charts / Visualization | Done | Optional | None beyond baseline client | Accessible SSR-safe line, bar, and area charts with data-table fallback | [Charts contract](capabilities/charts-visualization/CAPABILITY.md) |
 | Email | Done | Optional | No database/auth/capability dependency; SMTP when used | Bounded SMTP delivery, safe errors and awaited magic links | [Email contract](capabilities/email/CAPABILITY.md) |
@@ -298,4 +298,4 @@ Invoice Ninja v1 is completed and reference-enabled; clean consumers remain opt-
 
 Stripe v1 is completed and reference-enabled for approved hosted one-time Checkout and scoped durable reconciliation. Jobs and Webhooks are required; clean consumers remain opt-in. Full combined lifecycle, browser, canonical container and worker verification passed using local protocol/persistence fixtures, without sandbox/live payments or financial certification. See [contract](capabilities/stripe/CAPABILITY.md).
 
-Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](capabilities/medusa/CAPABILITY.md). All twenty completed capabilities remain opt-in for clean consumers.
+Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](capabilities/medusa/CAPABILITY.md). All twenty-one completed capabilities remain opt-in for clean consumers.

@@ -1,6 +1,6 @@
 # Markdown / Code Content v1
 
-Status: in-progress. Opt-in (`defaultInstalled: false`), no hard capability dependencies.
+Status: done; enabled in the root reference application. Opt-in (`defaultInstalled: false`), no hard capability dependencies.
 
 ## Frozen boundary
 
@@ -27,3 +27,9 @@ Use official TanStack add-on compilation/installation through the catalog. Gener
 Application removal: remove component/CSS/server imports and application routes first, then `src/integrations/markdown-code`, module fixture scripts and `markdown-it`/`shiki` packages if unused elsewhere. Delete corresponding package scripts; regenerate routes, typecheck and build. Keep authored `capabilities/markdown-code` source if future reinstallation is desired; it is separate from runtime installation. No stored data is deleted. The generated fixture exercises this sequence, including rebuild.
 
 Reference application: `/markdown-test` uses a server function and the installed boundary, with SSR/hydration/hostile input/copy/theme verification. Catalog reference enablement is added only after proof; completion remains gated on exact-head full CI.
+
+## Acceptance evidence
+
+Runtime head `a591a9f0281e925adddcfda5f571ae8d1e4dfc2b` passed full [hosted CI](https://github.com/formless63/demo-starter-tanstack/actions/runs/37025808307): generated consumer install/typecheck/build, real Chromium hydration and clipboard, client-boundary inspection, removal/rebuild, root reference development/production browser gates, and 23 DOM boundary/lifecycle regressions. The completion metadata successor requires its own exact-head CI before merge.
+
+Callers loading persisted or constructed JSON should run the exported `normalizeMarkdownDocument` before SSR transport and pass that same canonical document to server and client. The component independently revalidates input; custom serializers must preserve strings across UTF-8 transport.

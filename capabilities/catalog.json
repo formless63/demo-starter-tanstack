@@ -95,7 +95,8 @@
       "medusa",
       "charts-visualization",
       "command-system",
-      "data-table"
+      "data-table",
+      "markdown-code"
     ]
   },
   "frameworkEvaluations": {
@@ -1569,7 +1570,7 @@
       "id": "markdown-code",
       "displayName": "Markdown / Code Content",
       "kind": "operations-ui-infrastructure",
-      "status": "in-progress",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
