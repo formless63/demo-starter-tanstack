@@ -18,6 +18,7 @@ export type CommandPaletteProps = {
 	onOpenChange?: (open: boolean) => void;
 	shortcut?: string;
 	label?: string;
+	triggerLabel?: string;
 };
 
 export function CommandPalette({
@@ -26,6 +27,7 @@ export function CommandPalette({
 	onOpenChange,
 	shortcut = "Mod+K",
 	label = "Command menu",
+	triggerLabel = "Open command menu",
 }: CommandPaletteProps) {
 	const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
 	const [query, setQuery] = useState("");
@@ -41,6 +43,7 @@ export function CommandPalette({
 
 	useHotkey(shortcut as RegisterableHotkey, () => setOpen(true), {
 		enabled: pending === null,
+		ignoreInputs: true,
 	});
 
 	useEffect(() => {
@@ -81,6 +84,9 @@ export function CommandPalette({
 
 	return (
 		<Dialog.Root open={open} onOpenChange={setOpen}>
+			<Dialog.Trigger className="rounded-md border px-3 py-2 text-sm">
+				{triggerLabel}
+			</Dialog.Trigger>
 			<Dialog.Portal>
 				<Dialog.Backdrop className="fixed inset-0 z-40 bg-black/40" />
 				<Dialog.Popup
