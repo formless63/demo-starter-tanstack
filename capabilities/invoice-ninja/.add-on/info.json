@@ -1,0 +1,27 @@
+{
+  "id": "invoice-ninja",
+  "name": "invoice-ninja",
+  "displayName": "Invoice Ninja (in progress)",
+  "description": "Invoice Ninja v1 bounded protocol foundation; durable integration not complete.",
+  "version": "0.1.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [
+    "postgres-jobs",
+    "webhooks"
+  ],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "zod": "^4.3.6"
+    },
+    "devDependencies": {
+      "vitest": "^3.2.4"
+    }
+  }
+}
