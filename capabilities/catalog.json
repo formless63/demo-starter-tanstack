@@ -816,7 +816,16 @@
 			"externalRequirements": [{ "name": "Stripe", "required": true, "description": "Stripe account, API credentials, and webhook endpoint." }],
 			"documentationPath": "capabilities/stripe/CAPABILITY.md",
 			"evaluationDocument": "STRIPE_MODULE_EVALUATION.md",
-			"scripts": ["stripe:unit", "stripe:durable"],
+			"scripts": ["stripe:unit", "stripe:durable", "stripe:migrations", "stripe:worker"],
+   "migrations": ["bun run db:migrate", "bun run jobs:migrate"],
+   "runtimeServices": [],
+   "environmentVariables": [
+    {"name":"STRIPE_SECRET_KEY","required":false,"description":"Server-only secret/restricted key validated on use; test mode by default."},
+    {"name":"STRIPE_ACCOUNT_ID","required":false,"description":"Explicit expected single account, required on operation use."},
+    {"name":"STRIPE_MODE","required":false,"default":"test","description":"Explicit server deployment assignment; test or live."},
+    {"name":"STRIPE_WEBHOOK_SECRET","required":false,"description":"Native callback endpoint secret, required for receiver use."},
+    {"name":"STRIPE_WEBHOOK_SECRET_PREVIOUS","required":false,"description":"Optional previous native callback secret for rotation."}
+   ],
 			"tanstackAddOn": {"addOnId": "stripe", "sourceDirectory": "capabilities/stripe/.add-on", "manifestPath": "capabilities/stripe/.add-on/info.json", "distributablePath": "capabilities/stripe/add-on.json", "cleanInstallFixture": "capabilities/stripe/test/clean-install.json", "dependsOn": ["postgres-jobs", "webhooks"], "conflictsWith": []},
 			"summary": "Hosted one-time Checkout and scoped durable reconciliation (implementation in progress)."
 		},
