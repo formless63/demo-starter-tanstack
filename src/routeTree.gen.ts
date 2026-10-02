@@ -15,6 +15,7 @@ import { Route as ChartsTestRouteImport } from './routes/charts-test'
 import { Route as FlowTestRouteImport } from './routes/flow-test'
 import { Route as I18nTestRouteImport } from './routes/i18n-test'
 import { Route as MarkdownTestRouteImport } from './routes/markdown-test'
+import { Route as PwaTestRouteImport } from './routes/pwa-test'
 import { Route as RichTextTestRouteImport } from './routes/rich-text-test'
 import { Route as AdminOpsRouteImport } from './routes/admin.ops'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
@@ -67,6 +68,11 @@ const I18nTestRoute = I18nTestRouteImport.update({
 const MarkdownTestRoute = MarkdownTestRouteImport.update({
   id: '/markdown-test',
   path: '/markdown-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PwaTestRoute = PwaTestRouteImport.update({
+  id: '/pwa-test',
+  path: '/pwa-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RichTextTestRoute = RichTextTestRouteImport.update({
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/flow-test': typeof FlowTestRoute
   '/i18n-test': typeof I18nTestRoute
   '/markdown-test': typeof MarkdownTestRoute
+  '/pwa-test': typeof PwaTestRoute
   '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/flow-test': typeof FlowTestRoute
   '/i18n-test': typeof I18nTestRoute
   '/markdown-test': typeof MarkdownTestRoute
+  '/pwa-test': typeof PwaTestRoute
   '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
@@ -260,6 +268,7 @@ export interface FileRoutesById {
   '/flow-test': typeof FlowTestRoute
   '/i18n-test': typeof I18nTestRoute
   '/markdown-test': typeof MarkdownTestRoute
+  '/pwa-test': typeof PwaTestRoute
   '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
   '/api/health': typeof ApiHealthRoute
@@ -293,6 +302,7 @@ export interface FileRouteTypes {
     | '/flow-test'
     | '/i18n-test'
     | '/markdown-test'
+    | '/pwa-test'
     | '/rich-text-test'
     | '/admin/ops'
     | '/api/health'
@@ -324,6 +334,7 @@ export interface FileRouteTypes {
     | '/flow-test'
     | '/i18n-test'
     | '/markdown-test'
+    | '/pwa-test'
     | '/rich-text-test'
     | '/admin/ops'
     | '/api/health'
@@ -355,6 +366,7 @@ export interface FileRouteTypes {
     | '/flow-test'
     | '/i18n-test'
     | '/markdown-test'
+    | '/pwa-test'
     | '/rich-text-test'
     | '/admin/ops'
     | '/api/health'
@@ -387,6 +399,7 @@ export interface RootRouteChildren {
   FlowTestRoute: typeof FlowTestRoute
   I18nTestRoute: typeof I18nTestRoute
   MarkdownTestRoute: typeof MarkdownTestRoute
+  PwaTestRoute: typeof PwaTestRoute
   RichTextTestRoute: typeof RichTextTestRoute
   AdminOpsRoute: typeof AdminOpsRoute
   ApiHealthRoute: typeof ApiHealthRoute
@@ -446,6 +459,13 @@ declare module '@tanstack/react-router' {
       path: '/markdown-test'
       fullPath: '/markdown-test'
       preLoaderRoute: typeof MarkdownTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pwa-test': {
+      id: '/pwa-test'
+      path: '/pwa-test'
+      fullPath: '/pwa-test'
+      preLoaderRoute: typeof PwaTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rich-text-test': {
@@ -643,6 +663,7 @@ const rootRouteChildren: RootRouteChildren = {
   FlowTestRoute: FlowTestRoute,
   I18nTestRoute: I18nTestRoute,
   MarkdownTestRoute: MarkdownTestRoute,
+  PwaTestRoute: PwaTestRoute,
   RichTextTestRoute: RichTextTestRoute,
   AdminOpsRoute: AdminOpsRoute,
   ApiHealthRoute: ApiHealthRoute,
