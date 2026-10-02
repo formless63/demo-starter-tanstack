@@ -96,7 +96,9 @@
       "charts-visualization",
       "command-system",
       "data-table",
-      "markdown-code"
+      "markdown-code",
+      "file-ui",
+      "rich-text"
     ]
   },
   "frameworkEvaluations": {
@@ -1630,7 +1632,7 @@
       "id": "file-ui",
       "displayName": "File UI",
       "kind": "operations-ui-infrastructure",
-      "status": "planned",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [
         "object-storage"
@@ -1641,13 +1643,39 @@
       ],
       "baselineRequirements": [],
       "externalRequirements": [],
-      "summary": "Upload, browse, preview, and manage object-backed files."
+      "summary": "Upload, browse, preview, and manage object-backed files.",
+      "documentationPath": "capabilities/file-ui/CAPABILITY.md",
+      "evaluationDocument": "FILE_UI_MODULE_EVALUATION.md",
+      "agentSkill": ".agents/skills/capability-change/SKILL.md",
+      "scripts": [
+        "file-ui:unit",
+        "file-ui:protocol",
+        "file-ui:compat",
+        "file-ui:browser",
+        "file-ui:protocol:node"
+      ],
+      "environmentVariables": [],
+      "migrations": [
+        "drizzle/0016_file_ui.sql"
+      ],
+      "runtimeServices": [],
+      "tanstackAddOn": {
+        "addOnId": "file-ui",
+        "sourceDirectory": "capabilities/file-ui/.add-on",
+        "manifestPath": "capabilities/file-ui/.add-on/info.json",
+        "distributablePath": "capabilities/file-ui/add-on.json",
+        "cleanInstallFixture": "capabilities/file-ui/test/clean-install.json",
+        "dependsOn": [
+          "object-storage"
+        ],
+        "conflictsWith": []
+      }
     },
     {
       "id": "rich-text",
       "displayName": "Rich Text / Tiptap",
       "kind": "operations-ui-infrastructure",
-      "status": "planned",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
@@ -1658,7 +1686,25 @@
       ],
       "baselineRequirements": [],
       "externalRequirements": [],
-      "summary": "Structured rich-text editing, with Tiptap evaluated as the primary TanStack-repo option."
+      "summary": "Bounded JSON rich-text editing with safe SSR, controlled changes and caller-owned persistence.",
+      "scripts": [
+        "rich-text:browser"
+      ],
+      "environmentVariables": [],
+      "migrations": [],
+      "runtimeServices": [],
+      "documentationPath": "capabilities/rich-text/CAPABILITY.md",
+      "agentSkill": ".agents/skills/capability-change/SKILL.md",
+      "evaluationDocument": "RICH_TEXT_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "rich-text",
+        "sourceDirectory": "capabilities/rich-text/.add-on",
+        "manifestPath": "capabilities/rich-text/.add-on/info.json",
+        "distributablePath": "capabilities/rich-text/add-on.json",
+        "cleanInstallFixture": "capabilities/rich-text/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
     },
     {
       "id": "flow-canvas",

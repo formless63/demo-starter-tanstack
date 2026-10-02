@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import {
+	act,
 	cleanup,
 	fireEvent,
 	render,
@@ -10,7 +11,10 @@ import { StrictMode, useState } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CommandPalette, createCommandRegistry } from "../src/components/command-system";
+import {
+	CommandPalette,
+	createCommandRegistry,
+} from "../src/components/command-system";
 
 describe("reference command palette", () => {
 	afterEach(() => cleanup());
@@ -25,10 +29,52 @@ describe("reference command palette", () => {
 		const input = await screen.findByRole("combobox", {
 			name: "Search commands",
 		});
-		expect(document.activeElement).toBe(input);
+		await waitFor(() => expect(document.activeElement).toBe(input));
 		fireEvent.keyDown(input, { key: "Enter" });
 		expect(execute).toHaveBeenCalledTimes(1);
 		await waitFor(() => expect(document.activeElement).toBe(trigger));
+	});
+
+	it("waits for the scheduled frame before treating the mounted input as focused", async () => {
+		const frames = new Map<number, FrameRequestCallback>();
+		let nextFrame = 0;
+		const request = vi
+			.spyOn(globalThis, "requestAnimationFrame")
+			.mockImplementation((callback) => {
+				const id = ++nextFrame;
+				frames.set(id, callback);
+				return id;
+			});
+		const cancel = vi
+			.spyOn(globalThis, "cancelAnimationFrame")
+			.mockImplementation((id) => {
+				frames.delete(id);
+			});
+		const view = render(<CommandPalette commands={[]} />);
+		try {
+			fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+			const input = await screen.findByRole("combobox", {
+				name: "Search commands",
+			});
+			const dialog = screen.getByRole("dialog");
+			act(() => dialog.focus());
+			// DOM presence is not the focus contract: hold the actual scheduled
+			// frame while the dialog, rather than its input, owns focus.
+			expect(document.activeElement).toBe(dialog);
+			expect(document.activeElement).not.toBe(input);
+			expect(frames.size).toBeGreaterThan(0);
+			const focused = waitFor(() => expect(document.activeElement).toBe(input));
+			act(() => {
+				const pending = [...frames.values()];
+				frames.clear();
+				for (const callback of pending) callback(performance.now());
+			});
+			await focused;
+		} finally {
+			view.unmount();
+			request.mockRestore();
+			cancel.mockRestore();
+		}
 	});
 
 	it("suppresses Mod+K in editable controls", () => {
@@ -63,6 +109,7 @@ describe("reference command palette", () => {
 		);
 		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 		const input = await screen.findByRole("combobox");
+		await waitFor(() => expect(document.activeElement).toBe(input));
 		const options = screen.getAllByRole("option");
 		const secondOption = options.at(1);
 		if (!secondOption) throw new Error("second option missing");
@@ -222,7 +269,9 @@ describe("reference command palette", () => {
 		await new Promise((done) => setTimeout(done, 10));
 		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 		const option = await screen.findByRole("option", { name: "Hydrate" });
-		fireEvent.keyDown(screen.getByRole("combobox"), { key: "Enter" });
+		const input = screen.getByRole("combobox");
+		await waitFor(() => expect(document.activeElement).toBe(input));
+		fireEvent.keyDown(input, { key: "Enter" });
 		expect(option).toBeTruthy();
 		expect(execute).toHaveBeenCalledTimes(1);
 		expect(errors).toHaveLength(0);

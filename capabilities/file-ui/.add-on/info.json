@@ -1,0 +1,32 @@
+{
+  "id": "file-ui",
+  "name": "file-ui",
+  "displayName": "File UI",
+  "description": "Private bounded upload, idempotent atomic lifecycle and accessible file UI with caller-owned policy/metadata.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [
+    "object-storage"
+  ],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "scripts": {
+      "file-ui:unit": "bun scripts/file-ui-unit.ts",
+      "file-ui:protocol": "bun scripts/file-ui-protocol.ts",
+      "file-ui:compat": "bun scripts/file-ui-compat.ts",
+      "file-ui:browser": "bun scripts/file-ui-browser.tsx",
+      "file-ui:protocol:node": "bun build scripts/file-ui-protocol.ts --target=node --outfile=/tmp/file-ui-protocol-node.mjs && node /tmp/file-ui-protocol-node.mjs"
+    },
+    "devDependencies": {
+      "@playwright/test": "^1.55.0",
+      "vitest": "^3.2.4"
+    }
+  },
+  "envVars": []
+}
