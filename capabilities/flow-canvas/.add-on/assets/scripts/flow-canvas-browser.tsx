@@ -60,8 +60,18 @@ try {
  // Escape destroys the old gesture; its later mouseup cannot apply another edit.
  await rendered.scrollIntoViewIfNeeded();await rendered.focus();await expect(rendered).toBeFocused();const escapePoint=await hitPoint(rendered,'Escape gesture node');const beforeEscapeDrag=await currentX();
  await page.mouse.move(escapePoint.x,escapePoint.y);await page.mouse.down();await page.mouse.move(escapePoint.x+25,escapePoint.y+10,{steps:3});await expect.poll(currentX,{message:'Interrupted native drag must first deliver a real position proposal'}).not.toBe(beforeEscapeDrag);await expect(rendered,'Controlled drag must retain native focus before Escape').toBeFocused();await page.keyboard.press('Escape');await expect(main.getByRole('status')).toHaveText('Selection and gesture cleared.');const escaped=await page.getByTestId('graph-json').innerText();await page.mouse.move(escapePoint.x+100,escapePoint.y+60);await page.mouse.up();await expect(page.getByTestId('graph-json')).toHaveText(escaped);
- await main.getByLabel('Node label',{exact:true}).fill('<img src="https://tracker.invalid/x" onerror="alert(1)"> 😀');await main.getByRole('button',{name:'Add node',exact:true}).press('Enter');
- await expect(main.getByRole('list',{name:'Primary graph nodes'}).getByRole('button')).toHaveCount(3);await expect(second.getByRole('list',{name:'Independent graph nodes'}).getByRole('button')).toHaveCount(2);assert.equal(await page.locator('img').count(),0);
+ const hostileLabel='<img src="https://tracker.invalid/x" onerror="alert(1)"> 😀';
+ const labelInput=main.getByLabel('Node label',{exact:true});const addButton=main.getByRole('button',{name:'Add node',exact:true});
+ await labelInput.fill(hostileLabel);await expect(labelInput).toHaveValue(hostileLabel);await expect(addButton).toBeEnabled();await addButton.focus();await expect(addButton).toBeFocused();
+ const activation:unknown[]=[];await page.exposeFunction('recordFlowActivation',(event:unknown)=>activation.push(event));
+ await addButton.evaluate(button=>{
+  const record=(phase:string)=>(event:Event)=>{if(event.target!==button)return;void (window as unknown as {recordFlowActivation:(value:unknown)=>Promise<void>}).recordFlowActivation({phase,type:event.type,key:event instanceof KeyboardEvent?event.key:undefined,trusted:event.isTrusted,prevented:event.defaultPrevented});};
+  for(const type of ['keydown','keyup','click']){window.addEventListener(type,record('window capture'),true);button.addEventListener(type,record('button'));}
+ });
+ await addButton.press('Enter');
+ try {await expect(main.getByRole('list',{name:'Primary graph nodes'}).getByRole('button')).toHaveCount(3);} catch(error) {
+  console.error('Flow keyboard Add diagnostics',JSON.stringify({activation,status:await main.getByRole('status').innerText(),graph:await page.getByTestId('graph-json').innerText(),label:await labelInput.inputValue(),x:await main.getByLabel('X position',{exact:true}).inputValue(),y:await main.getByLabel('Y position',{exact:true}).inputValue(),reject:await page.getByLabel('Reject proposals',{exact:true}).isChecked(),disabled:await addButton.isDisabled(),focus:await page.evaluate(()=>document.activeElement?.outerHTML)}));throw error;
+ }await expect(second.getByRole('list',{name:'Independent graph nodes'}).getByRole('button')).toHaveCount(2);assert.equal(await page.locator('img').count(),0);
  await main.getByLabel('Connection source',{exact:true}).selectOption('start');await main.getByLabel('Connection target',{exact:true}).selectOption('finish');await main.getByRole('button',{name:'Connect nodes',exact:true}).click();await expect(main.getByRole('list',{name:'Primary graph connections'}).getByRole('listitem')).toHaveCount(1);
  await main.getByRole('button',{name:'Connect nodes',exact:true}).click();await expect(main.getByRole('status')).toContainText('rejected');
  await main.getByRole('button',{name:'Start (start)',exact:true}).click();await expect(main.getByRole('button',{name:'Delete selected node',exact:true})).toBeEnabled();
