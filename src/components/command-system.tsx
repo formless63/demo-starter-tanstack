@@ -35,11 +35,15 @@ export function CommandPalette({
 	open: controlledOpen,
 	onOpenChange,
 	shortcut = "Mod+K",
+	label = "Command menu",
+	triggerLabel = "Open command menu",
 }: {
 	commands: readonly AppCommand[];
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
 	shortcut?: string;
+	label?: string;
+	triggerLabel?: string;
 }) {
 	const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
 	const open = controlledOpen ?? uncontrolledOpen;
@@ -105,7 +109,7 @@ export function CommandPalette({
 	};
 	return (
 		<Dialog.Root open={open} onOpenChange={setOpen}>
-			<Dialog.Trigger className="sr-only">Open command menu</Dialog.Trigger>
+			<Dialog.Trigger className="sr-only">{triggerLabel}</Dialog.Trigger>
 			<Dialog.Portal>
 				<Dialog.Backdrop className="fixed inset-0 z-40 bg-black/40" />
 				<Dialog.Popup
@@ -129,7 +133,7 @@ export function CommandPalette({
 						}
 					}}
 				>
-					<Dialog.Title className="sr-only">Command menu</Dialog.Title>
+					<Dialog.Title className="sr-only">{label}</Dialog.Title>
 					<Dialog.Description className="sr-only">
 						Search and run an application command.
 					</Dialog.Description>
@@ -153,7 +157,7 @@ export function CommandPalette({
 					<div
 						id="command-palette-options"
 						role="listbox"
-						aria-label="Command menu"
+						aria-label={label}
 						className="p-2"
 					>
 						{filtered.map((command, index) => (
