@@ -129,6 +129,7 @@ jobs:
       - name: Verify SMTP, Chaos, Better Auth and production magic-link delivery
         run: bun run email:compat --reference --production
       - run: bun test
+      - run: bun run command-system:test
       - run: bun run build
       - run: bunx playwright install --with-deps chromium
       - run: bun run test:e2e

@@ -1,0 +1,10 @@
+import { strict as assert } from "node:assert";
+import { createCommandRegistry } from "../src/components/command-system";
+const registry = createCommandRegistry();
+const disposeA = registry.register({ id: "same", label: "A", execute: () => {} });
+const disposeB = registry.register({ id: "same", label: "B", execute: () => {} });
+disposeA();
+assert.equal(registry.list()[0]?.label, "B");
+disposeB();
+assert.equal(registry.list().length, 0);
+console.log("command-system registry lifecycle passed");
