@@ -80,6 +80,25 @@ function Controlled({
 }
 
 describe("real Tiptap editor and controlled parent state", () => {
+	test("toolbar history never steals focus from a subsequently focused URL input", async () => {
+		render(<Controlled />);
+		const {element, editor} = await editorNamed("Article");
+		selectAll(editor);
+		paste(element, "Changed document");
+		const frames: FrameRequestCallback[] = [];
+		vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {frames.push(callback);return frames.length;});
+		button("Undo").focus();
+		fireEvent.click(button("Undo"));
+		button("Redo").focus();
+		fireEvent.click(button("Redo"));
+		const input = screen.getByLabelText("Link URL");
+		input.focus();
+		expect(document.activeElement).toBe(input);
+		act(() => {for (const callback of frames.splice(0)) callback(0);});
+		expect(document.activeElement).toBe(input);
+		expect(readValue()).toEqual(documentWith("Changed document"));
+	});
+
 	test("pastes literal plain text, accepts a synchronous controlled update, and keeps formatting out of the HTML clipboard", async () => {
 		const onChange = vi.fn();
 		render(<Controlled onChange={onChange} />);

@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {renderToString} from 'react-dom/server';
+import {FlowCanvas} from '../src/integrations/flow-canvas/FlowCanvas';
+import {sampleGraph} from './flow-canvas-example';
+import {parseGraph,serializeGraph,validateGraph,deleteGraphNode,proposeConnection} from '../src/integrations/flow-canvas/graph';
+const hostile={...sampleGraph,nodes:sampleGraph.nodes.map(n=>({...n,label:'<script>alert(1)</script> 😀'}))};
+const canonical=validateGraph(hostile);assert.deepEqual(parseGraph(serializeGraph(canonical)),canonical);
+const html=renderToString(<FlowCanvas documentKey="ssr" value={canonical} onChange={()=>{throw new Error('SSR must not emit');}}/>);
+assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('<script>'));assert.ok(!html.includes('react-flow__renderer'));assert.ok(html.includes('disabled'));
+const edge={id:'link',source:'start',target:'finish',sourceHandle:'out' as const,targetHandle:'in' as const};const linked=proposeConnection(sampleGraph,edge);assert.equal(linked.edges.length,1);assert.equal(deleteGraphNode(linked,'start').edges.length,0);assert.throws(()=>proposeConnection(linked,{...edge,id:'duplicate'}));assert.throws(()=>proposeConnection(sampleGraph,edge,()=>false));assert.throws(()=>validateGraph({...sampleGraph,url:'https://bad.invalid'}));assert.throws(()=>validateGraph({...sampleGraph,nodes:[{...sampleGraph.nodes[0],label:'\ud800'}]}));
+console.info('Installed graph security, canonical transport and native React SSR passed');

@@ -185,6 +185,7 @@ export function ClientEditor({
 		});
 	});
 	if (!editor) return <output>Loading editor…</output>;
+	// Commands use the retained selection; queued focus would steal a later input focus.
 	const button = (name: string, pressed: boolean, run: () => void) => (
 		<button
 			type="button"
@@ -211,43 +212,43 @@ export function ClientEditor({
 				className="flex flex-wrap gap-2"
 			>
 				{button("Bold", state?.bold ?? false, () => {
-					editor.chain().focus().toggleBold().run();
+					editor.chain().toggleBold().run();
 				})}
 				{button("Italic", state?.italic ?? false, () => {
-					editor.chain().focus().toggleItalic().run();
+					editor.chain().toggleItalic().run();
 				})}
 				{button("Strike", state?.strike ?? false, () => {
-					editor.chain().focus().toggleStrike().run();
+					editor.chain().toggleStrike().run();
 				})}
 				{button("Inline code", state?.code ?? false, () => {
-					editor.chain().focus().toggleCode().run();
+					editor.chain().toggleCode().run();
 				})}
 				{button("Heading", state?.heading ?? false, () => {
-					editor.chain().focus().toggleHeading({ level: 2 }).run();
+					editor.chain().toggleHeading({ level: 2 }).run();
 				})}
 				{button("Bullet list", state?.bulletList ?? false, () => {
-					editor.chain().focus().toggleBulletList().run();
+					editor.chain().toggleBulletList().run();
 				})}
 				{button("Ordered list", state?.orderedList ?? false, () => {
-					editor.chain().focus().toggleOrderedList().run();
+					editor.chain().toggleOrderedList().run();
 				})}
 				{button("Quote", state?.blockquote ?? false, () => {
-					editor.chain().focus().toggleBlockquote().run();
+					editor.chain().toggleBlockquote().run();
 				})}
 				{button("Code block", state?.codeBlock ?? false, () => {
-					editor.chain().focus().toggleCodeBlock().run();
+					editor.chain().toggleCodeBlock().run();
 				})}
 				<button
 					type="button"
 					disabled={readOnly || !state?.undo}
-					onClick={() => editor.chain().focus().undo().run()}
+					onClick={() => editor.chain().undo().run()}
 				>
 					Undo
 				</button>
 				<button
 					type="button"
 					disabled={readOnly || !state?.redo}
-					onClick={() => editor.chain().focus().redo().run()}
+					onClick={() => editor.chain().redo().run()}
 				>
 					Redo
 				</button>
@@ -275,7 +276,6 @@ export function ClientEditor({
 						}
 						editor
 							.chain()
-							.focus()
 							.extendMarkRange("link")
 							.setLink({ href: link })
 							.run();
@@ -288,7 +288,7 @@ export function ClientEditor({
 					type="button"
 					disabled={readOnly}
 					onClick={() =>
-						editor.chain().focus().extendMarkRange("link").unsetLink().run()
+						editor.chain().extendMarkRange("link").unsetLink().run()
 					}
 				>
 					Remove link
