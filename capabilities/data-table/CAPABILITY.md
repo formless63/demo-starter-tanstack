@@ -1,6 +1,6 @@
 # Data Table capability
 
-Status: in-progress; optional (`defaultInstalled: false`). The reference application does not enable this UI-only add-on. Generated consumers opt in explicitly.
+Status: done; reference-enabled and optional (`defaultInstalled: false`). The reference verification imports the authored UI component and exercises its shared SSR/interactive fixture; clean generated consumers install it only when explicitly selected.
 
 ## Contract
 
@@ -22,4 +22,4 @@ Manual removal: remove application imports, `src/components/data-table.tsx`, the
 
 `bun run data-table:browser` in a generated consumer verifies actual server HTML followed by hydration in Chromium and controlled/internal sorting, filtering, selection, visibility, pagination, grouped headers, manual bypass and unmount/remount. Install the browser with `bun x playwright install chromium`, or explicitly set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to a system Chromium. Root source gate: `bun run data-table:browser` and `bun run data-table:typecheck`.
 
-`bun run add-ons:test data-table` checks compiled artifact freshness, independent clean installation, TypeScript, real browser regression, production build and documented removal/typecheck/rebuild. Governance, root lint/typecheck/tests/build and full hosted CI are also required before declaring the module complete.
+`bun run add-ons:test data-table` checks compiled artifact freshness, independent clean installation, TypeScript, real browser regression, production build and documented removal/typecheck/rebuild. Governance, root lint/typecheck/tests/build and full hosted CI remain required for subsequent changes. Acceptance passed on commit `51c143e0ff820fddba41ba3df90e96c9b9d9a04d`, including the real Chromium lifecycle and correct Stripe fixture connection draining, in [CI run 37004593622](https://github.com/formless63/demo-starter-tanstack/actions/runs/37004593622). This metadata promotion changes no runtime code, dependencies, migrations or generated-consumer defaults.

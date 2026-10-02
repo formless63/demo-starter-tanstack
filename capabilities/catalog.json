@@ -94,7 +94,8 @@
       "stripe",
       "medusa",
       "charts-visualization",
-      "command-system"
+      "command-system",
+      "data-table"
     ]
   },
   "frameworkEvaluations": {
@@ -1534,7 +1535,7 @@
       "id": "data-table",
       "displayName": "Data Table",
       "kind": "operations-ui-infrastructure",
-      "status": "in-progress",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
@@ -1545,7 +1546,9 @@
       "baselineRequirements": [],
       "externalRequirements": [],
       "summary": "Reusable high-density data browsing, filtering, sorting, pagination, visibility, and selection UI with caller-owned server modes.",
-      "scripts": [],
+      "scripts": [
+        "data-table:browser"
+      ],
       "environmentVariables": [],
       "migrations": [],
       "runtimeServices": [],
