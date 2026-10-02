@@ -1,0 +1,85 @@
+{
+  "head": "96976ad323e1bd43a7b7006d5e3294356841c2f4",
+  "migrations": [
+    {
+      "entry": {
+        "idx": 0,
+        "version": "7",
+        "when": 1790281137665,
+        "tag": "0000_gray_the_fallen",
+        "breakpoints": true
+      },
+      "sha256": "90ff007181f382b6337f371e88e10707b76035bb5e6fef3d13a03faa2b298a13"
+    },
+    {
+      "entry": {
+        "idx": 1,
+        "version": "7",
+        "when": 1790699310723,
+        "tag": "0001_pretty_kat_farrell",
+        "breakpoints": true
+      },
+      "sha256": "c35c657e118a282d15c361d1efb3d458c17b4315e7a8f197da2366767d6a79cf"
+    },
+    {
+      "entry": {
+        "idx": 2,
+        "version": "7",
+        "when": 1790716706250,
+        "tag": "0002_even_nighthawk",
+        "breakpoints": true
+      },
+      "sha256": "fa4e3235a32d211aaf34ae2173d5d9d358bdf83aef0519ef9d347fc99e1abbde"
+    },
+    {
+      "entry": {
+        "idx": 3,
+        "version": "7",
+        "when": 1790804092045,
+        "tag": "0003_audit_log",
+        "breakpoints": true
+      },
+      "sha256": "0d2327af6172a6878d35a39e052880dfc177e54b6770c522e32279ad2a7804cc"
+    },
+    {
+      "entry": {
+        "idx": 4,
+        "version": "7",
+        "when": 1790870049947,
+        "tag": "0004_search",
+        "breakpoints": true
+      },
+      "sha256": "f6fb1ce21b210757d390c1899e513210b9d18142c63f2ec906788be0ecfe1d3d"
+    },
+    {
+      "entry": {
+        "idx": 5,
+        "version": "7",
+        "when": 1790870160579,
+        "tag": "0004_tough_mindworm",
+        "breakpoints": true
+      },
+      "sha256": "5b89239cb0c92caf535cd4aeccbcd03722eb82e8c0b3f30fda171b77c95b3b95"
+    },
+    {
+      "entry": {
+        "idx": 6,
+        "version": "7",
+        "when": 1790883257200,
+        "tag": "0006_parched_darwin",
+        "breakpoints": true
+      },
+      "sha256": "d903f1f1b48424603d39c3be36ee480b1df94bdb3c184b6773b9d96ec9663d65"
+    },
+    {
+      "entry": {
+        "idx": 7,
+        "version": "7",
+        "when": 1790883310120,
+        "tag": "0007_misty_betty_ross",
+        "breakpoints": true
+      },
+      "sha256": "7e1c36200c05f471b3347b13405bfbb7136df617e1506d989b7db72bf9699856"
+    }
+  ]
+}

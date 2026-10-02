@@ -57,6 +57,48 @@
       "when": 1790883310120,
       "tag": "0007_misty_betty_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790912190376,
+      "tag": "0009_invoice_ninja_v1",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790912190377,
+      "tag": "0011_stripe_v1",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790912190378,
+      "tag": "0012_stripe_recovery",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790912190379,
+      "tag": "0015_stripe_receipt_conflicts",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790912190380,
+      "tag": "0013_medusa_v1",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790912190381,
+      "tag": "0014_medusa_receipt_conflicts",
+      "breakpoints": true
     }
   ]
 }

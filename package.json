@@ -92,7 +92,17 @@
     "storage:abort": "bun scripts/storage-abort-fixture.ts",
     "ops:unit": "vitest run src/integrations/ops-admin/ops.test.ts",
     "ops:reference:removal": "bun scripts/ops-reference-removal-fixture.ts",
-    "add-ons:verify:reference": "bun scripts/add-ons.ts verify-reference"
+    "add-ons:verify:reference": "bun scripts/add-ons.ts verify-reference",
+    "invoice-ninja:unit": "bun test src/integrations/invoice-ninja",
+    "invoice-ninja:smoke": "bun scripts/invoice-ninja-database-fixture.ts",
+    "invoice-ninja:compat": "bun scripts/invoice-ninja-provider.ts",
+    "stripe:unit": "bun scripts/stripe-unit.ts",
+    "stripe:durable": "bun scripts/stripe-durable-fixture.ts",
+    "stripe:migrations": "bun scripts/stripe-migration-fixture.ts",
+    "stripe:worker": "bun build scripts/jobs-worker.ts --target=node --outfile=/tmp/stripe-reference-worker.mjs && STRIPE_WORKER_SCRIPT=/tmp/stripe-reference-worker.mjs bun scripts/stripe-worker-fixture.ts",
+    "medusa:unit": "bun scripts/medusa-unit.ts",
+    "medusa:smoke": "bun scripts/medusa-database-fixture.ts",
+    "medusa:compat": "bun scripts/medusa-native-compat.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",
@@ -138,6 +148,7 @@
     "react-dom": "^19.2.0",
     "redis": "6.3.0",
     "sonner": "^2.0.7",
+    "stripe": "23.0.0",
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.1.18",
     "tw-animate-css": "^1.3.6",
