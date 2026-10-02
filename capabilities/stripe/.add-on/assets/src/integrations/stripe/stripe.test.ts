@@ -62,6 +62,8 @@ test("closed inputs, canonical cursor and exact replay boundary", () => {
 test("configuration is lazy and rejects DNS loopback aliases and mismatched modes", () => {
 	for (const endpoint of [
 		"http://localhost/",
+		"http://2130706433/",
+		"http://%31%32%37.0.0.1/",
 		"http://127.0.0.1.evil/",
 		"https://user@api.stripe.com/",
 		"https://api.stripe.com/#secret",
@@ -293,7 +295,7 @@ test("inbound streaming/header caps and server transport request bounds", async 
 			(sdk) =>
 				sdk.checkout.sessions.create({
 					mode: "payment",
-					success_url: "https://app.example/" + "x".repeat(256 * 1024),
+					success_url: `https://app.example/${"x".repeat(256 * 1024)}`,
 				}),
 			{ fetch: injected },
 		),

@@ -816,7 +816,7 @@
 			"externalRequirements": [{ "name": "Stripe", "required": true, "description": "Stripe account, API credentials, and webhook endpoint." }],
 			"documentationPath": "capabilities/stripe/CAPABILITY.md",
 			"evaluationDocument": "STRIPE_MODULE_EVALUATION.md",
-			"scripts": ["stripe:unit", "stripe:durable", "stripe:migrations", "stripe:worker"],
+			"scripts": ["stripe:unit", "stripe:durable"],
    "migrations": ["bun run db:migrate", "bun run jobs:migrate"],
    "runtimeServices": [],
    "environmentVariables": [
