@@ -6,6 +6,7 @@ export const Route = createFileRoute("/charts-test")({ component: ChartsTest });
 
 function ChartsTest() {
 	const [kind, setKind] = useState<ChartKind>("line");
+	const [visible, setVisible] = useState(true);
 	const data = [
 		{ label: "Jan", value: 2 },
 		{ label: "Feb", value: 5 },
@@ -24,15 +25,26 @@ function ChartsTest() {
 				<button type="button" onClick={() => setKind("area")}>
 					Area
 				</button>
+				<button type="button" onClick={() => setVisible((current) => !current)}>
+					{visible ? "Unmount" : "Mount"}
+				</button>
 			</nav>
 			<section>
-				<Chart
-					data={data}
-					kind={kind}
-					title={`${kind} chart`}
-					description="Three monthly values"
-				/>
-				<Chart data={data} kind="bar" title="Second chart" />
+				{visible && (
+					<div data-testid="primary-chart" style={{ width: "640px" }}>
+						<Chart
+							data={data}
+							kind={kind}
+							title={`${kind} chart`}
+							description="Three monthly values"
+						/>
+					</div>
+				)}
+				{visible && (
+					<div data-testid="secondary-chart">
+						<Chart data={data} kind="bar" title="Second chart" />
+					</div>
+				)}
 			</section>
 		</main>
 	);
