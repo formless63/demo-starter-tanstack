@@ -15,6 +15,8 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 ## Completed capabilities
 
+All seventeen completed capabilities are reference-enabled and opt-in for clean consumers.
+
 | ID | TanStack add-on ID | Status | Reference app | Default installed | Official add-on dependencies | Reusable capability requirements | External | Contract |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `ops-admin` | `ops-admin` | Done | Yes | No | `better-auth`, `drizzle` | None | None additional | [Ops / Admin](../capabilities/ops-admin/CAPABILITY.md) |
@@ -30,6 +32,10 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 | `search` | `search` | Done | Enabled | No | `drizzle` | None | PostgreSQL only | [Search](../capabilities/search/CAPABILITY.md) |
 | `realtime` | `realtime` | Done | Enabled | No | None | None | Optional Cache backplane | [Realtime](../capabilities/realtime/CAPABILITY.md) |
 | `notifications` | `notifications` | Done | Enabled | No | `postgres-jobs` | Jobs | Optional ntfy; optional Email adapter | [Notifications](../capabilities/notifications/CAPABILITY.md) |
+| `import-export` | `import-export` | Done | Enabled | No | `postgres-jobs`, `object-storage` | Jobs, Object Storage | None additional | [Import / Export](../capabilities/import-export/CAPABILITY.md) |
+| `invoice-ninja` | `invoice-ninja` | Done | Enabled | No | `postgres-jobs`, `webhooks` | Jobs, Webhooks | Invoice Ninja on use | [Invoice Ninja](../capabilities/invoice-ninja/CAPABILITY.md) |
+| `stripe` | `stripe` | Done | Enabled | No | `postgres-jobs`, `webhooks` | Jobs, Webhooks | Stripe on use | [Stripe](../capabilities/stripe/CAPABILITY.md) |
+| `medusa` | `medusa` | Done | Enabled | No | `postgres-jobs`, `webhooks` | Jobs, Webhooks | Medusa 2.21.2 on use | [Medusa](../capabilities/medusa/CAPABILITY.md) |
 
 Run `bun run capabilities:status` to render these facts from the catalog and current add-on source.
 
@@ -188,10 +194,24 @@ Import / Export is completed: [contract](../capabilities/import-export/CAPABILIT
 
 Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
 
-Invoice Ninja v1 is in progress with reference wiring under verification; clean consumers remain opt-in. Its independent add-on now includes scoped durable operations/receipts, native routes, exact monetary projections and data-preserving removal. Final native-provider, lifecycle, browser and production acceptance remains required. See [contract](../capabilities/invoice-ninja/CAPABILITY.md).
+## Invoice Ninja
 
-## Stripe implementation in progress
+Invoice Ninja v1 is completed and reference-enabled; clean consumers remain opt-in. Its independent add-on includes scoped durable operations/receipts, native routes, approved unsent drafts, exact monetary projections and data-preserving removal. Pinned native-provider, lifecycle, browser and canonical production verification passed. Deployment-specific draft policy and financial certification remain outside this acceptance. See [contract](../capabilities/invoice-ninja/CAPABILITY.md).
 
-Stripe is an optional authored/compiled add-on (`stripe`, default installed: No), requiring Jobs and Webhooks. The root native Payments/API/worker wiring is under verification. It is already in the generic CI matrix because its clean fixture exists; this is not readiness promotion. Use `bun run add-ons:test stripe` for independent install/runtime/remove/rebuild and see the [Stripe contract](../capabilities/stripe/CAPABILITY.md) for authorization, immutable write replay, callback durability and retained-data removal.
+## Stripe
 
-Medusa v1 is in progress: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers defaultInstalled:false. Native reference routes/UI are included; the pinned disposable native backend/bridge fixture is required in the generic lifecycle. See [contract](../capabilities/medusa/CAPABILITY.md). The existing fourteen completed capabilities remain unchanged.
+Stripe is an optional authored/compiled add-on (`stripe`, default installed: No), requiring Jobs and Webhooks. It is completed and reference-enabled after full combined lifecycle, browser, canonical container and worker verification. Local SDK/protocol/persistence fixtures establish the supported contract; no sandbox/live payment or financial certification is implied. Use `bun run add-ons:test stripe` for independent install/runtime/remove/rebuild and see the [Stripe contract](../capabilities/stripe/CAPABILITY.md) for authorization, immutable write replay, callback durability and retained-data removal.
+
+## Medusa
+
+Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](../capabilities/medusa/CAPABILITY.md). All seventeen completed capabilities remain opt-in for clean consumers.
+
+## Integrated provider migration history
+
+The combined root journal preserves entries 0–7 and their SQL/timestamps. Provider SQL is additive, with contiguous journal indices and cumulative snapshots:
+
+- Index 8: `0009_invoice_ninja_v1.sql`, snapshot `0008_snapshot.json`.
+- Indices 9–11: `0011_stripe_v1.sql`, `0012_stripe_recovery.sql`, `0015_stripe_receipt_conflicts.sql`, snapshots `0009_snapshot.json`–`0011_snapshot.json`.
+- Indices 12–13: `0013_medusa_v1.sql`, `0014_medusa_receipt_conflicts.sql`, snapshots `0012_snapshot.json`–`0013_snapshot.json`.
+
+Snapshot links continue from `0007_snapshot.json`, retaining every preceding schema at each step. SQL filename prefixes deliberately differ from journal indices; `0008` and `0010` are unused SQL prefixes. Do not reorder by filename, rewrite applied SQL or substitute branch-local metadata. Existing branch-specific deployments require an operator review of recorded migration history before upgrading. Clean add-on consumers retain their own provider-local migration journals. Apply explicit application and Jobs migrations before startup; removal preserves the combined history and data.

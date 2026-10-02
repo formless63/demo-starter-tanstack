@@ -1,7 +1,7 @@
 {
   "id": "invoice-ninja",
   "name": "invoice-ninja",
-  "displayName": "Invoice Ninja (in progress)",
+  "displayName": "Invoice Ninja",
   "description": "Scoped Invoice Ninja draft and read reconciliation with durable local Jobs receipts.",
   "version": "0.1.0",
   "type": "add-on",

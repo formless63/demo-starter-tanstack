@@ -1,6 +1,6 @@
 # Invoice Ninja v1
 
-Status: in progress pending complete lifecycle, browser, native-provider and exact-head CI acceptance. The root contains reference wiring for verification; completed catalog enablement is withheld until acceptance. Clean consumers remain opt-in. Hard dependencies are Jobs and Webhooks. Organizations, Audit Log and Notifications remain optional application composition. See [evaluation](../../INVOICE_NINJA_MODULE_EVALUATION.md).
+Status: done and reference-enabled after complete combined lifecycle, browser, pinned native-provider and canonical production/CI acceptance. Clean consumers remain opt-in. Hard dependencies are Jobs and Webhooks. Organizations, Audit Log and Notifications remain optional application composition. See [evaluation](../../INVOICE_NINJA_MODULE_EVALUATION.md).
 
 ## Boundary
 
@@ -26,10 +26,10 @@ The authenticated `/app/invoices` reference uses native TanStack routes and curr
 
 ## Migrations and removal
 
-Apply additive `0009_invoice_ninja_v1.sql` via normal explicit `db:migrate`, then existing `jobs:migrate`/`jobs:doctor`. Prior applied SQL and journal entries are immutable. Branch-local idx8 metadata is provisional until paired integration; reserved0008 remains unused. No startup migrations.
+Apply additive `0009_invoice_ninja_v1.sql` via normal explicit `db:migrate`, then existing `jobs:migrate`/`jobs:doctor`. Prior applied SQL and journal entries are immutable. In the combined root journal this is index 8, with cumulative `0008_snapshot.json` linked to `0007_snapshot.json`; the subsequent Stripe and Medusa snapshots retain its schema. SQL prefixes `0008` and `0010` remain unused. Review branch-specific deployed histories before upgrading; do not rewrite them to match this journal. No startup migrations.
 
 Stop/drain Invoice workers and settle/recover attempts before unregistering handlers. Remove its routes/page/navigation, reference composition and registry spread; remove provider settings from app/worker environments. Retain application-owned schema/validation/error types, all five tables, bindings/projections/operations/inbox, Jobs and applied migrations. Removing code never deletes remote resources, deregisters callbacks or revokes credentials. Generic clean-consumer removal rebuilds and compares exact retained rows/history; unrelated Jobs/Webhooks remain usable.
 
 ## Verification
 
-`invoice-ninja:unit` tests closed input, exact decimals, cursor, wire bounds and header hints. `invoice-ninja:smoke` requires disposable PostgreSQL18 and verifies real Jobs rollback, normalized idempotency, current scope, definitive rejection/uncertainty, recovery fences and retained tombstones. `invoice-ninja:compat` requires Docker and executes a network-isolated pinned official Invoice Ninja image/company with no external API, account registration or payment. `add-ons:test invoice-ninja` owns clean install, actual Node24/Bun tests, native proof, removal and rebuild. Full reference/browser/production CI remains mandatory before completion.
+`invoice-ninja:unit` tests closed input, exact decimals, cursor, wire bounds and header hints. `invoice-ninja:smoke` requires disposable PostgreSQL18 and verifies real Jobs rollback, normalized idempotency, current scope, definitive rejection/uncertainty, recovery fences and retained tombstones. `invoice-ninja:compat` requires Docker and executes a network-isolated pinned official Invoice Ninja image/company with no external API, account registration or payment. `add-ons:test invoice-ninja` owns clean install, actual Node24/Bun tests, native proof, removal and rebuild. All implementation acceptance gates passed at the combined revision linked in the evaluation. Future changes still require full reference/browser/canonical production and exact-head CI; local compatibility does not certify an operator deployment or financial operations.
