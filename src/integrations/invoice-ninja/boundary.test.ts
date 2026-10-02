@@ -3,6 +3,7 @@ import type { AddressInfo } from "node:net";
 import { describe, expect, test } from "vitest";
 import { InvoiceNinjaError } from "./errors";
 import { outputDecimal, parseExactJson } from "./json";
+import { invoiceProjection } from "./projection";
 import {
 	providerRequest,
 	readBounded,
@@ -42,6 +43,23 @@ describe("Invoice Ninja boundaries (local protocol fixtures, not provider compat
 			},
 		])
 			expect(() => parse(draftInput, bad)).toThrow(InvoiceNinjaError);
+	});
+	test("native invoice currency comes from trusted client policy, not a nonexistent field", () => {
+		const native = {
+			id: "invoice-native",
+			number: "DRAFT-1",
+			status_id: "1",
+			amount: "25",
+			balance: "0",
+			updated_at: "1790907000",
+		};
+		expect(invoiceProjection(native, () => "USD")).toMatchObject({
+			currency: "USD",
+			amount: "25",
+			balance: "0",
+			status: "draft",
+		});
+		expect(invoiceProjection(native, () => null).currency).toBeNull();
 	});
 	test("canonical cursor", () => {
 		const cursor = encodeCursor(new Date("2026-10-02T00:00:00.000Z"), id);

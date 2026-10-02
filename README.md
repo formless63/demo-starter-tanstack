@@ -287,6 +287,4 @@ Import / Export is completed: [contract](capabilities/import-export/CAPABILITY.m
 
 Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
 
-Invoice Ninja v1 is [in progress](capabilities/invoice-ninja/CAPABILITY.md). The retained
-add-on currently proves its bounded protocol foundation; durable runtime integration and
-pinned-provider unsent draft compatibility remain unfinished. It is disabled by default.
+Invoice Ninja v1 is in progress with reference wiring under verification; clean consumers remain opt-in. Its independent add-on now includes scoped durable operations/receipts, native routes, exact monetary projections and data-preserving removal. Final native-provider, lifecycle, browser and production acceptance remains required. See [contract](capabilities/invoice-ninja/CAPABILITY.md).

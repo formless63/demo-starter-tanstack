@@ -2,7 +2,7 @@
   "id": "invoice-ninja",
   "name": "invoice-ninja",
   "displayName": "Invoice Ninja (in progress)",
-  "description": "Invoice Ninja v1 bounded protocol foundation; durable integration not complete.",
+  "description": "Scoped Invoice Ninja draft and read reconciliation with durable local Jobs receipts.",
   "version": "0.1.0",
   "type": "add-on",
   "phase": "example",
@@ -18,10 +18,16 @@
   "license": "MIT",
   "packageAdditions": {
     "dependencies": {
-      "zod": "^4.3.6"
+      "zod": "^4.3.6",
+      "drizzle-orm": "^0.45.1"
     },
     "devDependencies": {
       "vitest": "^3.2.4"
+    },
+    "scripts": {
+      "invoice-ninja:unit": "bun test src/integrations/invoice-ninja",
+      "invoice-ninja:smoke": "bun scripts/invoice-ninja-database-fixture.ts",
+      "invoice-ninja:compat": "bun scripts/invoice-ninja-provider.ts"
     }
   }
 }
