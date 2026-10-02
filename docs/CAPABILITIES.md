@@ -187,3 +187,9 @@ The integrated migration journal retains both original additive SQL files and ti
 Import / Export is completed: [contract](../capabilities/import-export/CAPABILITY.md) and [evaluation](../IMPORT_EXPORT_MODULE_EVALUATION.md). It requires Jobs + Object Storage; Notifications/Audit remain optional composition. Clean consumers remain opt-in.
 
 Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
+
+Invoice Ninja is in progress and is excluded from reference enablement and clean defaults.
+Its [capability contract](../capabilities/invoice-ninja/CAPABILITY.md) records the supported
+provider pin, implemented protocol foundation, remaining durable work and compatibility
+limits. An authored in-progress add-on with a clean-install fixture participates in the
+generic lifecycle matrix; participation does not mean capability completion.
