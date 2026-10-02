@@ -102,3 +102,5 @@ Combined provider migration metadata is final and cumulative: Invoice Ninja is j
 ## Rich Text boundary
 
 `src/integrations/rich-text/document.ts` and `RichText.tsx` are server-safe validation/rendering. Only the post-mount dynamic import loads `editor.client.tsx`; never import it into server execution. Strict bounded JSON, plain-text clipboard, safe URLs and caller-owned persistence/authorization; no new capability hard dependency. Reference is integrated for acceptance; catalog enablement awaits completion.
+
+Markdown / Code Content: `src/integrations/markdown-code/markdown.server.ts` is explicitly server-only and has no application dependencies. Only whitelisted serializable nodes cross to `MarkdownContent`; no raw HTML/MDX/image fetch or untrusted code execution. Application functions own authorization and content retrieval. The `/markdown-test` route is root reference wiring, not an automatically installed add-on route.

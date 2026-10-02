@@ -1,0 +1,97 @@
+{
+  "projectName": "markdown-code-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [],
+  "forbiddenOfficialAddOns": [
+    "drizzle",
+    "better-auth",
+    "postgres-jobs",
+    "ai",
+    "object-storage"
+  ],
+  "expectedFiles": [
+    "src/integrations/markdown-code/MarkdownContent.tsx",
+    "src/integrations/markdown-code/markdown.server.ts",
+    "src/integrations/markdown-code/markdown-code.css",
+    "capabilities/markdown-code/CAPABILITY.md",
+    "scripts/markdown-code-browser.tsx",
+    "scripts/markdown-code-remove.ts",
+    "scripts/markdown-code-fixture-route.ts",
+    "scripts/markdown-code-production.mjs"
+  ],
+  "build": true,
+  "verificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "run",
+      "markdown-code:unit"
+    ],
+    [
+      "bun",
+      "x",
+      "playwright",
+      "install",
+      "chromium"
+    ],
+    [
+      "bun",
+      "run",
+      "markdown-code:browser"
+    ],
+    [
+      "bun",
+      "scripts/markdown-code-fixture-route.ts"
+    ]
+  ],
+  "postBuildVerificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "node",
+      "scripts/markdown-code-production.mjs"
+    ],
+    [
+      "bun",
+      "scripts/markdown-code-remove.ts"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ]
+  ],
+  "referenceVerification": {
+    "installedPath": "src/integrations/markdown-code/MarkdownContent.tsx",
+    "commands": [
+      [
+        "bun",
+        "run",
+        "markdown-code:unit"
+      ],
+      [
+        "bun",
+        "run",
+        "markdown-code:browser"
+      ]
+    ]
+  }
+}

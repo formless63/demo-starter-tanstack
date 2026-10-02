@@ -254,3 +254,7 @@ Remove application imports, the component and its browser fixture scripts/packag
 ## Rich Text removal
 
 Remove the Rich Text imports, `src/integrations/rich-text`, `/rich-text-test` reference route and `e2e/rich-text.e2e.ts`, fixture scripts and package scripts. Remove the three `@tiptap` packages and client Vite optimizeDeps entries, then reinstall, regenerate routes, typecheck and rebuild. Preserve user documents. Keep reusable authoring assets if desired. Details and generated-consumer removal are in [the contract](../capabilities/rich-text/CAPABILITY.md).
+
+### Remove Markdown / Code Content
+
+Remove application routes/loaders/component and CSS imports first (the reference owns `/markdown-test` and `src/features/markdown-reference.ts`). Remove `src/integrations/markdown-code`, module fixture scripts and `markdown-code:*` scripts; uninstall `markdown-it` and `shiki` if unused elsewhere. Keep Playwright and Bun types when other tests need them. Regenerate routes, typecheck and rebuild. No migrations or persisted data are involved. Retaining authored add-on source is a separate choice; remove reference enablement when present but keep catalog identity. See the [exact contract](../capabilities/markdown-code/CAPABILITY.md).
