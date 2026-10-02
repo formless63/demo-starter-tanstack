@@ -8,6 +8,7 @@ const run=(command:string,args:string[],env=process.env)=>{assert.equal(spawnSyn
 try{
  run(process.execPath,['scripts/medusa-unit.ts']);run(process.execPath,['build','scripts/medusa-protocol-fixture.ts','--target=node',`--outfile=${directory}/protocol.mjs`]);run('node',[`${directory}/protocol.mjs`]);
  run(process.execPath,['scripts/medusa-database-fixture.ts']);
+ run(process.execPath,['scripts/medusa-native-compat.ts']);
  run(process.execPath,['x','tsc','--noEmit']);run(process.execPath,['run','build']);
  run(process.execPath,['build','scripts/medusa-database-fixture.ts','--target=node',`--outfile=${directory}/database.mjs`]);
  run('node',[`${directory}/database.mjs`],{...process.env,MEDUSA_FIXTURE_REMOVE:'true',MEDUSA_FIXTURE_BUN:process.execPath});

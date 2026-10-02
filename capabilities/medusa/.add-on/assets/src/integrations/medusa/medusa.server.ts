@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { type SQL, sql } from "drizzle-orm";
 import {
 	bindingRef,
+	checkSignal,
 	connectionId,
 	type ErrorCode,
 	encodeCursor,
@@ -19,6 +20,7 @@ import {
 	syncInput,
 	type TrustedContext,
 	uuid,
+	withSignal,
 } from "./contract";
 import {
 	object,
@@ -29,6 +31,7 @@ import {
 import {
 	adminGet,
 	type Connection,
+	deadline,
 	environmentConnection,
 	validateConnection,
 } from "./transport.server";
@@ -119,13 +122,14 @@ export function createMedusa(options: {
 	enqueue: Enqueue;
 	policy?: Policy;
 	fetch?: typeof fetch;
+	syncConnectionId?: string;
 }) {
 	const { db, enqueue } = options;
 	const policy = options.policy ?? {};
 	async function authorize(ctx: TrustedContext) {
 		parse(opaqueId, ctx.actorUserId);
 		parse(scopeSchema, ctx.scope);
-		ctx.signal?.throwIfAborted();
+		checkSignal(ctx.signal);
 		if (ctx.scope.kind === "user" && ctx.scope.id !== ctx.actorUserId)
 			throw new MedusaError("forbidden");
 		if (
@@ -159,11 +163,11 @@ export function createMedusa(options: {
 		parse(connectionId, id);
 		const c = validateConnection(
 			policy.resolveConnection
-				? await policy.resolveConnection(id, signal)
+				? await withSignal(policy.resolveConnection(id, signal), signal)
 				: environmentConnection(id),
 		);
 		if (c.id !== id) throw new MedusaError("unconfigured");
-		signal.throwIfAborted();
+		checkSignal(signal);
 		return c;
 	}
 	async function get(ctx: TrustedContext, kind: ResourceKind, input: unknown) {
@@ -239,6 +243,7 @@ export function createMedusa(options: {
 	) {
 		const v = parse(reconcileInput, input);
 		const b = await binding(ctx, v.bindingId, v.kind, tx);
+		await connection(b.connection_id, deadline(ctx.signal).signal);
 		return queue(tx, ctx, `reconcile_${v.kind}`, b.connection_id, b.id, {
 			kind: v.kind,
 		});
@@ -250,8 +255,10 @@ export function createMedusa(options: {
 	) {
 		await authorize(ctx);
 		const v = parse(syncInput, input);
-		const offset = pageCursor(v.cursor, v.kind, "default");
-		return queue(tx, ctx, `sync_${v.kind}_page`, "default", null, {
+		const selected = parse(connectionId, options.syncConnectionId ?? "default");
+		await connection(selected, deadline(ctx.signal).signal);
+		const offset = pageCursor(v.cursor, v.kind, selected);
+		return queue(tx, ctx, `sync_${v.kind}_page`, selected, null, {
 			kind: v.kind,
 			limit: v.limit,
 			offset,
@@ -263,6 +270,7 @@ export function createMedusa(options: {
 		authorized: () => Promise<void>,
 		complete?: (tx: Executor) => Promise<void>,
 	) {
+		signal = deadline(signal).signal;
 		const token = randomUUID();
 		const lease = await one<Binding>(
 			db,
@@ -270,22 +278,22 @@ export function createMedusa(options: {
 		);
 		if (!lease) throw new MedusaError("unavailable");
 		try {
-			await authorized();
-			signal.throwIfAborted();
+			await withSignal(authorized(), signal);
+			checkSignal(signal);
 			const c = await connection(b.connection_id, signal);
 			const result = await adminGet(c, b.resource_kind, {
 				remoteId: b.remote_id,
 				signal,
 				fetch: options.fetch,
 			});
-			signal.throwIfAborted();
-			await authorized();
+			checkSignal(signal);
+			await withSignal(authorized(), signal);
 			await db.transaction(async (tx) => {
 				await tx.execute(
 					sql`select id from medusa_binding where id=${b.id} for update`,
 				);
-				await authorized();
-				signal.throwIfAborted();
+				await withSignal(authorized(), signal);
+				checkSignal(signal);
 				const current = await one<Binding>(
 					tx,
 					sql`select * from medusa_binding where id=${b.id} and retired_at is null and lease_token=${token} and revision=${lease.revision} and lease_until>now()`,
@@ -309,7 +317,7 @@ export function createMedusa(options: {
 					sql`insert into medusa_projection(binding_id,value,created_at,synced_at) values(${b.id},${JSON.stringify(value)}::jsonb,now(),now()) on conflict(binding_id) do update set value=excluded.value,synced_at=excluded.synced_at`,
 				);
 				if (complete) await complete(tx);
-				signal.throwIfAborted();
+				checkSignal(signal);
 			});
 		} finally {
 			await db.execute(
@@ -318,6 +326,7 @@ export function createMedusa(options: {
 		}
 	}
 	async function runOperation(id: string, signal: AbortSignal, retryCount = 0) {
+		signal = AbortSignal.any([signal, AbortSignal.timeout(45000)]);
 		parse(uuid, id);
 		const token = randomUUID();
 		const o = await one<Operation>(
@@ -332,7 +341,7 @@ export function createMedusa(options: {
 		};
 		try {
 			await authorize(ctx);
-			signal.throwIfAborted();
+			checkSignal(signal);
 			let nextCursor: string | null = null;
 			let processed = o.processed;
 			if (o.binding_id) {
@@ -369,7 +378,7 @@ export function createMedusa(options: {
 				if (!Array.isArray(resources) || resources.length > limit)
 					throw new MedusaError("unsupported");
 				for (let n = processed; n < resources.length; n++) {
-					signal.throwIfAborted();
+					checkSignal(signal);
 					const remote = parse(opaqueId, object(resources[n]).id);
 					const b = await one<Binding>(
 						db,
@@ -395,7 +404,7 @@ export function createMedusa(options: {
 						: null;
 			}
 			await authorize(ctx);
-			signal.throwIfAborted();
+			checkSignal(signal);
 			await db.execute(
 				sql`update medusa_operation set status='succeeded',error_code=null,processed=${processed},next_cursor=${nextCursor},lease_until=null,updated_at=now() where id=${id} and attempt_token=${token} and status='dispatching' and lease_until>now()`,
 			);
@@ -426,7 +435,7 @@ export function createMedusa(options: {
 		digest: string,
 		signal: AbortSignal,
 	) {
-		signal.throwIfAborted();
+		checkSignal(signal);
 		const b =
 			event.resourceKind && event.resourceId
 				? await one<Binding>(
@@ -440,10 +449,30 @@ export function createMedusa(options: {
 			sql`insert into medusa_inbox(id,connection_id,event_id,body_sha256,event_type,binding_id,remote_hint,state,received_at,updated_at) values(${id},${connection},${event.id},${digest},${b ? event.type : "unsupported"},${b?.id ?? null},${b?.remote_id ?? null},${b ? "received" : "ignored"},now(),now()) on conflict(connection_id,event_id) do nothing returning id`,
 		);
 		if (accepted && b) await enqueue(tx, { inboxId: id });
-		signal.throwIfAborted();
+		if (!accepted) {
+			const conflict = await one<{
+				id: string;
+				state: string;
+				binding_id: string | null;
+			}>(
+				tx,
+				sql`update medusa_inbox set conflict_digest=${digest},reconcile_again=true,updated_at=now() where connection_id=${connection} and event_id=${event.id} and body_sha256<>${digest} and (conflict_digest is null or conflict_digest<>${digest}) returning id,state,binding_id`,
+			);
+			if (
+				conflict?.binding_id &&
+				["processed", "failed"].includes(conflict.state)
+			) {
+				await tx.execute(
+					sql`update medusa_inbox set state='received',reconcile_again=false,attempt_token=null,lease_until=null,revision=revision+1 where id=${conflict.id}`,
+				);
+				await enqueue(tx, { inboxId: conflict.id });
+			}
+		}
+		checkSignal(signal);
 		return { accepted: true as const };
 	}
 	async function runInbox(id: string, signal: AbortSignal, retryCount = 0) {
+		signal = AbortSignal.any([signal, AbortSignal.timeout(45000)]);
 		parse(uuid, id);
 		const token = randomUUID();
 		const inbox = await one<Inbox>(
@@ -465,7 +494,7 @@ export function createMedusa(options: {
 				return { status: "ignored" as const };
 			}
 			const authorized = async () => {
-				signal.throwIfAborted();
+				checkSignal(signal);
 				const current = await one<Binding>(
 					db,
 					sql`select * from medusa_binding where id=${b.id} and connection_id=${inbox.connection_id} and retired_at is null`,
@@ -478,11 +507,12 @@ export function createMedusa(options: {
 					throw new MedusaError("forbidden");
 			};
 			await processBinding(b, signal, authorized, async (tx) => {
-				const updated = await one<{ id: string }>(
+				const updated = await one<{ id: string; state: string }>(
 					tx,
-					sql`update medusa_inbox set state='processed',error_code=null,lease_until=null,updated_at=now() where id=${id} and attempt_token=${token} and state='processing' and lease_until>now() returning id`,
+					sql`update medusa_inbox set state=case when reconcile_again then 'received' else 'processed' end,reconcile_again=false,error_code=null,lease_until=null,updated_at=now() where id=${id} and attempt_token=${token} and state='processing' and lease_until>now() returning id,state`,
 				);
 				if (!updated) throw new MedusaError("conflict");
+				if (updated.state === "received") await enqueue(tx, { inboxId: id });
 			});
 			return { status: "processed" as const };
 		} catch (error) {

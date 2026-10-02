@@ -39,13 +39,14 @@ test("the reference app enables the complete optional capability wave", () => {
 	);
 });
 
-test("the generic lifecycle matrix discovers all completed add-ons", () => {
+test("the generic lifecycle matrix discovers completed and in-progress authored add-ons", () => {
 	const result = spawnSync(process.execPath, ["scripts/add-ons.ts", "matrix"], {
 		encoding: "utf8",
 	});
 	expect(result.status).toBe(0);
 	expect(JSON.parse(result.stdout).sort()).toEqual(
-		completed
+		catalog.capabilities
+			.filter(({ status }) => status === "done" || status === "in-progress")
 			.filter((capability) => "tanstackAddOn" in capability)
 			.map(({ id }) => id)
 			.sort(),

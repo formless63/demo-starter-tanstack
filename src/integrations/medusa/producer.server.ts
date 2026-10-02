@@ -24,7 +24,10 @@ export async function deliverBridge(
 ) {
 	parse(connectionId, configuration.connectionId);
 	const u = new URL(configuration.targetUrl);
-	const origin = validateEndpoint(u.origin, configuration.development);
+	const origin = validateEndpoint(
+		configuration.targetUrl.match(/^https?:\/\/[^/]+/)?.[0] ?? "",
+		configuration.development,
+	);
 	if (
 		u.username ||
 		u.password ||

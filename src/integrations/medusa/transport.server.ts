@@ -20,6 +20,7 @@ export type Connection = {
 };
 export function validateEndpoint(input: string, development = false) {
 	try {
+		if (hasControls(input)) throw 0;
 		// Inspect the original authority, before URL normalizes numeric/hex host aliases.
 		const match =
 			/^https?:\/\/(\[[^\]]+\]|[^/:?#@]+)(?::[0-9]+)?(?:[/?#]|$)/i.exec(input);

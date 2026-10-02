@@ -7,12 +7,14 @@ import {
 } from "../webhooks/protocol.server";
 import {
 	bridgeEvent,
+	checkSignal,
 	connectionId,
 	MedusaError,
 	parse,
 	publicResponse,
 	safeError,
 	uuid,
+	withSignal,
 } from "./contract";
 import type { createMedusa, Database } from "./medusa.server";
 /** Receiver owns its receipt transaction. Raw body is verified before parsing and never retained. */
@@ -22,6 +24,7 @@ export async function receiveBridge(
 	service: ReturnType<typeof createMedusa>,
 	db: Database,
 ) {
+	const started = Date.now();
 	const signal = AbortSignal.any([request.signal, AbortSignal.timeout(5000)]);
 	try {
 		parse(connectionId, registeredConnection);
@@ -36,11 +39,15 @@ export async function receiveBridge(
 			"webhook-signature",
 		]) {
 			const h = request.headers.get(name);
+			if (h && Buffer.byteLength(h) > 8192)
+				throw new MedusaError("limit_exceeded");
 			if (
-				!h ||
-				Buffer.byteLength(h) > 8192 ||
-				(name !== "webhook-signature" && h.includes(","))
+				name === "webhook-signature" &&
+				h &&
+				!/^v1,[A-Za-z0-9+/]{43}=(?: v1,[A-Za-z0-9+/]{43}=)*$/.test(h)
 			)
+				throw new MedusaError("invalid_input");
+			if (!h || (name !== "webhook-signature" && h.includes(",")))
 				throw new MedusaError("invalid_input");
 		}
 		const c = await service.connection(registeredConnection, signal);
@@ -84,21 +91,25 @@ export async function receiveBridge(
 			? parse(bridgeEvent, value)
 			: { id, type: "unsupported" };
 		const digest = createHash("sha256").update(body).digest("hex");
-		const receipt = await db.transaction(async (tx) => {
-			await tx.execute(
-				(await import("drizzle-orm")).sql`set local statement_timeout='4500ms'`,
-			);
-			const result = await service.receiptInTransaction(
-				tx,
-				registeredConnection,
-				event,
-				digest,
-				signal,
-			);
-			signal.throwIfAborted();
-			return result;
-		});
-		signal.throwIfAborted();
+		const receipt = await withSignal(
+			db.transaction(async (tx) => {
+				await tx.execute(
+					(await import("drizzle-orm"))
+						.sql`select set_config('statement_timeout',${String(Math.max(1, 5000 - (Date.now() - started)))},true)`,
+				);
+				const result = await service.receiptInTransaction(
+					tx,
+					registeredConnection,
+					event,
+					digest,
+					signal,
+				);
+				checkSignal(signal);
+				return result;
+			}),
+			signal,
+		);
+		checkSignal(signal);
 		return publicResponse(receipt);
 	} catch (error) {
 		let e = safeError(error);
