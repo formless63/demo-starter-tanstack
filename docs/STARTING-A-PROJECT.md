@@ -226,3 +226,11 @@ Remove `import-export` from `referenceApplication.enabledCapabilities`, keeping 
 Independent add-on assets overlay only the clean Jobs registry and Drizzle configuration; customized consumers must preserve their existing schema/handlers manually. Keep authoring workspaces separately from runtime removal. Run frozen/updated install as appropriate, capabilities/agent checks, typecheck/build and remaining capability lifecycles.
 
 Opt-in Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
+
+Invoice Ninja's current in-progress add-on packages boundary primitives only. Do not use it
+as a completed financial integration. Its foundation removal fixture removes
+`src/integrations/invoice-ninja` and the installed capability documentation while retaining
+Jobs and Webhooks. Once durable runtime assets exist, their handlers must stop before
+removal, and schemas, migrations, bindings, projections, ledger and inbox history must be
+retained. Remote deletion, callback deregistration and credential revocation are separate
+operator actions.

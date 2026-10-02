@@ -49,6 +49,7 @@ test("the generic lifecycle matrix discovers completed and authored in-progress 
 			.filter(
 				(capability) =>
 					"tanstackAddOn" in capability &&
+					capability.tanstackAddOn !== undefined &&
 					(capability.status === "done" ||
 						(capability.status === "in-progress" &&
 							existsSync(capability.tanstackAddOn.cleanInstallFixture))),
