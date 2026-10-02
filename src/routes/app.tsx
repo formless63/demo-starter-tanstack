@@ -64,6 +64,24 @@ function AppShell() {
 				<aside className="border-r p-4 max-md:border-b">
 					<nav className="space-y-1">
 						<Link
+							to="/app/invoices"
+							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+						>
+							Invoices
+						</Link>
+						<Link
+							to="/app/payments"
+							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+						>
+							Payments
+						</Link>
+						<Link
+							to="/app/medusa"
+							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+						>
+							Commerce
+						</Link>
+						<Link
 							to="/app/transfers"
 							className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
 						>
