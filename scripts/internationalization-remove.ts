@@ -1,0 +1,12 @@
+import { rm,readFile,writeFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+if(JSON.parse(await readFile('package.json','utf8')).name!=='internationalization-clean-install')throw new Error('Removal fixture refuses non-fixture applications');
+for(const path of ['src/routes/i18n-fixture.tsx','src/integrations/internationalization','capabilities/internationalization',...['unit.tsx','browser.tsx','client.tsx','example.tsx','fixture-route.ts','production.mjs'].map(name=>`scripts/internationalization-${name}`)])await rm(path,{recursive:true,force:true});
+const pkg=JSON.parse(await readFile('package.json','utf8'));
+for(const key of Object.keys(pkg.scripts))if(key.startsWith('internationalization:'))delete pkg.scripts[key];
+for(const key of ['i18next','react-i18next'])delete pkg.dependencies[key];
+delete pkg.devDependencies['@playwright/test'];
+await writeFile('package.json',`${JSON.stringify(pkg,null,2)}\n`);
+if(spawnSync('bun',['install'],{stdio:'inherit'}).status!==0)throw new Error('Removal install failed');
+await rm(fileURLToPath(import.meta.url));

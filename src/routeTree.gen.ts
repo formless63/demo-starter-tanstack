@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as ChartsTestRouteImport } from './routes/charts-test'
+import { Route as FlowTestRouteImport } from './routes/flow-test'
+import { Route as I18nTestRouteImport } from './routes/i18n-test'
 import { Route as MarkdownTestRouteImport } from './routes/markdown-test'
 import { Route as RichTextTestRouteImport } from './routes/rich-text-test'
 import { Route as AdminOpsRouteImport } from './routes/admin.ops'
@@ -50,6 +52,16 @@ const AppRoute = AppRouteImport.update({
 const ChartsTestRoute = ChartsTestRouteImport.update({
   id: '/charts-test',
   path: '/charts-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FlowTestRoute = FlowTestRouteImport.update({
+  id: '/flow-test',
+  path: '/flow-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const I18nTestRoute = I18nTestRouteImport.update({
+  id: '/i18n-test',
+  path: '/i18n-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MarkdownTestRoute = MarkdownTestRouteImport.update({
@@ -182,6 +194,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/flow-test': typeof FlowTestRoute
+  '/i18n-test': typeof I18nTestRoute
   '/markdown-test': typeof MarkdownTestRoute
   '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
@@ -211,6 +225,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/flow-test': typeof FlowTestRoute
+  '/i18n-test': typeof I18nTestRoute
   '/markdown-test': typeof MarkdownTestRoute
   '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
@@ -241,6 +257,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
+  '/flow-test': typeof FlowTestRoute
+  '/i18n-test': typeof I18nTestRoute
   '/markdown-test': typeof MarkdownTestRoute
   '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
@@ -272,6 +290,8 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/charts-test'
+    | '/flow-test'
+    | '/i18n-test'
     | '/markdown-test'
     | '/rich-text-test'
     | '/admin/ops'
@@ -301,6 +321,8 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/charts-test'
+    | '/flow-test'
+    | '/i18n-test'
     | '/markdown-test'
     | '/rich-text-test'
     | '/admin/ops'
@@ -330,6 +352,8 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/charts-test'
+    | '/flow-test'
+    | '/i18n-test'
     | '/markdown-test'
     | '/rich-text-test'
     | '/admin/ops'
@@ -360,6 +384,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   ChartsTestRoute: typeof ChartsTestRoute
+  FlowTestRoute: typeof FlowTestRoute
+  I18nTestRoute: typeof I18nTestRoute
   MarkdownTestRoute: typeof MarkdownTestRoute
   RichTextTestRoute: typeof RichTextTestRoute
   AdminOpsRoute: typeof AdminOpsRoute
@@ -399,6 +425,20 @@ declare module '@tanstack/react-router' {
       path: '/charts-test'
       fullPath: '/charts-test'
       preLoaderRoute: typeof ChartsTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/flow-test': {
+      id: '/flow-test'
+      path: '/flow-test'
+      fullPath: '/flow-test'
+      preLoaderRoute: typeof FlowTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/i18n-test': {
+      id: '/i18n-test'
+      path: '/i18n-test'
+      fullPath: '/i18n-test'
+      preLoaderRoute: typeof I18nTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/markdown-test': {
@@ -600,6 +640,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   ChartsTestRoute: ChartsTestRoute,
+  FlowTestRoute: FlowTestRoute,
+  I18nTestRoute: I18nTestRoute,
   MarkdownTestRoute: MarkdownTestRoute,
   RichTextTestRoute: RichTextTestRoute,
   AdminOpsRoute: AdminOpsRoute,

@@ -98,7 +98,9 @@
       "data-table",
       "markdown-code",
       "file-ui",
-      "rich-text"
+      "rich-text",
+      "flow-canvas",
+      "internationalization"
     ]
   },
   "frameworkEvaluations": {
@@ -1710,7 +1712,7 @@
       "id": "flow-canvas",
       "displayName": "Flow / Canvas",
       "kind": "operations-ui-infrastructure",
-      "status": "planned",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
@@ -1720,7 +1722,26 @@
       ],
       "baselineRequirements": [],
       "externalRequirements": [],
-      "summary": "Composable node, edge, and spatial workflow interfaces."
+      "summary": "Composable node, edge, and spatial workflow interfaces.",
+      "documentationPath": "capabilities/flow-canvas/CAPABILITY.md",
+      "agentSkill": ".agents/skills/capability-change/SKILL.md",
+      "evaluationDocument": "FLOW_CANVAS_MODULE_EVALUATION.md",
+      "scripts": [
+        "flow-canvas:unit",
+        "flow-canvas:browser"
+      ],
+      "environmentVariables": [],
+      "migrations": [],
+      "runtimeServices": [],
+      "tanstackAddOn": {
+        "addOnId": "flow-canvas",
+        "sourceDirectory": "capabilities/flow-canvas/.add-on",
+        "manifestPath": "capabilities/flow-canvas/.add-on/info.json",
+        "distributablePath": "capabilities/flow-canvas/add-on.json",
+        "cleanInstallFixture": "capabilities/flow-canvas/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
     },
     {
       "id": "pwa-offline",
@@ -1741,7 +1762,7 @@
       "id": "internationalization",
       "displayName": "Internationalization",
       "kind": "client-platform",
-      "status": "planned",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [],
       "integratesWith": [
@@ -1757,7 +1778,18 @@
       ],
       "baselineRequirements": [],
       "externalRequirements": [],
-      "summary": "Locale routing, message formatting, and translation conventions for UI-facing capabilities."
+      "summary": "Explicit request-local locale, bounded plain-text messages, CLDR plurals and Intl formatting; application-owned routing.",
+      "documentationPath": "capabilities/internationalization/CAPABILITY.md",
+      "evaluationDocument": "INTERNATIONALIZATION_MODULE_EVALUATION.md",
+      "tanstackAddOn": {
+        "addOnId": "internationalization",
+        "sourceDirectory": "capabilities/internationalization/.add-on",
+        "manifestPath": "capabilities/internationalization/.add-on/info.json",
+        "distributablePath": "capabilities/internationalization/add-on.json",
+        "cleanInstallFixture": "capabilities/internationalization/test/clean-install.json",
+        "dependsOn": [],
+        "conflictsWith": []
+      }
     }
   ]
 }
