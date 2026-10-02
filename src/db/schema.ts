@@ -199,3 +199,5 @@ export {
 	stripeOperations,
 	stripeProjections,
 } from "../integrations/stripe/schema";
+
+export { fileUiFiles } from "./file-ui-schema";

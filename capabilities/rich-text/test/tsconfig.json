@@ -1,0 +1,9 @@
+{
+  "extends": "../../../tsconfig.json",
+  "include": [
+    "../.add-on/assets/src/integrations/rich-text/*.ts",
+    "../.add-on/assets/src/integrations/rich-text/*.tsx",
+    "../.add-on/assets/scripts/rich-text-client.tsx"
+  ],
+  "exclude": []
+}

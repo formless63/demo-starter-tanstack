@@ -15,7 +15,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 ## Completed capabilities
 
-All twenty-one completed capabilities are reference-enabled and opt-in for clean consumers.
+All twenty-three completed capabilities are reference-enabled and opt-in for clean consumers.
 
 | ID | TanStack add-on ID | Status | Reference app | Default installed | Official add-on dependencies | Reusable capability requirements | External | Contract |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -27,6 +27,8 @@ All twenty-one completed capabilities are reference-enabled and opt-in for clean
 | `command-system` | `command-system` | Done | Enabled | No | None | None | None | [Command System](../capabilities/command-system/CAPABILITY.md) |
 | `markdown-code` | `markdown-code` | Done | Enabled | No | None | None | None | [Markdown / Code Content](../capabilities/markdown-code/CAPABILITY.md) |
 | `data-table` | `data-table` | Done | Enabled | No | None | None | None | [Data Table](../capabilities/data-table/CAPABILITY.md) |
+| `rich-text` | `rich-text` | Done | Enabled | No | None | None | None | [Rich Text](../capabilities/rich-text/CAPABILITY.md) |
+| `file-ui` | `file-ui` | Done | Enabled | No | `object-storage` | Object Storage | S3 only when used | [File UI](../capabilities/file-ui/CAPABILITY.md) |
 | `charts-visualization` | `charts-visualization` | Done | Enabled | No | None | None | None | [Charts / Visualization](../capabilities/charts-visualization/CAPABILITY.md) |
 | `email` | `email` | Done | Enabled | No | None | None | SMTP only when used; optional Mailpit | [Email](../capabilities/email/CAPABILITY.md) |
 | `webhooks` | `webhooks` | Done | Enabled | No | `postgres-jobs` | Jobs | Remote endpoints when used | [Webhooks](../capabilities/webhooks/CAPABILITY.md) |
@@ -208,7 +210,7 @@ Stripe is an optional authored/compiled add-on (`stripe`, default installed: No)
 
 ## Medusa
 
-Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](../capabilities/medusa/CAPABILITY.md). All twenty-one completed capabilities remain opt-in for clean consumers.
+Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](../capabilities/medusa/CAPABILITY.md). All twenty-three completed capabilities remain opt-in for clean consumers.
 
 ## Integrated provider migration history
 
@@ -222,7 +224,16 @@ Snapshot links continue from `0007_snapshot.json`, retaining every preceding sch
 
 - Data Table (`data-table`, done, reference-enabled, optional) has no hard dependencies and uses native v9 controlled or internal state. The reference verification imports the authored component and runs the shared SSR/interactive fixture; clean consumers install the same component through the add-on. Hosted real-browser and full lifecycle verification passed. See the [contract](../capabilities/data-table/CAPABILITY.md) and [acceptance evidence](../DATA_TABLE_MODULE_EVALUATION.md).
 
+Rich Text (`rich-text`): completed, reference-enabled, `defaultInstalled: false`, no hard dependencies/services/migrations. Safe JSON/SSR and caller-owned persistence. [Contract](../capabilities/rich-text/CAPABILITY.md), [evaluation](../RICH_TEXT_MODULE_EVALUATION.md).
+
+## File UI (completed, reference-enabled)
+
+Only Object Storage is required. React UI and atomic workflow adapters are independently installed; root authentication and PostgreSQL persistence are application-owned. The clean fixture uses bounded non-durable synthetic metadata. See [contract](../capabilities/file-ui/CAPABILITY.md) for upload receipts, quarantine, operator recovery and removal. Journal index14 / SQL0016_file_ui / cumulative snapshot0014 preserve all previous migration hashes and entries. Source hosted gates passed; the combined integration head requires its own full hosted CI before merge.
 Markdown / Code Content is completed and reference-enabled with no hard dependency. Its [frozen contract](../capabilities/markdown-code/CAPABILITY.md) separates the server-only parser/highlighter from native React output. Root and clean-consumer proofs cover the installed boundary. Runtime head `a591a9f` passed full [hosted CI](https://github.com/formless63/demo-starter-tanstack/actions/runs/37025808307), including real Chromium, generated install/removal/rebuild, and development/production reference hydration; clean consumers remain opt-in.
+
+## Combined content-module acceptance
+
+Both independently reviewed source heads passed full hosted CI: Rich Text `4754559bba71c36c357325f9b4d1231d3808d0cf` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37034217024)) and File UI `73c442b9b8729e17c8cb30a6879d87da80f31c5b` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37036091357)). This combined integration retains their accepted runtime and all inherited gates. The published combined head still requires its own complete hosted CI before merge; source success is not a combined-CI claim.
 
 ## Flow / Canvas (in progress)
 

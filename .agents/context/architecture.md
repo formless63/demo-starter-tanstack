@@ -26,7 +26,7 @@ Authentication terminates at `/api/auth/$`. Better Auth persists users, accounts
 
 Custom add-ons never share a root `.add-on` directory. `capabilities/catalog.json` is the discovery index used by the thin orchestration scripts and CI matrix; the official TanStack CLI remains the compiler and installer. Planned catalog entries have no workspace until implementation, so they are not implicitly installed.
 
-The seventeen completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination, AI, Search, Realtime, Notifications, Import / Export, Ops / Admin, Invoice Ninja, Stripe and Medusa. All are reference-enabled and remain opt-in for clean consumers.
+The twenty-three completed capabilities are Jobs, API Platform, Observability, Object Storage, Email, Webhooks, Audit Log, Cache / Coordination, AI, Search, Realtime, Notifications, Import / Export, Ops / Admin, Invoice Ninja, Stripe, Medusa, Charts / Visualization, Command System, Data Table, Markdown / Code Content, File UI and Rich Text / Tiptap. All are reference-enabled and remain opt-in for clean consumers.
 
 `defaultInstalled` describes only clean generated consumers. The root reference application's intentionally integrated capabilities are listed separately in `referenceApplication.enabledCapabilities`; disabling an application integration does not require deleting the reusable add-on workspace or its stable catalog identity. Removal retains database data and committed migration history unless a separate destructive change explicitly says otherwise.
 
@@ -99,6 +99,11 @@ Medusa v1 (completed and reference-enabled) uses `src/integrations/medusa` for b
 
 Combined provider migration metadata is final and cumulative: Invoice Ninja is journal index 8/snapshot 0008, Stripe indices 9–11/snapshots 0009–0011, and Medusa indices 12–13/snapshots 0012–0013. Baseline indices 0–7 remain unchanged. Preserve SQL, order, timestamps and snapshot links; filename prefixes are not journal indices. See `docs/CAPABILITIES.md` for exact filenames and branch-deployment cautions.
 
+## Rich Text boundary
+
+`src/integrations/rich-text/document.ts` and `RichText.tsx` are server-safe validation/rendering. Only the post-mount dynamic import loads `editor.client.tsx`; never import it into server execution. Strict bounded JSON, plain-text clipboard, safe URLs and caller-owned persistence/authorization; no new capability hard dependency. Completed and reference-enabled after accepted source hosted CI; combined exact-head CI gates integration merge.
+
+File UI (completed and reference-enabled) owns `src/integrations/file-ui` and `src/components/file-ui.tsx`; only Object Storage is required. Explicit atomic metadata/trusted-policy adapters isolate root Better Auth/PostgreSQL wiring. Root migration index14 SQL0016 and cumulative snapshot0014 are additive; all earlier bytes remain frozen. Ambiguous writers stay quarantined until independently stopped, metadata errors reread before deletion, cancellation never suppresses independent cleanup, and removal preserves stored files/receipts/schema/history. Contract: `capabilities/file-ui/CAPABILITY.md`.
 Markdown / Code Content: `src/integrations/markdown-code/markdown.server.ts` is explicitly server-only and has no application dependencies. Only whitelisted serializable nodes cross to `MarkdownContent`; no raw HTML/MDX/image fetch or untrusted code execution. Application functions own authorization and content retrieval. The `/markdown-test` route is root reference wiring, not an automatically installed add-on route.
 
 Flow / Canvas (staged): `src/integrations/flow-canvas/graph.ts` is pure and server-safe. Validate before SSR transport and use HTML-safe `serializeGraph` for embedding JSON. Native React Flow loads only after hydration; semantic lists/forms remain available. The application controls value, documentKey, connection policy and persistence. No DB, service, layout engine, autosave, runtime content execution or collaboration. `/flow-test` is a public synthetic application fixture.

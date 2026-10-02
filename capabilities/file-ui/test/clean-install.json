@@ -1,0 +1,83 @@
+{
+  "projectName": "file-ui-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [
+    "object-storage"
+  ],
+  "forbiddenOfficialAddOns": [
+    "drizzle",
+    "better-auth",
+    "postgres-jobs",
+    "audit-log",
+    "notifications",
+    "search",
+    "observability"
+  ],
+  "expectedFiles": [
+    "src/components/file-ui.tsx",
+    "src/integrations/file-ui/workflow.server.ts",
+    "src/integrations/storage/storage.server.ts",
+    "capabilities/file-ui/CAPABILITY.md"
+  ],
+  "build": true,
+  "verificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "run",
+      "file-ui:unit"
+    ],
+    [
+      "bun",
+      "run",
+      "file-ui:protocol"
+    ],
+    [
+      "bun",
+      "run",
+      "file-ui:protocol:node"
+    ],
+    [
+      "bun",
+      "x",
+      "playwright",
+      "install",
+      "chromium"
+    ],
+    [
+      "bun",
+      "run",
+      "file-ui:browser"
+    ],
+    [
+      "bun",
+      "run",
+      "file-ui:compat"
+    ]
+  ],
+  "postBuildVerificationCommands": [
+    [
+      "bun",
+      "scripts/file-ui-remove.ts"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ]
+  ]
+}
