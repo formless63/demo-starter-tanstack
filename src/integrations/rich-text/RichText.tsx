@@ -15,6 +15,8 @@ import {
 const loadEditor = createClientOnlyFn(() => import("./editor.client"));
 
 export type RichTextEditorProps = {
+	/** Stable caller-owned record identity. Change to discard selection/history, even for equal JSON. */
+	documentKey: string;
 	value: RichTextDocument;
 	onChange: (value: RichTextDocument) => void;
 	label: string;
@@ -114,6 +116,8 @@ export function RichTextEditor(props: RichTextEditorProps) {
 			active = false;
 		};
 	}, []);
+	if (typeof props.documentKey !== "string" || props.documentKey.length === 0)
+		return <p role="alert">Invalid rich-text document identity.</p>;
 	let value: RichTextDocument;
 	try {
 		value = parseRichTextDocument(props.value);
@@ -123,7 +127,7 @@ export function RichTextEditor(props: RichTextEditorProps) {
 	if (props.readOnly)
 		return <RichTextContent value={value} label={props.label} />;
 	return Client ? (
-		<Client {...props} value={value} />
+		<Client key={props.documentKey} {...props} value={value} />
 	) : (
 		<div aria-busy={!failed}>
 			<RichTextContent value={value} label={props.label} />

@@ -18,10 +18,13 @@ test("public SSR entry evaluates without window, document, or client-editor impo
 	expect(typeof document).toBe("undefined");
 	expect(
 		renderToString(<RichTextContent value={emptyRichTextDocument} />),
-	).toBe('<section style="white-space:pre-wrap;overflow-wrap:anywhere"><div><p></p></div></section>');
+	).toBe(
+		'<section style="white-space:pre-wrap;overflow-wrap:anywhere"><div><p></p></div></section>',
+	);
 	expect(
 		renderToString(
 			<RichTextEditor
+				documentKey="test-document"
 				value={emptyRichTextDocument}
 				onChange={() => {}}
 				label="Server content"
@@ -31,6 +34,7 @@ test("public SSR entry evaluates without window, document, or client-editor impo
 	expect(
 		renderToString(
 			<RichTextEditor
+				documentKey="test-document"
 				value={emptyRichTextDocument}
 				onChange={() => {}}
 				label="Server content"

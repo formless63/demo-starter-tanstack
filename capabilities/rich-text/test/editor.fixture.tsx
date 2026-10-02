@@ -66,6 +66,7 @@ function Controlled({
 	return (
 		<>
 			<RichTextEditor
+				documentKey="test-document"
 				value={value}
 				onChange={(next) => {
 					onChange(next);
@@ -439,11 +440,17 @@ describe("real Tiptap editor and controlled parent state", () => {
 		const nextCallback = vi.fn();
 		const value = documentWith("Hello");
 		const { rerender } = render(
-			<RichTextEditor value={value} onChange={oldCallback} label="Old label" />,
+			<RichTextEditor
+				documentKey="test-document"
+				value={value}
+				onChange={oldCallback}
+				label="Old label"
+			/>,
 		);
 		const { editor } = await editorNamed("Old label");
 		rerender(
 			<RichTextEditor
+				documentKey="test-document"
 				value={value}
 				onChange={nextCallback}
 				label="New label"
@@ -534,5 +541,97 @@ describe("real Tiptap editor and controlled parent state", () => {
 				],
 			}),
 		).toThrow();
+	});
+});
+
+describe("canonical text and explicit record identity", () => {
+	test("normalizes clipboard line endings, preserves Unicode and keeps accepted undo/redo", async () => {
+		render(<Controlled />);
+		const { editor, element } = await editorNamed("Article");
+		selectAll(editor);
+		paste(element, "One\r\nTwo\rThree 😀 �");
+		const canonical = "One\nTwo\nThree 😀 �";
+		expect(editor.state.doc.textContent).toBe(canonical);
+		expect(readValue()).toEqual(documentWith(canonical));
+		fireEvent.click(button("Undo"));
+		expect(element.textContent).toBe("Hello");
+		fireEvent.click(button("Redo"));
+		expect(editor.state.doc.textContent).toBe(canonical);
+		for (const bad of ["\0", "\ud800", "\udfff"]) {
+			selectAll(editor);
+			paste(element, bad);
+			expect(editor.state.doc.textContent).toBe(canonical);
+			act(() => {
+				editor.commands.insertContent({ type: "text", text: bad });
+			});
+			expect(editor.state.doc.textContent).toBe(canonical);
+		}
+		selectAll(editor);
+		act(() => {
+			editor.commands.insertContent({
+				type: "text",
+				text: "uncanonical\rtext",
+			});
+		});
+		expect(editor.state.doc.textContent).toBe(canonical);
+		fireEvent.click(button("Undo"));
+		expect(element.textContent).toBe("Hello");
+	});
+	test("parent rejection restores the canonical document and clears rejected text history", async () => {
+		render(<RichTextExample />);
+		const { editor, element } = await editorNamed();
+		selectAll(editor);
+		paste(element, "Saved\r\ntext 😀 �");
+		fireEvent.click(button("Reject changes"));
+		selectAll(editor);
+		paste(element, "Rejected\rsecret");
+		expect(editor.state.doc.textContent).toBe("Saved\ntext 😀 �");
+		expect(readValue()).toEqual(documentWith("Saved\ntext 😀 �"));
+		expect(button("Undo").disabled).toBe(true);
+		expect(button("Redo").disabled).toBe(true);
+		act(() => {
+			editor.commands.undo();
+			editor.commands.redo();
+		});
+		expect(element.textContent).toBe("Saved\ntext 😀 �");
+	});
+	test("stable-key cloned echoes retain undo but a new-key equal Public document cannot recover PRIVATE", async () => {
+		function Owner({ documentKey }: { documentKey: string }) {
+			const [value, setValue] = useState(documentWith("PRIVATE"));
+			return (
+				<RichTextEditor
+					documentKey={documentKey}
+					label="Article"
+					value={value}
+					onChange={(next) => setValue(structuredClone(next))}
+				/>
+			);
+		}
+		const view = render(<Owner documentKey="private-record" />);
+		const original = await editorNamed("Article");
+		selectAll(original.editor);
+		paste(original.element, "Public");
+		expect(button("Undo").disabled).toBe(false);
+		fireEvent.click(button("Undo"));
+		expect(original.element.textContent).toBe("PRIVATE");
+		fireEvent.click(button("Redo"));
+		expect(original.element.textContent).toBe("Public");
+		view.rerender(<Owner documentKey="public-record" />);
+		// A late event on the retired instance cannot change the new record.
+		act(() => {
+			if (!original.editor.isDestroyed)
+				original.editor.commands.insertContent("PRIVATE");
+		});
+		await waitFor(() => expect(original.editor.isDestroyed).toBe(true));
+		const next = await editorNamed("Article");
+		expect(next.editor).not.toBe(original.editor);
+		expect(next.element.textContent).toBe("Public");
+		expect(button("Undo").disabled).toBe(true);
+		expect(button("Redo").disabled).toBe(true);
+		act(() => {
+			next.editor.commands.undo();
+			next.editor.commands.redo();
+		});
+		expect(next.element.textContent).toBe("Public");
 	});
 });

@@ -12,6 +12,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import {
 	isSafeRichTextLink,
+	normalizeRichTextText,
 	parseRichTextDocument,
 	type RichTextDocument,
 	richTextLimits,
@@ -20,6 +21,8 @@ import type { RichTextEditorProps } from "./RichText";
 /** Drop only editor-generated defaults; public input always uses the strict parser. */
 export function documentFromEditor(input: JSONContent): RichTextDocument {
 	function copy(item: JSONContent): unknown {
+		if (item.text?.includes("\r"))
+			throw new Error("Invalid rich-text document");
 		return {
 			type: item.type,
 			...(item.text === undefined ? {} : { text: item.text }),
@@ -67,6 +70,13 @@ export function ClientEditor({
 	readOnly = false,
 }: RichTextEditorProps) {
 	const current = useRef({ value, onChange });
+	const active = useRef(true);
+	useLayoutEffect(() => {
+		active.current = true;
+		return () => {
+			active.current = false;
+		};
+	}, []);
 	current.current = { value, onChange };
 	const [, render] = useState(0);
 	const [link, setLink] = useState("");
@@ -104,8 +114,15 @@ export function ClientEditor({
 			handlePaste(view, event) {
 				event.preventDefault();
 				const text = event.clipboardData?.getData("text/plain") ?? "";
-				if (text.length > 0 && text.length <= richTextLimits.characters)
-					view.dispatch(view.state.tr.insertText(text));
+				if (text.length > 0 && text.length <= richTextLimits.characters) {
+					let normalized: string;
+					try {
+						normalized = normalizeRichTextText(text);
+					} catch {
+						return true;
+					}
+					view.dispatch(view.state.tr.insertText(normalized));
+				}
 				return true;
 			},
 			handleDrop(_view, event) {
@@ -114,6 +131,7 @@ export function ClientEditor({
 			},
 		},
 		onUpdate({ editor: updated }) {
+			if (!active.current) return;
 			try {
 				current.current.onChange(documentFromEditor(updated.getJSON()));
 			} finally {

@@ -92,6 +92,7 @@ describe("safe React renderer and genuine hydration", () => {
 		expect(container.querySelector("a")).toBeNull();
 		rerender(
 			<RichTextEditor
+				documentKey="test-document"
 				value={unsafe}
 				onChange={vi.fn()}
 				label="Unsafe editor"
@@ -105,7 +106,12 @@ describe("safe React renderer and genuine hydration", () => {
 
 	test("SSR contains only safe content and a loading status, never editor markup", () => {
 		const html = renderToString(
-			<RichTextEditor value={literal} onChange={vi.fn()} label="Article" />,
+			<RichTextEditor
+				documentKey="test-document"
+				value={literal}
+				onChange={vi.fn()}
+				label="Article"
+			/>,
 		);
 		const safe = renderToString(
 			<RichTextContent value={literal} label="Article" />,
@@ -123,6 +129,7 @@ describe("safe React renderer and genuine hydration", () => {
 		const onChange = vi.fn();
 		const component = (
 			<RichTextEditor
+				documentKey="test-document"
 				value={literal}
 				onChange={onChange}
 				label="Hydrated article"
@@ -164,6 +171,7 @@ describe("safe React renderer and genuine hydration", () => {
 	test("read-only SSR equals the safe renderer and hydration never adds editing controls", async () => {
 		const component = (
 			<RichTextEditor
+				documentKey="test-document"
 				value={allFeatures}
 				onChange={vi.fn()}
 				label="Read only"
@@ -199,6 +207,7 @@ describe("safe React renderer and genuine hydration", () => {
 		const onChange = vi.fn();
 		const { unmount, container } = render(
 			<RichTextEditor
+				documentKey="test-document"
 				value={literal}
 				onChange={onChange}
 				label="Quick removal"
@@ -214,7 +223,36 @@ describe("safe React renderer and genuine hydration", () => {
 });
 
 test("SSR content preserves plain-text spaces and line breaks without editor CSS", () => {
- const html = renderToString(<RichTextContent value={{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"one  two\nthree"}]}]}} />);
- expect(html).toContain("white-space:pre-wrap");
- expect(html).toContain("one  two\nthree");
+	const html = renderToString(
+		<RichTextContent
+			value={{
+				type: "doc",
+				content: [
+					{
+						type: "paragraph",
+						content: [{ type: "text", text: "one  two\nthree" }],
+					},
+				],
+			}}
+		/>,
+	);
+	expect(html).toContain("white-space:pre-wrap");
+	expect(html).toContain("one  two\nthree");
+});
+
+test.each([
+	"",
+	undefined,
+	null,
+])("missing or empty document identity %j fails closed", (documentKey) => {
+	const html = renderToString(
+		<RichTextEditor
+			documentKey={documentKey as unknown as string}
+			value={literal}
+			label="Article"
+			onChange={vi.fn()}
+		/>,
+	);
+	expect(html).toContain("Invalid rich-text document identity.");
+	expect(html).not.toContain("Loading editor");
 });

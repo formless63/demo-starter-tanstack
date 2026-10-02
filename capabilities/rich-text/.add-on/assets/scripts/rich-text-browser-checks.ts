@@ -40,6 +40,16 @@ export async function verifyRichText(page:Page){
  await expect(page.getByRole('region',{name:'Document',exact:true})).toHaveText('Retained on remount');
  await page.getByRole('button',{name:'Toggle read only'}).click();
  await expect(editor).toHaveText('Retained on remount');
+ await editor.fill('PRIVATE');
+ await editor.fill('Public');
+ await expect(page.getByRole('button',{name:'Undo',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Switch document identity'}).click();
+ await expect(editor).toHaveText('Public');
+ await expect(page.getByRole('button',{name:'Undo',exact:true})).toBeDisabled();
+ await expect(page.getByRole('button',{name:'Redo',exact:true})).toBeDisabled();
+ await editor.press('ControlOrMeta+z');
+ await editor.press('ControlOrMeta+Shift+z');
+ await expect(editor).toHaveText('Public');
  await editor.fill('<img src=x onerror=alert(1)>');
  await expect(page.getByRole('region',{name:'Preview'})).toHaveText('<img src=x onerror=alert(1)>');
  await expect(page.locator('img')).toHaveCount(0);

@@ -13,9 +13,13 @@ export function RichTextExample() {
 	const [reject, setReject] = useState(false);
 	const [visible, setVisible] = useState(true);
 	const [readOnly, setReadOnly] = useState(false);
+	const [documentKey, setDocumentKey] = useState(0);
 	return (
 		<main>
 			<h1>Rich text example</h1>
+			<button type="button" onClick={() => setDocumentKey((key) => key + 1)}>
+				Switch document identity
+			</button>
 			<button type="button" onClick={() => setReject((v) => !v)}>
 				{reject ? "Accept changes" : "Reject changes"}
 			</button>
@@ -43,6 +47,7 @@ export function RichTextExample() {
 			</button>
 			{visible && (
 				<RichTextEditor
+					documentKey={`example-${documentKey}`}
 					label="Document"
 					value={value}
 					onChange={(next) => {

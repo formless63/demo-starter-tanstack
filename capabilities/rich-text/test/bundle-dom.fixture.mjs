@@ -36,3 +36,26 @@ test('actual Bun SSR bytes and minified client hydrate with explicit UTF-8; miss
   }
  }finally{await rm(directory,{recursive:true,force:true});}
 },15000);
+
+test('actual UTF-8 SSR bytes, HTML parsing and hydrated editor share canonical line endings and Unicode',async()=>{
+ const directory=await mkdtemp(join(tmpdir(),'rich-text-unicode-'));
+ try{
+  const result=spawnSync('bun',['scripts/rich-text-compile-fixture.mjs',directory],{encoding:'utf8',env:{...process.env,NODE_ENV:'test',RICH_TEXT_UNICODE_FIXTURE:'1'}});
+  expect(result.status,result.stderr).toBe(0);
+  const html=await readFile(join(directory,'index.html'));
+  const client=await readFile(join(directory,'unicode-client.js'),'utf8');
+  const errors=[];const console=new VirtualConsole();
+  console.on('error',error=>errors.push(String(error?.message??error)));console.on('jsdomError',error=>errors.push(error.message));
+  const dom=new JSDOM(html,{url:'http://fixture.test/',runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:console,contentType:richTextFixtureContentTypes.html});
+  try{
+   Object.assign(dom.window,{TextEncoder});
+   const canonical='One\nTwo\nThree 😀 �';
+   expect(dom.window.document.querySelector('[aria-label="Unicode preview"]').textContent).toBe(canonical);
+   expect(JSON.parse(dom.window.document.querySelector('output[aria-label="Canonical JSON"]').textContent).content[0].content[0].text).toBe(canonical);
+   dom.window.eval(client);
+   await expect.poll(()=>Boolean(dom.window.document.querySelector('[contenteditable]')),{timeout:5000}).toBe(true);
+   expect(dom.window.document.querySelector('[contenteditable]').textContent).toBe(canonical);
+   expect(errors).toEqual([]);
+  }finally{dom.window.close();}
+ }finally{await rm(directory,{recursive:true,force:true});}
+},15000);
