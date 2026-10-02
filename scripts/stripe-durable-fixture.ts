@@ -35,6 +35,8 @@ try {
  await admin.query(`CREATE DATABASE "${name}"`);await migrate(db,{migrationsFolder:"drizzle"});await migrate(db,{migrationsFolder:"drizzle"});await boss.start();await boss.createQueue("stripe.process",worker.jobs["stripe.process"].queue);
  const binding=await db.transaction(tx=>service.createBindingInTransaction(tx,scopeA,{localResourceId:"customer-a",connectionId:"default",resourceKind:"customer",remoteId:"cus_fixture"}));
  await assert.rejects(service.requestCheckout(scopeB,{customerBindingId:binding.id,idempotencyKey:"key",items:[{offerId:"standard",quantity:1}]}),e=>e instanceof StripeCapabilityError&&e.code==="not_found");assert.equal(posts,0);
+
+ const raceInput={customerBindingId:binding.id,idempotencyKey:"race",items:[{offerId:"standard",quantity:1}]};const race=await Promise.all([service.requestCheckout(scopeA,raceInput),service.requestCheckout(scopeA,raceInput)]);const raceIds=race.map(v=>"operationId" in v?v.operationId:v.id);assert.equal(raceIds[0],raceIds[1]);await service.cancelOperation(scopeA,{operationId:raceIds[0]});
  const queued=await service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"first",items:[{offerId:"standard",quantity:1}]});assert.ok("operationId" in queued);const op=queued.operationId;
  await assert.rejects(service.requestCheckout(scopeA,{customerBindingId:binding.id,idempotencyKey:"first",items:[{offerId:"standard",quantity:2}]}),e=>e instanceof StripeCapabilityError&&e.code==="conflict");
  await processOperation(op);assert.equal(posts,1);const result=await service.getOperation(scopeA,{operationId:op});assert.equal(result.status,"succeeded");assert.ok(result.bindingId);

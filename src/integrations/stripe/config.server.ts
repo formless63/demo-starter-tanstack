@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { connectionId, parse, StripeCapabilityError } from "./contract";
 export interface StripeConnection {
 	id: string;
@@ -24,7 +25,16 @@ export function validateConnection(input: StripeConnection): StripeConnection {
 		} catch {
 			throw new StripeCapabilityError("unconfigured");
 		}
-		const loopback = ["127.0.0.1", "[::1]"].includes(url.hostname);
+		const authority =
+			/^https?:\/\/(\[[^\]]+\]|[^:/?#]+)(?::[0-9]+)?(?:\/|$)/i.exec(
+				input.endpoint,
+			)?.[1] ?? "";
+		const literal = authority.startsWith("[")
+			? authority.slice(1, -1)
+			: authority;
+		const loopback =
+			(isIP(literal) === 4 && literal.startsWith("127.")) ||
+			(isIP(literal) === 6 && url.hostname === "[::1]");
 		if (
 			url.username ||
 			url.password ||

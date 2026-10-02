@@ -99,3 +99,5 @@ Hosted root verification and every catalog-derived lifecycle matrix job explicit
 - `bun run stripe:unit`: pinned SDK local wire, signature, cancellation and body-limit checks; no Stripe API request.
 - `STRIPE_FIXTURE_DATABASE_URL=<disposable PostgreSQL admin URL> bun run stripe:durable`: creates/drops only its own temporary database and tests scoped ledgers, receipts/Jobs rollback, reconciliation, privacy and replay cutoff.
 - `bun run add-ons:test stripe`: generic independent install/build, Bun/actual Node24 wire and PostgreSQL fixtures, removal/data retention/Jobs-Webhooks rebuild.
+- Root-only `bun run stripe:migrations` checks upgrade from both earlier baselines using owned disposable databases and verifies all eight original SQL hashes/journal entries.
+- Root-only `bun run stripe:worker` bundles/runs the actual native standalone Jobs worker against an owned disposable database; optional Stripe remains unconfigured with safe closed output.
