@@ -17,7 +17,9 @@ test('installed Markdown reference SSR, hydration, safe links/images and clipboa
  await expect(content.locator('img')).toHaveCount(0);
  await expect(content.locator('a[href^="javascript:"]')).toHaveCount(0);
  expect(await page.evaluate(()=>Object.hasOwn(window,'markdownExecuted'))).toBeFalsy();
- await content.getByRole('button',{name:'Copy typescript code'}).press('Enter');
+ const copy = content.getByRole('button',{name:'Copy typescript code'});
+ await expect(copy).toBeEnabled();
+ await copy.press('Enter');
  await expect(content.getByRole('status').first()).toHaveText('Copied');
  expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe('const message = "Hello, Markdown"\n');
  await page.getByRole('button',{name:'Toggle content'}).click();

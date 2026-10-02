@@ -108,7 +108,8 @@
     "data-table:unit": "vitest run --config vitest.data-table.config.ts",
     "markdown-code:unit": "bun scripts/markdown-code-unit.tsx",
     "markdown-code:browser": "bun scripts/markdown-code-browser.tsx",
-    "markdown-code:typecheck": "tsc --noEmit -p capabilities/markdown-code/test/tsconfig.json"
+    "markdown-code:typecheck": "tsc --noEmit -p capabilities/markdown-code/test/tsconfig.json",
+    "markdown-code:dom": "vitest run --config vitest.markdown-code.config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",

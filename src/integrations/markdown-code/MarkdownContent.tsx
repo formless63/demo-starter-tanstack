@@ -1,7 +1,11 @@
 import type { CSSProperties, ReactNode } from "react";
 import { createElement, useEffect, useRef, useState } from "react";
-import type { MarkdownDocument, MarkdownNode } from "./types";
-import { markdownTags, safeMarkdownHref } from "./types";
+import type { MarkdownNode } from "./types";
+import {
+	markdownTags,
+	normalizeMarkdownDocument,
+	safeMarkdownHref,
+} from "./types";
 
 const tags = new Set<string>(markdownTags);
 const color = (value: string | undefined) =>
@@ -12,6 +16,7 @@ function CodeBlock({
 	node: Extract<MarkdownNode, { kind: "code" }>;
 }) {
 	const [status, setStatus] = useState("");
+	const [ready, setReady] = useState(false);
 	const pending = useRef(false);
 	const generation = useRef(0);
 	// biome-ignore lint/correctness/useExhaustiveDependencies: Reset pending copy state when code changes.
@@ -19,6 +24,7 @@ function CodeBlock({
 		generation.current++;
 		pending.current = false;
 		setStatus("");
+		setReady(true);
 		return () => {
 			generation.current++;
 		};
@@ -46,7 +52,7 @@ function CodeBlock({
 				<button
 					type="button"
 					aria-label={`Copy ${node.language} code`}
-					disabled={status === "Copying"}
+					disabled={!ready || status === "Copying"}
 					onClick={copy}
 				>
 					Copy code
@@ -118,14 +124,13 @@ export function MarkdownContent({
 	document,
 	label = "Markdown content",
 }: {
-	document: MarkdownDocument;
+	document: unknown;
 	label?: string;
 }) {
+	const normalized = normalizeMarkdownDocument(document);
 	return (
 		<section className="markdown-content" aria-label={label}>
-			{document.version === 1
-				? document.nodes.map((node, index) => render(node, `node-${index}`))
-				: null}
+			{normalized.nodes.map((node, index) => render(node, `node-${index}`))}
 		</section>
 	);
 }
