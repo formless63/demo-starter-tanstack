@@ -226,3 +226,15 @@ Remove `import-export` from `referenceApplication.enabledCapabilities`, keeping 
 Independent add-on assets overlay only the clean Jobs registry and Drizzle configuration; customized consumers must preserve their existing schema/handlers manually. Keep authoring workspaces separately from runtime removal. Run frozen/updated install as appropriate, capabilities/agent checks, typecheck/build and remaining capability lifecycles.
 
 Opt-in Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
+
+## Remove Invoice Ninja
+
+Stop/drain its workers and settle or explicitly recover outstanding attempts. Remove `/app/invoices`, Invoice Ninja API routes/navigation, `src/lib/invoice-ninja.server.ts` and its Jobs registry import/spread. Remove provider runtime files and optional environment settings, but retain application-owned schema/validation/error types, all tables/data, applied SQL/journal/history and Jobs/Webhooks. Keep schema declarations in Drizzle until deliberately migrating data ownership. Never delete provider invoices or deregister callbacks as a side effect. See the capability contract for exact limitations.
+
+## Removing Stripe independently
+
+Stop Stripe producers and worker processing first; settle/expire active attempts using explicit bounded recovery. Remove `/api/integrations/stripe` routes, `/app/payments` page/navigation, `src/lib/stripe.server.ts`, and `referenceStripeJobs` import/spread from the existing Jobs registry. Remove Stripe operational scripts and runtime files except `schema.ts`/`contract.ts`, then remove the `stripe` runtime dependency. Retain provider schema exports and all committed migration SQL/metadata, bindings, projections, operation ledgers and receipt history. Keep Jobs and Webhooks. Rebuild routes, run capability/root checks, typecheck/build and Jobs doctor/smoke. Remove authoring workspace separately only if desired. This never deregisters remote callbacks, revokes credentials or deletes provider resources; those need separate operator authorization. See [Stripe contract](../capabilities/stripe/CAPABILITY.md).
+
+## Medusa removal
+
+Stop Medusa producers and the existing worker, settle or expire active45s attempts, then remove `src/routes/app.medusa.tsx`, `src/routes/api/integrations/medusa`, `src/lib/medusa-http.server.ts`, `src/lib/medusa.server.ts`, the Commerce navigation link and Medusa registry import/spread. Retain the Medusa schema, projection/contract declarations, four tables and migration history; remove the remaining Medusa runtime files and scripts. Keep Jobs and Webhooks. Rebuild the route tree, typecheck/build and verify retained rows before restarting remaining handlers. Remote resources and credentials are unaffected; their deletion/revocation requires a separately authorized operator action. The clean fixture proves this lifecycle on its own disposable database.

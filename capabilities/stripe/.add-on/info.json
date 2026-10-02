@@ -1,0 +1,70 @@
+{
+  "id": "stripe",
+  "name": "stripe",
+  "displayName": "Stripe",
+  "description": "Scoped hosted one-time Checkout and durable native event reconciliation.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [
+    "postgres-jobs",
+    "webhooks"
+  ],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "stripe": "23.0.0",
+      "zod": "^4.3.6"
+    },
+    "devDependencies": {
+      "vitest": "^3.2.4"
+    },
+    "scripts": {
+      "stripe:unit": "bun scripts/stripe-unit.ts",
+      "stripe:durable": "bun scripts/stripe-durable-fixture.ts"
+    }
+  },
+  "envVars": [
+    {
+      "name": "STRIPE_SECRET_KEY",
+      "description": "Lazy server-only secret/restricted test-mode key.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local"
+    },
+    {
+      "name": "STRIPE_ACCOUNT_ID",
+      "description": "Expected single Stripe account, required on use.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "STRIPE_MODE",
+      "description": "Explicit deployment mode; test default.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local",
+      "default": "test"
+    },
+    {
+      "name": "STRIPE_WEBHOOK_SECRET",
+      "description": "Native endpoint callback verification secret.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local"
+    },
+    {
+      "name": "STRIPE_WEBHOOK_SECRET_PREVIOUS",
+      "description": "Optional previous native secret for rotation.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local"
+    }
+  ]
+}

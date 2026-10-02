@@ -1,0 +1,43 @@
+{
+  "projectName": "stripe-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [
+    "postgres-jobs",
+    "webhooks"
+  ],
+  "forbiddenOfficialAddOns": [
+    "better-auth",
+    "observability",
+    "object-storage",
+    "notifications",
+    "email",
+    "ai",
+    "audit-log"
+  ],
+  "expectedFiles": [
+    "src/integrations/stripe/service.server.ts",
+    "src/integrations/stripe/schema.ts",
+    "src/lib/stripe.server.ts",
+    "drizzle/0011_stripe_v1.sql",
+    "capabilities/stripe/CAPABILITY.md"
+  ],
+  "addOnConfig": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "reviewedSharedFiles": {
+    "src/integrations/jobs/registry.ts": "capabilities/stripe/.add-on/assets/src/integrations/jobs/registry.ts",
+    "drizzle.config.ts": "capabilities/stripe/.add-on/assets/drizzle.config.ts"
+  },
+  "verificationCommands": [
+    [
+      "bun",
+      "scripts/stripe-clean-fixture.ts"
+    ]
+  ],
+  "build": true
+}
