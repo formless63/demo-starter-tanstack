@@ -1,0 +1,27 @@
+{
+  "id": "pwa-offline",
+  "name": "pwa-offline",
+  "displayName": "PWA / Offline",
+  "description": "Explicit public-only offline notice, truthful install UX and safe native worker lifecycle.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "devDependencies": {
+      "vite-plugin-pwa": "1.3.0",
+      "workbox-build": "7.4.1",
+      "@playwright/test": "1.63.0"
+    },
+    "scripts": {
+      "pwa:unit": "bun scripts/pwa-unit.ts",
+      "pwa:browser": "bun scripts/pwa-browser.ts"
+    }
+  }
+}

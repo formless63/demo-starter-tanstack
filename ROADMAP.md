@@ -101,7 +101,7 @@ Starter authentication is a baseline requirement, not a capability edge.
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| PWA / Offline | None | Notifications, Realtime | None | Planned |
+| PWA / Offline | None | Notifications, Realtime | None | In progress |
 | Internationalization | None | UI-facing capabilities | None | Planned |
 
 ## Dependency direction
@@ -168,3 +168,5 @@ File UI is completed, reference-enabled, opt-in, and requires only Object Storag
 ## Combined content-module acceptance
 
 Both independently reviewed source heads passed full hosted CI: Rich Text `4754559bba71c36c357325f9b4d1231d3808d0cf` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37034217024)) and File UI `73c442b9b8729e17c8cb30a6879d87da80f31c5b` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37036091357)). This combined integration retains their accepted runtime and all inherited gates. The published combined head still requires its own complete hosted CI before merge; source success is not a combined-CI claim.
+
+PWA / Offline is in progress: independent opt-in native injectManifest, exact three-file public allowlist, no data or SSR cache, natural-tab-close updates and SAME-URL two-phase retirement. Root reference wiring is prepared; hosted native browser/lifecycle and full CI gate completion.

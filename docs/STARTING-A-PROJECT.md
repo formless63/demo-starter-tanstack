@@ -261,3 +261,7 @@ Remove `src/components/file-ui.tsx`, `src/integrations/file-ui`, `src/routes/app
 ### Remove Markdown / Code Content
 
 Remove application routes/loaders/component and CSS imports first (the reference owns `/markdown-test` and `src/features/markdown-reference.ts`). Remove `src/integrations/markdown-code`, module fixture scripts and `markdown-code:*` scripts; uninstall `markdown-it` and `shiki` if unused elsewhere. Keep Playwright and Bun types when other tests need them. Regenerate routes, typecheck and rebuild. No migrations or persisted data are involved. Retaining authored add-on source is a separate choice; remove reference enablement when present but keep catalog identity. See the [exact contract](../capabilities/markdown-code/CAPABILITY.md).
+
+## PWA / Offline removal
+
+First deploy `retired: true` at the SAME historical worker URL/scope and retain its tombstone for returning clients. Allow old tabs to close naturally; verify only owned caches disappear. Then remove runtime imports/build integration/dependencies, keeping that exact public retirement script through subsequent builds. Deleting source or unregistering one browser does not retire production clients. See the full [two-phase contract](../capabilities/pwa-offline/CAPABILITY.md).
