@@ -7,6 +7,7 @@ import {
 	createPaginatedRowModel,
 	createSortedRowModel,
 	filterFn_includesString,
+	functionalUpdate,
 	globalFilteringFeature,
 	type OnChangeFn,
 	type PaginationState,
@@ -21,7 +22,7 @@ import {
 	tableFeatures,
 	useTable,
 } from "@tanstack/react-table";
-import type { ReactNode } from "react";
+import { type ReactNode, useMemo, useRef } from "react";
 
 export const dataTableFeatures = tableFeatures({
 	columnFilteringFeature,
@@ -70,6 +71,34 @@ export type DataTableProps<T extends RowData> = {
 	Slice<"rowSelection", "onRowSelectionChange", RowSelectionState>;
 
 export function DataTable<T extends RowData>(props: DataTableProps<T>) {
+	// useTable merges options across renders. Always replace callbacks, including
+	// when ownership returns to the native base atoms after controlled state.
+	const instance = useRef<DataTableInstance<T> | null>(null);
+	const internal = useMemo(
+		() => ({
+			sorting: ((value) =>
+				instance.current?.baseAtoms.sorting.set((previous) =>
+					functionalUpdate(value, previous),
+				)) as OnChangeFn<SortingState>,
+			globalFilter: ((value) =>
+				instance.current?.baseAtoms.globalFilter.set((previous) =>
+					functionalUpdate(value, previous),
+				)) as OnChangeFn<string>,
+			pagination: ((value) =>
+				instance.current?.baseAtoms.pagination.set((previous) =>
+					functionalUpdate(value, previous),
+				)) as OnChangeFn<PaginationState>,
+			columnVisibility: ((value) =>
+				instance.current?.baseAtoms.columnVisibility.set((previous) =>
+					functionalUpdate(value, previous),
+				)) as OnChangeFn<ColumnVisibilityState>,
+			rowSelection: ((value) =>
+				instance.current?.baseAtoms.rowSelection.set((previous) =>
+					functionalUpdate(value, previous),
+				)) as OnChangeFn<RowSelectionState>,
+		}),
+		[],
+	);
 	const table = useTable({
 		features: dataTableFeatures,
 		data: props.data,
@@ -91,28 +120,20 @@ export function DataTable<T extends RowData>(props: DataTableProps<T>) {
 				? {}
 				: { rowSelection: props.rowSelection }),
 		},
-		...(props.onSortingChange
-			? { onSortingChange: props.onSortingChange }
-			: {}),
-		...(props.onGlobalFilterChange
-			? { onGlobalFilterChange: props.onGlobalFilterChange }
-			: {}),
-		...(props.onPaginationChange
-			? { onPaginationChange: props.onPaginationChange }
-			: {}),
-		...(props.onColumnVisibilityChange
-			? { onColumnVisibilityChange: props.onColumnVisibilityChange }
-			: {}),
-		...(props.onRowSelectionChange
-			? { onRowSelectionChange: props.onRowSelectionChange }
-			: {}),
+		onSortingChange: props.onSortingChange ?? internal.sorting,
+		onGlobalFilterChange: props.onGlobalFilterChange ?? internal.globalFilter,
+		onPaginationChange: props.onPaginationChange ?? internal.pagination,
+		onColumnVisibilityChange:
+			props.onColumnVisibilityChange ?? internal.columnVisibility,
+		onRowSelectionChange: props.onRowSelectionChange ?? internal.rowSelection,
 		manualSorting: props.manualSorting ?? false,
 		manualFiltering: props.manualFiltering ?? false,
 		manualPagination: props.manualPagination ?? false,
-		...(props.pageCount === undefined ? {} : { pageCount: props.pageCount }),
-		...(props.rowCount === undefined ? {} : { rowCount: props.rowCount }),
+		pageCount: props.pageCount,
+		rowCount: props.rowCount,
 		globalFilterFn: "includesString",
 	});
+	instance.current = table;
 	const rows = table.getRowModel().rows;
 	return (
 		<>
