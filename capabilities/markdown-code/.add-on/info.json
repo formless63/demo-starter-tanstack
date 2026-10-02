@@ -1,0 +1,29 @@
+{
+  "id": "markdown-code",
+  "name": "markdown-code",
+  "displayName": "Markdown / Code Content",
+  "description": "Bounded server-only Markdown parsing and highlighting with accessible native React rendering.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "markdown-it": "15.0.2",
+      "shiki": "4.5.0"
+    },
+    "devDependencies": {
+      "@playwright/test": "1.63.0"
+    },
+    "scripts": {
+      "markdown-code:unit": "bun scripts/markdown-code-unit.tsx",
+      "markdown-code:browser": "bun scripts/markdown-code-browser.tsx"
+    }
+  }
+}
