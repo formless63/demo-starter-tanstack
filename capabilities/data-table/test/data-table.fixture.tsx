@@ -114,3 +114,23 @@ test("rowCount is cleared independently when manual pagination is disabled", () 
  act(()=> {table.nextPage();});
  expect(table!.getCanNextPage()).toBe(false);
 });
+
+test("ownership handback restores parent filter and native client page reset", async () => {
+ render(<Example />);
+ const names=()=>Array.from(screen.getByRole("table",{name:"People"}).querySelectorAll("tbody tr")).map(row=>row.textContent);
+ fireEvent.click(within(screen.getByRole("table",{name:"People"})).getByRole("button",{name:"Name"}));
+ fireEvent.click(within(screen.getByRole("table",{name:"People"})).getByRole("button",{name:"Name"}));
+ fireEvent.click(screen.getByRole("button",{name:"Next"}));
+ expect(names()).toEqual(["Ada30"]);
+ fireEvent.click(screen.getByRole("button",{name:"Toggle ownership"}));
+ fireEvent.change(screen.getByLabelText("Filter"),{target:{value:"missing"}});
+ expect(names()).toEqual(["No results."]);
+ expect(screen.getByLabelText("Parent filter").textContent).toBe("");
+ await act(async()=>{fireEvent.click(screen.getByRole("button",{name:"Toggle ownership"}));});
+ expect(screen.getByLabelText("Filter").getAttribute("value")).toBe("");
+ expect(screen.getByLabelText("Page").textContent).toBe("1");
+ expect(names()).toEqual(["Cy20","Bea10"]);
+ fireEvent.change(screen.getByLabelText("Filter"),{target:{value:"Ada"}});
+ expect(screen.getByLabelText("Parent filter").textContent).toBe("Ada");
+ expect(names()).toEqual(["Ada30"]);
+});
