@@ -308,3 +308,5 @@ File UI is completed and reference-enabled (opt-in, Object Storage only): [contr
 ## Combined content-module acceptance
 
 Both independently reviewed source heads passed full hosted CI: Rich Text `4754559bba71c36c357325f9b4d1231d3808d0cf` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37034217024)) and File UI `73c442b9b8729e17c8cb30a6879d87da80f31c5b` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37036091357)). This combined integration retains their accepted runtime and all inherited gates. The published combined head still requires its own complete hosted CI before merge; source success is not a combined-CI claim.
+
+PWA / Offline is in progress, opt-in and dependency-independent: public-only inert offline notice, native worker lifecycle and two-phase retirement. See [contract](capabilities/pwa-offline/CAPABILITY.md). Hosted acceptance remains required.

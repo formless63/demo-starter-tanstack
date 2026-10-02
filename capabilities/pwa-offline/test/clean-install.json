@@ -1,0 +1,97 @@
+{
+  "projectName": "pwa-offline-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [],
+  "forbiddenOfficialAddOns": [
+    "drizzle",
+    "better-auth",
+    "postgres-jobs",
+    "notifications",
+    "realtime"
+  ],
+  "expectedFiles": [
+    "src/integrations/pwa-offline/PwaPanel.tsx",
+    "src/integrations/pwa-offline/pwa-offline-sw.ts",
+    "scripts/pwa-vite.ts",
+    "scripts/pwa-client-fixture.tsx",
+    "public/pwa-offline/offline.html",
+    "scripts/pwa-removed-check.ts"
+  ],
+  "build": true,
+  "verificationCommands": [
+    [
+      "bun",
+      "scripts/pwa-fixture-route.ts"
+    ],
+    [
+      "bun",
+      "run",
+      "pwa:unit"
+    ],
+    [
+      "bun",
+      "x",
+      "playwright",
+      "install",
+      "chromium"
+    ],
+    [
+      "bun",
+      "run",
+      "pwa:browser"
+    ]
+  ],
+  "postBuildVerificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "scripts/pwa-consumer-production.ts"
+    ],
+    [
+      "bun",
+      "scripts/pwa-remove.ts"
+    ],
+    [
+      "bun",
+      "install"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "scripts/pwa-removed-check.ts"
+    ]
+  ],
+  "referenceVerification": {
+    "installedPath": "src/integrations/pwa-offline/PwaPanel.tsx",
+    "commands": [
+      [
+        "bun",
+        "run",
+        "pwa:unit"
+      ],
+      [
+        "bun",
+        "run",
+        "pwa:browser"
+      ]
+    ]
+  }
+}
