@@ -38,6 +38,7 @@ interface CleanInstallFixture {
 	expectedFiles: string[];
 	expectedFileText?: Record<string, string[]>;
 	verificationCommands?: string[][];
+	removalCommands?: string[][];
 	build: boolean;
 }
 
@@ -227,6 +228,10 @@ async function cleanInstall(capability: Capability & { tanstackAddOn: AddOnMetad
 			});
 		}
 		if (fixture.build) await run(process.execPath, ["run", "build"], target);
+		for (const [command, ...args] of fixture.removalCommands ?? []) {
+			if (!command) throw new Error(`${capability.id}: removal command cannot be empty`);
+			await run(command, args, target);
+		}
 		console.info(`${capability.id}: clean install passed with ${manifest.dependsOn?.join(", ") || "no"} official dependencies`);
 	} finally {
 		await rm(temporaryRoot, { recursive: true, force: true });
