@@ -125,9 +125,11 @@ function Editor({
 			<fieldset
 				className="flow-visual"
 				aria-label="Interactive graph"
-				onKeyDown={(event) => {
+				onKeyDownCapture={(event) => {
 					if (event.key === "Escape") {
 						event.preventDefault();
+						event.stopPropagation();
+						boundary.current.epoch++;
 						setSelected("");
 						setGesture((n) => n + 1);
 						setStatus("Selection and gesture cleared.");

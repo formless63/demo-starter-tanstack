@@ -74,6 +74,12 @@ function Visual({
 	nextId,
 }: Props) {
 	const active = useRef(false);
+	// Native measurements are view state, never imported from or persisted in graph JSON.
+	// Retain them across controlled updates so a focused node is not hidden/re-measured.
+	const measurements = useRef(new Map<string, { width: number; height: number }>());
+	const liveIds = new Set(graph.nodes.map((node) => wireId(node.id)));
+	for (const id of measurements.current.keys())
+		if (!liveIds.has(id)) measurements.current.delete(id);
 	const currentReadOnly = useRef(readOnly);
 	currentReadOnly.current = readOnly;
 	const currentSelection = useRef(selected);
@@ -105,6 +111,7 @@ function Visual({
 		id: wireId(n.id),
 		type: n.kind,
 		position: { ...n.position },
+		measured: measurements.current.get(wireId(n.id)),
 		data: { label: n.label },
 		selected: n.id === selected,
 		ariaLabel: n.label,
@@ -154,6 +161,12 @@ function Visual({
 			}}
 			onNodesChange={(changes) => {
 				if (!active.current) return;
+				for (const change of changes) {
+					if (change.type !== "dimensions" || !originalIds.has(change.id)) continue;
+					const size = change.dimensions;
+					if (size && Number.isFinite(size.width) && Number.isFinite(size.height) && size.width > 0 && size.height > 0)
+						measurements.current.set(change.id, { width: size.width, height: size.height });
+				}
 				const selections = new Map<string, boolean>();
 				for (const change of changes)
 					if (change.type === "select") {

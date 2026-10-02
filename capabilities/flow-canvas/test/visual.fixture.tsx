@@ -83,6 +83,35 @@ afterEach(() => {
 });
 
 describe("FlowCanvasClient vendor boundary (actual component)", () => {
+	test("trusted native dimensions survive controlled updates without entering graph proposals", () => {
+		const options = properties();
+		const view = render(<FlowCanvasClient {...options} />);
+		act(() => latest().onNodesChange?.([{id: nodeId(), type: "dimensions", dimensions: {width: 160, height: 44}}]));
+		expect(options.onPropose).not.toHaveBeenCalled();
+		view.rerender(<FlowCanvasClient {...options} graph={validateGraph(options.graph)} />);
+		expect(latest().nodes?.[0].measured).toEqual({width: 160, height: 44});
+		act(() => latest().onNodesChange?.([{id: nodeId(), type: "dimensions", dimensions: {width: 180, height: 60}}]));
+		view.rerender(<FlowCanvasClient {...options} selected="b" />);
+		expect(latest().nodes?.[0].measured).toEqual({width: 180, height: 60});
+		act(() => latest().onNodesChange?.([{id: nodeId(), type: "position", position: {x: 20, y: 30}}]));
+		const make = vi.mocked(options.onPropose).mock.calls[0][0];
+		expect(make(options.graph).nodes[0]).not.toHaveProperty("measured");
+	});
+
+	test("native dimensions are pruned on removal and reset for a new visual instance", () => {
+		const options = properties();
+		const view = render(<FlowCanvasClient {...options} />);
+		const stale = latest();
+		act(() => stale.onNodesChange?.([{id: nodeId(), type: "dimensions", dimensions: {width: 160, height: 44}}]));
+		view.rerender(<FlowCanvasClient {...options} graph={{...options.graph, nodes: []}} />);
+		view.rerender(<FlowCanvasClient {...options} />);
+		expect(latest().nodes?.[0].measured).toBeUndefined();
+		view.unmount();
+		render(<FlowCanvasClient {...options} />);
+		act(() => stale.onNodesChange?.([{id: nodeId(), type: "dimensions", dimensions: {width: 999, height: 999}}]));
+		expect(latest().nodes?.[0].measured).toBeUndefined();
+	});
+
 	test("continuous pointer and keyboard position events emit canonical controlled proposals", () => {
 		let current = initial();
 		const proposed: GraphDocument[] = [];

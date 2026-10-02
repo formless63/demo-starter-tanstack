@@ -238,6 +238,27 @@ describe("FlowCanvas controlled editor lifecycle (mocked client seam)", () => {
 		expect(options.onChange).toHaveBeenCalledTimes(1);
 	});
 
+	test("Escape capture blocks vendor key handling and same-event stale proposals", async () => {
+		const options = props();
+		render(<FlowCanvas {...options} />);
+		await ready();
+		const stale = latest();
+		const canvas = within(region()).getByTestId("canvas-seam");
+		const vendorKey = vi.fn();
+		canvas.addEventListener("keydown", vendorKey);
+		const cancelled = vi.fn(rename("Synchronous late gesture"));
+		act(() => {
+			canvas.dispatchEvent(new KeyboardEvent("keydown", {key: "Escape", bubbles: true}));
+			stale.onPropose(cancelled);
+			stale.onSelect("b");
+		});
+		expect(vendorKey).not.toHaveBeenCalled();
+		expect(cancelled).not.toHaveBeenCalled();
+		expect(options.onChange).not.toHaveBeenCalled();
+		expect(latest().selected).toBe("");
+		expect(within(region()).getByRole("status").textContent).toBe("Selection and gesture cleared.");
+	});
+
 	test("readOnly blocks mutations, allows selection, and invalidates callbacks after unlock", async () => {
 		const options = props();
 		const view = render(<FlowCanvas {...options} />);
