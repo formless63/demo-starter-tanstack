@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+	boolean,
 	check,
 	index,
 	integer,
@@ -113,6 +114,8 @@ export const medusaInbox = pgTable(
 		eventId: uuid("event_id").notNull(),
 		bodySha256: varchar("body_sha256", { length: 64 }).notNull(),
 		eventType: varchar("event_type", { length: 32 }).notNull(),
+		conflictDigest: varchar("conflict_digest", { length: 64 }),
+		reconcileAgain: boolean("reconcile_again").default(false).notNull(),
 		bindingId: uuid("binding_id").references(() => medusaBindings.id),
 		remoteHint: varchar("remote_hint", { length: 128 }),
 		state: varchar("state", { length: 12 }).notNull(),

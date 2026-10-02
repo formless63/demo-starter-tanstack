@@ -99,6 +99,42 @@ export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
 	if (!r.success) throw new MedusaError("invalid_input");
 	return r.data;
 }
+export function checkSignal(signal?: AbortSignal) {
+	if (!signal?.aborted) return;
+	throw new MedusaError(
+		signal.reason instanceof DOMException &&
+			signal.reason.name === "TimeoutError"
+			? "deadline_exceeded"
+			: "cancelled",
+	);
+}
+export function withSignal<T>(
+	promise: Promise<T>,
+	signal: AbortSignal,
+): Promise<T> {
+	return new Promise((resolve, reject) => {
+		const abort = () => {
+			try {
+				checkSignal(signal);
+			} catch (e) {
+				reject(e);
+			}
+		};
+		signal.addEventListener("abort", abort, { once: true });
+		promise.then(
+			(v) => {
+				signal.removeEventListener("abort", abort);
+				if (signal.aborted) abort();
+				else resolve(v);
+			},
+			(e) => {
+				signal.removeEventListener("abort", abort);
+				reject(e);
+			},
+		);
+		if (signal.aborted) abort();
+	});
+}
 export function safeError(error: unknown) {
 	return error instanceof MedusaError ? error : new MedusaError("unavailable");
 }
@@ -107,7 +143,10 @@ function decode(cursor: string): unknown {
 		if (!/^[A-Za-z0-9_-]{1,2048}$/.test(cursor)) throw 0;
 		const b = Buffer.from(cursor, "base64url");
 		if (b.toString("base64url") !== cursor) throw 0;
-		return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(b));
+		const text = new TextDecoder("utf-8", { fatal: true }).decode(b);
+		const value = JSON.parse(text);
+		if (JSON.stringify(value) !== text) throw 0;
+		return value;
 	} catch {
 		throw new MedusaError("invalid_input");
 	}

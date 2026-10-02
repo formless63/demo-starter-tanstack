@@ -1336,7 +1336,8 @@
 			"summary": "Medusa commerce synchronization using reliable background and webhook processing.",
 			"scripts": [
 				"medusa:unit",
-				"medusa:smoke"
+				"medusa:smoke",
+				"medusa:compat"
 			],
 			"environmentVariables": [
 				{

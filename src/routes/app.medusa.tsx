@@ -21,11 +21,13 @@ function MedusaPage() {
 	const request = useRef<AbortController | null>(null);
 	const query = useQuery<{ items: Projection[]; nextCursor: string | null }>({
 		queryKey: ["medusa", kind, cursor],
+		retry: false,
 		queryFn: ({ signal }) =>
 			read(`${kind}s${cursor ? `?cursor=${cursor}` : ""}`, signal),
 	});
 	const status = useQuery<{ status: string }>({
 		queryKey: ["medusa-operation", operation],
+		retry: false,
 		enabled: !!operation,
 		queryFn: ({ signal }) => read(`operation?operationId=${operation}`, signal),
 		refetchInterval: (q) =>
@@ -95,7 +97,13 @@ function MedusaPage() {
 				>
 					Sync one page
 				</button>
-				<button type="button" onClick={() => void query.refetch()}>
+				<button
+					type="button"
+					onClick={() => {
+						setMessage("");
+						void query.refetch();
+					}}
+				>
 					Refresh
 				</button>
 				{busy && (

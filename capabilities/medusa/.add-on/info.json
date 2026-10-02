@@ -23,7 +23,8 @@
     },
     "scripts": {
       "medusa:unit": "bun scripts/medusa-unit.ts",
-      "medusa:smoke": "bun scripts/medusa-database-fixture.ts"
+      "medusa:smoke": "bun scripts/medusa-database-fixture.ts",
+      "medusa:compat": "bun scripts/medusa-native-compat.ts"
     }
   },
   "envVars": [
