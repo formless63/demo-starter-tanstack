@@ -1,0 +1,27 @@
+# Internationalization
+
+Status: in progress; opt-in, reference integration awaiting final gates. No hard capability dependencies, persistence, infrastructure, environment variables, background processes, or migrations.
+
+## Native contract
+
+Pinned i18next 26.4.2 and react-i18next 17.0.15. Each request creates its own engine with `createInstance`; `createI18n` awaits `init` with v26 `initAsync: false` and inline resources. React uses a local `I18nextProvider`, never `initReactI18next` or a mutable global instance. `useI18n` exposes the bounded plain-text API. React's synchronous boundary checks native initialization before rendering. The server resolves an exact supported locale once, falling back to explicit default; its canonical serialized payload initializes the client. Application code must transport that payload safely through TanStack's serializer, never raw JSON inside executable markup.
+
+Configuration requires canonical supported locale IDs, an explicit default and fallback, a direction per locale and a validated Intl time zone. Resource catalogs are copied atomically using only own enumerable data properties: no accessors, inherited values, arrays, functions, prototype-related fields, invalid keys or symbols. Limits: 32 locales, 1 MiB serialized catalogs, 10,000 total keys, 8 KiB per message, depth 8. Message syntax is text plus `{{name}}` scalar interpolation; no nesting, formatting expressions or unescaped interpolation. HTML-looking strings remain literal React text; no Trans, HTML, MDX or callable messages. Do not place the result into an HTML sink.
+
+Plural selection uses native `Intl.PluralRules` with CLDR suffixes `_zero`, `_one`, `_two`, `_few`, `_many`, `_other`. Fallback applies per key and missing interpolation value. When neither locale can render, return the stable key. Optional diagnostics emit only `missing-message`/`missing-value`, never raw keys, values, messages, URLs or exception details. Remote saveMissing, backend loaders, browser detection, cookies and localStorage are absent.
+
+Formatting uses native Intl and a small trusted preset set: decimal (at most two fractional digits), currency (EUR), date and dateTime (medium date/short time in configured zone). Presets are developer-owned code; extending currencies/options requires a reviewed trusted preset, not user-supplied Intl option objects. `createPayload` accepts bounded named initial formatting requests; the example supplies fixed date/currency values rendered on the server and reused for the first hydration render, avoiding server/browser ICU punctuation mismatch. Other initially formatted UI values need the same application-owned serialization discipline. Browser-interaction values may use native browser Intl.
+
+`useLocaleLoader` takes an explicitly supplied loader, builds a fresh engine off-screen and commits only the latest mounted generation. Cancellation/unmount invalidate outstanding work even if a loader ignores AbortSignal. Failures retain the last committed locale and expose a safe error state. The example's explicit query/history policy changes URL only after a successful change; back/forward resolves that app-owned query. The reusable provider changes no routing, redirects, browser settings or document attributes. The example scopes `lang` and `dir` to its section. Applications own document lang/dir and may choose routing separately.
+
+## Install, verification and upgrade
+
+Select retained `capabilities/internationalization/add-on.json` with the official TanStack CLI. Generated defaults remain false. The add-on installs runtime source and independent verification scripts, no application route. Root reference owns `/i18n-test` and its server function. Recompile with `bun run add-ons:compile internationalization`.
+
+Run `bun run internationalization:unit`, `bun run internationalization:typecheck`, `bun run internationalization:browser`, `bun run add-ons:test internationalization`, `bun run add-ons:verify:reference internationalization`, and normal repository verification. Chromium is mandatory for generated and reference hydration, RTL, plural, malformed/literal content, rapid switching, cancellation, unmount and Back/Forward gates. The generated lifecycle also tests strict typecheck, actual native production-handler SSR, removal and rebuild. DOM-only tests never replace native browser proof. Upgrade i18next and its React adapter together, recheck their initialization contract and rerun every lifecycle gate.
+
+## Removal
+
+Application removal and reusable source pruning are separate. Remove application routes/imports (`src/routes/i18n-test.tsx`, `src/features/i18n-reference.ts`) first, then `src/integrations/internationalization`, root `scripts/internationalization-*` and internationalization scripts in package.json. Remove i18next/react-i18next only when no other application code uses them; retain shared Playwright. Update the reference-enabled list, regenerate routes, reinstall, typecheck and rebuild. There is no data or migration to delete. Keep capability authoring sources if future installation is desired; separately prune `capabilities/internationalization` and declared metadata only if intentionally removing distribution maintenance. The guarded clean-consumer removal fixture never operates on a real application.
+
+Evaluation: [INTERNATIONALIZATION_MODULE_EVALUATION.md](../../INTERNATIONALIZATION_MODULE_EVALUATION.md).

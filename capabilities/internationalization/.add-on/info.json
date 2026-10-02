@@ -1,0 +1,29 @@
+{
+  "id": "internationalization",
+  "name": "internationalization",
+  "displayName": "Internationalization",
+  "description": "Request-local plain-text localization, CLDR plurals and trusted Intl formatting.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "i18next": "26.4.2",
+      "react-i18next": "17.0.15"
+    },
+    "devDependencies": {
+      "@playwright/test": "1.63.0"
+    },
+    "scripts": {
+      "internationalization:unit": "bun scripts/internationalization-unit.tsx",
+      "internationalization:browser": "bun scripts/internationalization-browser.tsx"
+    }
+  }
+}
