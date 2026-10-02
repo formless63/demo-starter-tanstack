@@ -1,0 +1,59 @@
+{
+  "id": "medusa",
+  "name": "medusa",
+  "displayName": "Medusa",
+  "description": "Explicitly bound product/order read reconciliation with private durable Jobs receipts and application-owned subscriber bridge.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [
+    "postgres-jobs",
+    "webhooks"
+  ],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "zod": "^4.3.6",
+      "drizzle-orm": "^0.45.1"
+    },
+    "scripts": {
+      "medusa:unit": "bun scripts/medusa-unit.ts",
+      "medusa:smoke": "bun scripts/medusa-database-fixture.ts"
+    }
+  },
+  "envVars": [
+    {
+      "name": "MEDUSA_BASE_URL",
+      "description": "Optional Medusa HTTPS origin resolved only on explicit use.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "MEDUSA_SECRET_API_KEY",
+      "description": "Private lazy server configuration; never queued.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local"
+    },
+    {
+      "name": "MEDUSA_BRIDGE_WEBHOOK_SECRET",
+      "description": "Private lazy server configuration; never queued.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local"
+    },
+    {
+      "name": "MEDUSA_BRIDGE_WEBHOOK_SECRET_PREVIOUS",
+      "description": "Private lazy server configuration; never queued.",
+      "required": false,
+      "secret": true,
+      "file": ".env.local"
+    }
+  ]
+}

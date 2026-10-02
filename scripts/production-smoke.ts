@@ -1,7 +1,7 @@
 // Execute shared operational bundles from the same production image as app/worker.
 import { spawn } from "node:child_process";
 
-for (const bundle of ["jobs-doctor", "jobs-smoke", "webhooks-smoke", "ai-reference-smoke"]) {
+for (const bundle of ["jobs-doctor", "jobs-smoke", "webhooks-smoke", "ai-reference-smoke", "medusa-protocol-fixture", "medusa-database-fixture"]) {
  const child = spawn("docker", ["compose", "run", "--rm", "worker", "node", "--unhandled-rejections=strict", `.output/${bundle}.mjs`], { stdio: "inherit" });
  const code = await new Promise<number>((resolve, reject) => {
   child.on("error", reject);

@@ -1,11 +1,13 @@
 import type { z } from "zod";
 import { referenceTransferJobs } from "../../lib/import-export.server";
+import { referenceMedusaJobs } from "../../lib/medusa.server";
 import { referenceNotificationJobs } from "../../lib/notifications.server";
 import { referenceWebhookJobs } from "../../lib/webhooks.server";
 import { handleStarterEcho, starterEchoPayload } from "./tasks/starter-echo";
 import { defineJob } from "./types";
 
 export const jobRegistry = {
+	...referenceMedusaJobs,
 	...referenceTransferJobs,
 	...referenceWebhookJobs,
 	...referenceNotificationJobs,

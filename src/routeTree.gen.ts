@@ -16,6 +16,7 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiOpenapiDotjsonRouteImport } from './routes/api/openapi[.]json'
 import { Route as ApiTransfersStageRouteImport } from './routes/api/transfers-stage'
 import { Route as AppApiKeysRouteImport } from './routes/app.api-keys'
+import { Route as AppMedusaRouteImport } from './routes/app.medusa'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppProjectsRouteImport } from './routes/app.projects'
 import { Route as AppTransfersRouteImport } from './routes/app.transfers'
@@ -23,6 +24,7 @@ import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiOpsSummaryRouteImport } from './routes/api/ops/summary'
 import { Route as ApiV1ProjectsRouteImport } from './routes/api/v1/projects'
+import { Route as ApiIntegrationsMedusaSplatRouteImport } from './routes/api/integrations/medusa/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -57,6 +59,11 @@ const ApiTransfersStageRoute = ApiTransfersStageRouteImport.update({
 const AppApiKeysRoute = AppApiKeysRouteImport.update({
   id: '/api-keys',
   path: '/api-keys',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMedusaRoute = AppMedusaRouteImport.update({
+  id: '/medusa',
+  path: '/medusa',
   getParentRoute: () => AppRoute,
 } as any)
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
@@ -94,6 +101,12 @@ const ApiV1ProjectsRoute = ApiV1ProjectsRouteImport.update({
   path: '/api/v1/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiIntegrationsMedusaSplatRoute =
+  ApiIntegrationsMedusaSplatRouteImport.update({
+    id: '/api/integrations/medusa/$',
+    path: '/api/integrations/medusa/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/medusa': typeof AppMedusaRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
@@ -110,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
+  '/api/integrations/medusa/$': typeof ApiIntegrationsMedusaSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -119,6 +134,7 @@ export interface FileRoutesByTo {
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/medusa': typeof AppMedusaRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
@@ -126,6 +142,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
+  '/api/integrations/medusa/$': typeof ApiIntegrationsMedusaSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -136,6 +153,7 @@ export interface FileRoutesById {
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
+  '/app/medusa': typeof AppMedusaRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
@@ -143,6 +161,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/ops/summary': typeof ApiOpsSummaryRoute
   '/api/v1/projects': typeof ApiV1ProjectsRoute
+  '/api/integrations/medusa/$': typeof ApiIntegrationsMedusaSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -154,6 +173,7 @@ export interface FileRouteTypes {
     | '/api/openapi.json'
     | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/medusa'
     | '/app/notifications'
     | '/app/projects'
     | '/app/transfers'
@@ -161,6 +181,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
+    | '/api/integrations/medusa/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -170,6 +191,7 @@ export interface FileRouteTypes {
     | '/api/openapi.json'
     | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/medusa'
     | '/app/notifications'
     | '/app/projects'
     | '/app/transfers'
@@ -177,6 +199,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
+    | '/api/integrations/medusa/$'
   id:
     | '__root__'
     | '/'
@@ -186,6 +209,7 @@ export interface FileRouteTypes {
     | '/api/openapi.json'
     | '/api/transfers-stage'
     | '/app/api-keys'
+    | '/app/medusa'
     | '/app/notifications'
     | '/app/projects'
     | '/app/transfers'
@@ -193,6 +217,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/ops/summary'
     | '/api/v1/projects'
+    | '/api/integrations/medusa/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -206,6 +231,7 @@ export interface RootRouteChildren {
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiOpsSummaryRoute: typeof ApiOpsSummaryRoute
   ApiV1ProjectsRoute: typeof ApiV1ProjectsRoute
+  ApiIntegrationsMedusaSplatRoute: typeof ApiIntegrationsMedusaSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -259,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppApiKeysRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/medusa': {
+      id: '/app/medusa'
+      path: '/medusa'
+      fullPath: '/app/medusa'
+      preLoaderRoute: typeof AppMedusaRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/notifications': {
       id: '/app/notifications'
       path: '/notifications'
@@ -308,11 +341,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/integrations/medusa/$': {
+      id: '/api/integrations/medusa/$'
+      path: '/api/integrations/medusa/$'
+      fullPath: '/api/integrations/medusa/$'
+      preLoaderRoute: typeof ApiIntegrationsMedusaSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AppRouteChildren {
   AppApiKeysRoute: typeof AppApiKeysRoute
+  AppMedusaRoute: typeof AppMedusaRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppProjectsRoute: typeof AppProjectsRoute
   AppTransfersRoute: typeof AppTransfersRoute
@@ -320,6 +361,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppApiKeysRoute: AppApiKeysRoute,
+  AppMedusaRoute: AppMedusaRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppProjectsRoute: AppProjectsRoute,
   AppTransfersRoute: AppTransfersRoute,
@@ -338,17 +380,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiOpsSummaryRoute: ApiOpsSummaryRoute,
   ApiV1ProjectsRoute: ApiV1ProjectsRoute,
+  ApiIntegrationsMedusaSplatRoute: ApiIntegrationsMedusaSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
