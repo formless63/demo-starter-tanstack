@@ -57,6 +57,13 @@
       "when": 1790883310120,
       "tag": "0007_misty_betty_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790900547435,
+      "tag": "0011_stripe_v1",
+      "breakpoints": true
     }
   ]
 }
