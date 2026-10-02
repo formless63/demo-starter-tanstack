@@ -179,4 +179,23 @@ export const projects = pgTable(
 
 export { auditEvents } from "../integrations/audit-log/schema";
 export { transfers } from "../integrations/import-export/schema";
+export {
+	bindings as invoiceNinjaBindings,
+	clients as invoiceNinjaClients,
+	inbox as invoiceNinjaInbox,
+	invoices as invoiceNinjaInvoices,
+	operations as invoiceNinjaOperations,
+} from "../integrations/invoice-ninja/schema";
+export {
+	medusaBindings,
+	medusaInbox,
+	medusaOperations,
+	medusaProjections,
+} from "../integrations/medusa/schema";
 export { notifications } from "../integrations/notifications/schema";
+export {
+	stripeBindings,
+	stripeInbox,
+	stripeOperations,
+	stripeProjections,
+} from "../integrations/stripe/schema";

@@ -1,0 +1,59 @@
+{
+  "projectName": "medusa-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [
+    "postgres-jobs",
+    "webhooks"
+  ],
+  "forbiddenOfficialAddOns": [
+    "better-auth",
+    "observability",
+    "object-storage",
+    "notifications",
+    "import-export",
+    "stripe",
+    "invoice-ninja"
+  ],
+  "expectedFiles": [
+    "src/integrations/medusa/medusa.server.ts",
+    "src/integrations/medusa/schema.ts",
+    "src/lib/medusa.server.ts",
+    "drizzle/0013_medusa_v1.sql",
+    "capabilities/medusa/CAPABILITY.md",
+    "MEDUSA_MODULE_EVALUATION.md"
+  ],
+  "addOnConfig": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "verificationCommands": [
+    [
+      "bun",
+      "scripts/medusa-clean-fixture.ts"
+    ]
+  ],
+  "referenceVerification": {
+    "installedPath": "src/lib/medusa.server.ts",
+    "commands": [
+      [
+        "bun",
+        "run",
+        "medusa:unit"
+      ],
+      [
+        "bun",
+        "run",
+        "medusa:smoke"
+      ]
+    ]
+  },
+  "build": true,
+  "verificationEnvironment": {
+    "MEDUSA_FIXTURE_DATABASE_URL": "${DATABASE_URL}",
+    "NODE_ENV": "test"
+  }
+}

@@ -4,6 +4,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
+import { clientDisconnect } from "./scripts/vite-client-disconnect";
 
 const config = defineConfig({
 	resolve: { tsconfigPaths: true },
@@ -30,7 +31,14 @@ const config = defineConfig({
 			},
 		},
 	},
-	plugins: [nitro(), devtools(), tailwindcss(), tanstackStart(), viteReact()],
+	plugins: [
+		nitro(),
+		devtools(),
+		tailwindcss(),
+		tanstackStart(),
+		viteReact(),
+		clientDisconnect(),
+	],
 });
 
 export default config;
