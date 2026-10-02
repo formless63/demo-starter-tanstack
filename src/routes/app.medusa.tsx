@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Projection } from "../integrations/medusa/projection";
 export const Route = createFileRoute("/app/medusa")({ component: MedusaPage });
 async function read(path: string, signal?: AbortSignal) {
@@ -19,6 +19,7 @@ function MedusaPage() {
 	const [message, setMessage] = useState("");
 	const [busy, setBusy] = useState(false);
 	const request = useRef<AbortController | null>(null);
+	useEffect(() => () => request.current?.abort(), []);
 	const query = useQuery<{ items: Projection[]; nextCursor: string | null }>({
 		queryKey: ["medusa", kind, cursor],
 		retry: false,
@@ -36,6 +37,7 @@ function MedusaPage() {
 				: false,
 	});
 	async function command(path: string, input: object) {
+		if (request.current) return;
 		const c = new AbortController();
 		request.current = c;
 		setBusy(true);
