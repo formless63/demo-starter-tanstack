@@ -18,7 +18,7 @@ numeric lexemes must remain exact when projections are implemented.
 Required remaining implementation: server-owned scoped bindings, minimal projections,
 operation ledger/inbox, atomic existing Jobs handoff, authorization rechecks and fencing,
 native routes/server functions, reference UI, migrations 0009/0010 as necessary,
-authored and compiled removable add-on, generic Bun/Node24 lifecycle and production proof.
+complete add-on runtime assets, generic durable Bun/Node24 lifecycle and production proof.
 Actual pinned disposable-instance unsent/zero-tax/zero-discount/numeric-string proof
 is unverified and remains a compatibility blocker. No remote provider calls or callback
 registration are authorized. Draft writes must stay disabled until policy proof exists.
@@ -26,3 +26,8 @@ registration are authorized. Draft writes must stay disabled until policy proof 
 Removal must stop processing, retain schemas, migrations and all local history, and
 never delete remote resources or deregister callbacks implicitly. No readiness promotion,
 merge, deployment or publication is authorized by this branch.
+
+The authored/compiled 0.1.0 add-on packages only the boundary foundation. Its generic
+fixture runs the same protocol tests under Bun and actual Node24, builds, removes
+these files while retaining Jobs/Webhooks, and rebuilds. This does not establish
+durable runtime installation/removal or the v1 capability completion gates.
