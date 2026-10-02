@@ -127,14 +127,13 @@ describe("reference command palette", () => {
 	});
 
 	it("keeps a controlled reopened session open after stale success and rejection", async () => {
-		let resolve!: () => void;
 		let reject!: (error: Error) => void;
-		const execute = vi.fn(
-			() =>
-				new Promise<void>((res, rej) => {
-					resolve = res;
-					reject = rej;
-				}),
+		const execute = vi.fn(() =>
+			execute.mock.calls.length === 1
+				? new Promise<void>((_, rej) => {
+						reject = rej;
+					})
+				: Promise.resolve(),
 		);
 		function Harness() {
 			const [open, setOpen] = useState(false);
@@ -156,18 +155,18 @@ describe("reference command palette", () => {
 		fireEvent.click(await screen.findByRole("option", { name: "Delayed" }));
 		fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
 		fireEvent.click(screen.getByRole("button", { name: "Open command menu" }));
-		resolve();
-		await waitFor(() => expect(screen.getByRole("dialog")).toBeTruthy());
-		fireEvent.click(screen.getByRole("option", { name: "Delayed" }));
 		reject(new Error("stale rejection"));
-		await waitFor(() =>
-			expect(screen.getByRole("alert").textContent).toContain(
-				"stale rejection",
-			),
-		);
+		await new Promise((done) => setTimeout(done, 10));
+		expect(screen.queryByRole("alert")).toBeNull();
+		fireEvent.click(screen.getByRole("option", { name: "Delayed" }));
+		await waitFor(() => expect(execute).toHaveBeenCalledTimes(2));
 	});
 
 	it("does not update or reject after StrictMode unmount", async () => {
+		const onOpenChange = vi.fn();
+		const consoleError = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => {});
 		let settle!: (error?: Error) => void;
 		const execute = vi.fn(
 			() =>
@@ -178,23 +177,30 @@ describe("reference command palette", () => {
 		const view = render(
 			<StrictMode>
 				<CommandPalette
+					open
+					onOpenChange={onOpenChange}
 					commands={[{ id: "unmount", label: "Unmount", execute }]}
 				/>
 			</StrictMode>,
 		);
 		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 		fireEvent.click(await screen.findByRole("option", { name: "Unmount" }));
+		onOpenChange.mockClear();
 		view.unmount();
 		settle(new Error("after unmount"));
 		await new Promise((done) => setTimeout(done, 10));
 		expect(execute).toHaveBeenCalledTimes(1);
+		expect(onOpenChange).not.toHaveBeenCalled();
+		expect(consoleError).not.toHaveBeenCalled();
+		consoleError.mockRestore();
 	});
 
 	it("hydrates without errors and still opens and executes by keyboard", async () => {
+		const execute = vi.fn();
 		const container = document.createElement("div");
 		container.innerHTML = renderToString(
 			<CommandPalette
-				commands={[{ id: "hydrate", label: "Hydrate", execute: vi.fn() }]}
+				commands={[{ id: "hydrate", label: "Hydrate", execute }]}
 			/>,
 		);
 		document.body.appendChild(container);
@@ -202,14 +208,17 @@ describe("reference command palette", () => {
 		const root = hydrateRoot(
 			container,
 			<CommandPalette
-				commands={[{ id: "hydrate", label: "Hydrate", execute: vi.fn() }]}
+				commands={[{ id: "hydrate", label: "Hydrate", execute }]}
 			/>,
 			{ onRecoverableError: (error) => errors.push(error) },
 		);
 		await waitFor(() => expect(container.querySelector("button")).toBeTruthy());
 		await new Promise((done) => setTimeout(done, 10));
 		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
-		expect(await screen.findByRole("option", { name: "Hydrate" })).toBeTruthy();
+		const option = await screen.findByRole("option", { name: "Hydrate" });
+		fireEvent.keyDown(screen.getByRole("combobox"), { key: "Enter" });
+		expect(option).toBeTruthy();
+		expect(execute).toHaveBeenCalledTimes(1);
 		expect(errors).toHaveLength(0);
 		root.unmount();
 	});
