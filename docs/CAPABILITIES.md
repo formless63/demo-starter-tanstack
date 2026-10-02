@@ -15,7 +15,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 ## Completed capabilities
 
-All twenty completed capabilities are reference-enabled and opt-in for clean consumers.
+All twenty-one completed capabilities are reference-enabled and opt-in for clean consumers.
 
 | ID | TanStack add-on ID | Status | Reference app | Default installed | Official add-on dependencies | Reusable capability requirements | External | Contract |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -25,6 +25,7 @@ All twenty completed capabilities are reference-enabled and opt-in for clean con
 | `observability` | `observability` | Done | Enabled | No | None | None | Optional OTLP | [Observability](../capabilities/observability/CAPABILITY.md) |
 | `object-storage` | `object-storage` | Done | Enabled | No | None | None | S3 only when used | [Object Storage](../capabilities/object-storage/CAPABILITY.md) |
 | `command-system` | `command-system` | Done | Enabled | No | None | None | None | [Command System](../capabilities/command-system/CAPABILITY.md) |
+| `markdown-code` | `markdown-code` | Done | Enabled | No | None | None | None | [Markdown / Code Content](../capabilities/markdown-code/CAPABILITY.md) |
 | `data-table` | `data-table` | Done | Enabled | No | None | None | None | [Data Table](../capabilities/data-table/CAPABILITY.md) |
 | `charts-visualization` | `charts-visualization` | Done | Enabled | No | None | None | None | [Charts / Visualization](../capabilities/charts-visualization/CAPABILITY.md) |
 | `email` | `email` | Done | Enabled | No | None | None | SMTP only when used; optional Mailpit | [Email](../capabilities/email/CAPABILITY.md) |
@@ -207,7 +208,7 @@ Stripe is an optional authored/compiled add-on (`stripe`, default installed: No)
 
 ## Medusa
 
-Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](../capabilities/medusa/CAPABILITY.md). All twenty completed capabilities remain opt-in for clean consumers.
+Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](../capabilities/medusa/CAPABILITY.md). All twenty-one completed capabilities remain opt-in for clean consumers.
 
 ## Integrated provider migration history
 
@@ -224,3 +225,4 @@ Snapshot links continue from `0007_snapshot.json`, retaining every preceding sch
 ## File UI (in-progress)
 
 Only Object Storage is required. React UI and atomic workflow adapters are independently installed; root authentication and PostgreSQL persistence are application-owned. The clean fixture uses bounded non-durable synthetic metadata. See [contract](../capabilities/file-ui/CAPABILITY.md) for upload receipts, quarantine, operator recovery and removal. Journal index14 / SQL0016_file_ui / cumulative snapshot0014 preserve all previous migration hashes and entries. Hosted exact-head checks are required before promotion.
+Markdown / Code Content is completed and reference-enabled with no hard dependency. Its [frozen contract](../capabilities/markdown-code/CAPABILITY.md) separates the server-only parser/highlighter from native React output. Root and clean-consumer proofs cover the installed boundary. Runtime head `a591a9f` passed full [hosted CI](https://github.com/formless63/demo-starter-tanstack/actions/runs/37025808307), including real Chromium, generated install/removal/rebuild, and development/production reference hydration; clean consumers remain opt-in.
