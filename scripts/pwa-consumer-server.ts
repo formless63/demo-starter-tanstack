@@ -1,11 +1,16 @@
 import assert from 'node:assert/strict';
-import { readFile,stat } from 'node:fs/promises';
+import { readFile,stat,readdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { resolve,join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 // Disposable generated consumer's native Node deployment adapter. No production credentials/services.
 export async function startConsumer() {
  assert.equal(JSON.parse(await readFile('package.json','utf8')).name,'pwa-offline-clean-install');
+ // Fail before rendering if a fixture build inherited test/development JSX transforms.
+ for(const file of await readdir('dist/server',{recursive:true})) {
+  if(!file.endsWith('.js'))continue;
+  assert.doesNotMatch(await readFile(join('dist/server',file),'utf8'),/from\s*["']react\/jsx-dev-runtime["']/,'Native production server must not import development JSX runtime');
+ }
  process.env.NODE_ENV='production';
  const runtime=await import(pathToFileURL(resolve('dist/server/server.js')).href);
  assert.equal(typeof runtime.default.fetch,'function','Actual generated Start production handler');

@@ -21,7 +21,7 @@
     "scripts/pwa-removed-check.ts",
     "scripts/pwa-wait.ts"
   ],
-  "build": true,
+  "build": false,
   "verificationCommands": [
     [
       "bun",
@@ -47,6 +47,13 @@
   ],
   "postBuildVerificationCommands": [
     [
+      "env",
+      "NODE_ENV=production",
+      "bun",
+      "run",
+      "build"
+    ],
+    [
       "bun",
       "x",
       "tsc",
@@ -65,6 +72,8 @@
       "install"
     ],
     [
+      "env",
+      "NODE_ENV=production",
       "bun",
       "run",
       "build"
