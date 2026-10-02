@@ -2,7 +2,7 @@
 
 A deployable, provider-neutral TanStack Start and React starter with Bun, PostgreSQL/Drizzle, passwordless Better Auth, Tailwind CSS 4, shadcn conventions, Base UI where appropriate, Tabler Icons, Docker/Compose, CI, and optional reusable capabilities.
 
-The root repository is also a reference application. It intentionally enables all seventeen completed capabilities so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
+The root repository is also a reference application. It intentionally enables all eighteen completed capabilities so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
 
 ## Start your application
 
@@ -40,6 +40,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | API Platform | Done | Optional | Baseline Better Auth + PostgreSQL/Drizzle + server runtime | User-owned machine keys, typed permissions, native v1 API, OpenAPI 3.1.1, Scalar | [API Platform contract](capabilities/api-platform/CAPABILITY.md) |
 | Observability | Done | Optional | Baseline Start + Node runtime; no capability dependency | Safe JSON logs, request IDs, server traces/metrics, optional OTLP | [Observability contract](capabilities/observability/CAPABILITY.md) |
 | Object Storage | Done | Optional | No database/auth/capability dependency; S3 when used | Private streaming, signed PUT/GET, multipart and post-upload verification | [Storage contract](capabilities/object-storage/CAPABILITY.md) |
+| Charts / Visualization | Done | Optional | None beyond baseline client | Accessible SSR-safe line, bar, and area charts with data-table fallback | [Charts contract](capabilities/charts-visualization/CAPABILITY.md) |
 | Email | Done | Optional | No database/auth/capability dependency; SMTP when used | Bounded SMTP delivery, safe errors and awaited magic links | [Email contract](capabilities/email/CAPABILITY.md) |
 | Webhooks | Done | Optional | Jobs + baseline Node 24 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
 | Audit Log | Done | Optional | Baseline PostgreSQL + Drizzle | Append-oriented events, bounded safe context, atomic domain writes, keyset queries | [Audit Log contract](capabilities/audit-log/CAPABILITY.md) |
@@ -294,4 +295,4 @@ Invoice Ninja v1 is completed and reference-enabled; clean consumers remain opt-
 
 Stripe v1 is completed and reference-enabled for approved hosted one-time Checkout and scoped durable reconciliation. Jobs and Webhooks are required; clean consumers remain opt-in. Full combined lifecycle, browser, canonical container and worker verification passed using local protocol/persistence fixtures, without sandbox/live payments or financial certification. See [contract](capabilities/stripe/CAPABILITY.md).
 
-Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](capabilities/medusa/CAPABILITY.md). All seventeen completed capabilities remain opt-in for clean consumers.
+Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](capabilities/medusa/CAPABILITY.md). All eighteen completed capabilities remain opt-in for clean consumers.
