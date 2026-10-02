@@ -1,0 +1,20 @@
+{
+  "projectName": "command-system-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [],
+  "forbiddenOfficialAddOns": ["better-auth", "postgres-jobs"],
+  "expectedFiles": [
+    "src/components/command-system.tsx",
+    "capabilities/command-system/CAPABILITY.md"
+  ],
+  "build": true,
+  "verificationCommands": [
+    ["bun", "run", "command-system:unit"],
+    ["bun", "run", "build"],
+    ["bun", "x", "tsc", "--noEmit"],
+    ["bun", "run", "build"]
+  ]
+}

@@ -872,9 +872,21 @@
 			}
 		},
 		{
-			"id": "command-system", "displayName": "Command System", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
+			"id": "command-system", "displayName": "Command System", "kind": "operations-ui-infrastructure", "status": "in-progress", "defaultInstalled": false,
 			"requires": [], "integratesWith": ["search", "authorization"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Accessible application commands, shortcuts, and command palette conventions."
+			"summary": "Accessible application commands, shortcuts, and command palette conventions.",
+			"documentationPath": "capabilities/command-system/CAPABILITY.md",
+			"agentSkill": ".agents/skills/capability-change/SKILL.md",
+			"evaluationDocument": "COMMAND_SYSTEM_MODULE_EVALUATION.md",
+			"tanstackAddOn": {
+				"addOnId": "command-system",
+				"sourceDirectory": "capabilities/command-system/.add-on",
+				"manifestPath": "capabilities/command-system/.add-on/info.json",
+				"distributablePath": "capabilities/command-system/add-on.json",
+				"cleanInstallFixture": "capabilities/command-system/test/clean-install.json",
+				"dependsOn": [],
+				"conflictsWith": []
+			}
 		},
 		{
 			"id": "data-table", "displayName": "Data Table", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
