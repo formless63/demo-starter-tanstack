@@ -4,10 +4,23 @@ import {readFile,writeFile} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
 import {chromium} from '@playwright/test';
 import {startConsumer} from './pwa-consumer-server';
+import {publicAssets} from '../src/integrations/pwa-offline/config';
+import {createHash} from 'node:crypto';
 const server=await startConsumer();const browser=await chromium.launch();
 const closeTabs=async(context:Awaited<ReturnType<typeof browser.newContext>>)=>{for(const tab of context.pages())await tab.close();};
 try {
  const worker=await fetch(`${server.origin}/pwa-offline-sw.js`);assert.equal(worker.status,200);assert.match(worker.headers.get('content-type')??'',/javascript/);
+ const emittedWorker=await readFile('dist/client/pwa-offline-sw.js');
+ assert.notDeepEqual(emittedWorker,await readFile('public/pwa-offline-sw.js'),'Native Start build must replace copied retirement artifact with the live generated worker');
+ assert.deepEqual(Buffer.from(await worker.arrayBuffer()),emittedWorker,'Native HTTP serves exact emitted worker');
+ for(const asset of publicAssets){
+  assert.ok(emittedWorker.toString().includes(asset),'Live worker contains reviewed allowlist entry');
+  const response=await fetch(`${server.origin}/${asset}`);assert.equal(response.status,200);
+  assert.equal(response.headers.get('content-type'),asset.endsWith('.png')?'image/png':'text/html; charset=utf-8');
+  assert.equal(response.headers.get('cache-control'),asset.endsWith('.png')?'public, max-age=31536000, immutable':'public, max-age=300');
+  assert.deepEqual(Buffer.from(await response.arrayBuffer()),await readFile(`public/${asset}`));
+ }
+ console.info('[PWA native HTTP] Live worker and three allowlisted assets verified',createHash('sha256').update(emittedWorker).digest('hex'));
  const manifest=await (await fetch(`${server.origin}/manifest.webmanifest`)).json() as {id:string;scope:string};assert.equal(manifest.id,'/');assert.equal(manifest.scope,'/');
  const ssr=await(await fetch(`${server.origin}/pwa-test`)).text();assert.ok(ssr.includes('disabled=""'));
  const context=await browser.newContext({serviceWorkers:'allow'});let page=await context.newPage();await page.goto(`${server.origin}/pwa-test`);await page.getByRole('button',{name:'Enable offline notice'}).click();await waitForPwa(()=>page.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration())?.active),'native consumer activation');await page.reload();await page.waitForFunction(()=>!!navigator.serviceWorker.controller);

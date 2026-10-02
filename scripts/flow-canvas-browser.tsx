@@ -17,8 +17,12 @@ assert.ok(!html.includes('react-flow__renderer'));
 const directory=await mkdtemp(join(tmpdir(),'flow-canvas-browser-'));
 const source=fileURLToPath(new URL('.',import.meta.url));
 const previous=process.env.NODE_ENV;process.env.NODE_ENV='production';
-try {await build({configFile:false,mode:'production',plugins:[react()],define:{'process.env.NODE_ENV':JSON.stringify('production')},build:{outDir:directory,emptyOutDir:true,lib:{entry:join(source,'flow-canvas-client.tsx'),formats:['es'],fileName:()=>'client.js'}}});} finally {if(previous===undefined)delete process.env.NODE_ENV;else process.env.NODE_ENV=previous;}
-const files=new Map<string,Buffer>();for(const file of await readdir(directory))files.set(`/${file}`,await readFile(join(directory,file)));
+try {await build({configFile:false,publicDir:false,mode:'production',plugins:[react()],define:{'process.env.NODE_ENV':JSON.stringify('production')},build:{outDir:directory,emptyOutDir:true,lib:{entry:join(source,'flow-canvas-client.tsx'),formats:['es'],fileName:()=>'client.js'}}});} finally {if(previous===undefined)delete process.env.NODE_ENV;else process.env.NODE_ENV=previous;}
+// This isolated fixture serves only its explicit JS/CSS bundle, never app public uploads/assets.
+const assets=await readdir(directory,{withFileTypes:true});
+assert.ok(assets.some(asset=>asset.name==='client.js'),'Flow fixture emits its client entry');
+assert.ok(assets.every(asset=>asset.isFile()&&/\.(js|css)$/.test(asset.name)),'Flow fixture output contains only bundled files, with no copied public subdirectories');
+const files=new Map<string,Buffer>();for(const asset of assets)files.set(`/${asset.name}`,await readFile(join(directory,asset.name)));
 const css=[...files.keys()].filter(k=>k.endsWith('.css')).map(k=>`<link rel="stylesheet" href="${k}">`).join('');
 const server=createServer((req,res)=>{const file=files.get(req.url??'');if(file){res.writeHead(200,{'content-type':req.url?.endsWith('.css')?'text/css':'application/javascript'}).end(file);return;}res.writeHead(200,{'content-type':'text/html; charset=utf-8'}).end(`<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Flow fixture</title>${css}</head><body><div id="root">${html}</div><script type="module" src="/client.js"></script></body></html>`);});
 await new Promise<void>((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
