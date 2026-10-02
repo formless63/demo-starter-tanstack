@@ -98,6 +98,11 @@ jobs:
           bun run import-export:unit
           bun run storage:abort
           IMPORT_EXPORT_FIXTURE_SCRIPT=scripts/import-export-ops-fixture.ts bun run import-export:compat
+      - name: Verify Stripe local protocol and migration upgrades
+        run: |
+          bun run stripe:unit
+          bun run stripe:durable
+          bun run stripe:migrations
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run add-ons:test:composition
