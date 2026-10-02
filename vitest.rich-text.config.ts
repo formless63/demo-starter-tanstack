@@ -4,6 +4,7 @@ export default defineConfig({
 	test: {
 		include: [
 			"capabilities/rich-text/test/**/*.fixture.ts",
+        "capabilities/rich-text/test/**/*.fixture.mjs",
 			"capabilities/rich-text/test/**/*.fixture.tsx",
 		],
 		environment: "jsdom",

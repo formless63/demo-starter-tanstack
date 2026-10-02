@@ -21,7 +21,8 @@
     "scripts/rich-text-client.tsx",
     "scripts/rich-text-browser-checks.ts",
     "scripts/rich-text-remove.ts",
-    "src/routes/rich-text-test.tsx"
+    "src/routes/rich-text-test.tsx",
+    "scripts/rich-text-html.ts"
   ],
   "build": true,
   "verificationCommands": [
