@@ -16,6 +16,11 @@ export const Route = createFileRoute("/api/integrations/stripe/$action")({
 				const deadline = operationDeadline(request.signal);
 				const headers = { "cache-control": "no-store" };
 				try {
+					if (
+						request.headers.get("origin") !==
+						new URL(process.env.APP_BASE_URL ?? "http://127.0.0.1:3000").origin
+					)
+						throw new StripeCapabilityError("forbidden");
 					const session = await auth.api.getSession({
 						headers: request.headers,
 					});

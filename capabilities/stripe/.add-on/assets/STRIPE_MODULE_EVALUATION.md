@@ -1,0 +1,7 @@
+# Stripe v1 evaluation
+
+Pinned stripe-node 23.0.0 and API 2026-09-30.endive use the official operation-local FetchHttpClient with injected bounded fetch, no SDK retries and telemetry disabled. Native signature verification retains exact raw bytes and supplements SDK verification with an absolute 300-second timestamp check. The SDK pin is confirmed by upstream [manifest](https://raw.githubusercontent.com/stripe/stripe-node/v23.0.0/package.json), [API constant](https://raw.githubusercontent.com/stripe/stripe-node/v23.0.0/src/apiVersion.ts), and [Fetch transport](https://raw.githubusercontent.com/stripe/stripe-node/v23.0.0/src/net/FetchHttpClient.ts).
+
+Local wire fixtures run on Bun and actual Node24. Disposable PostgreSQL18 fixtures prove server-owned binding isolation, unchanged-input duplicate behavior, changed-input conflicts, transactional receipt rollback, receipt uniqueness, authoritative GET processing, unpaid completion distinct from success, ID-only queue inputs, bounded retry exhaustion and the 23-hour replay cutoff. These are local protocol and persistence checks, not payment or financial certification. Remote sandbox/provider account requests and Stripe CLI login were not run.
+
+Implementation remains in progress. Full packaging/removal, root browser/container/worker, migration upgrade/retention and exact final SHA hosted CI gates must pass before promotion. No completion claim is made by this document.
