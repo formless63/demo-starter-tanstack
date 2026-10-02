@@ -1,0 +1,1 @@
+{"projectName":"data-table-addon-clean-install","framework":"React","blank":true,"packageManager":"bun","toolchain":"biome","expectedOfficialAddOns":[],"forbiddenOfficialAddOns":["drizzle","better-auth","postgres-jobs","search"],"expectedFiles":["src/components/data-table.tsx","capabilities/data-table/CAPABILITY.md"],"build":true}
