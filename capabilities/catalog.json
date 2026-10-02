@@ -24,7 +24,7 @@
 		]
 	},
 	"referenceApplication": {
-		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage"]
+		"enabledCapabilities": ["jobs", "api-platform", "observability", "object-storage", "charts-visualization"]
 	},
 	"frameworkEvaluations": {
 		"tanstack": [
@@ -289,9 +289,10 @@
 			"summary": "Safe Markdown and highlighted code rendering and authoring primitives."
 		},
 		{
-			"id": "charts-visualization", "displayName": "Charts / Visualization", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
+			"id": "charts-visualization", "displayName": "Charts / Visualization", "kind": "operations-ui-infrastructure", "status": "done", "defaultInstalled": false,
 			"requires": [], "integratesWith": ["data-table", "realtime"], "baselineRequirements": [], "externalRequirements": [],
-			"summary": "Accessible application charts and reusable visualization conventions."
+			"summary": "Accessible application charts and reusable visualization conventions.", "documentationPath": "capabilities/charts-visualization/CAPABILITY.md", "evaluationDocument": "CHARTS_MODULE_EVALUATION.md",
+			"tanstackAddOn": { "addOnId": "charts-visualization", "sourceDirectory": "capabilities/charts-visualization/.add-on", "manifestPath": "capabilities/charts-visualization/.add-on/info.json", "distributablePath": "capabilities/charts-visualization/add-on.json", "cleanInstallFixture": "capabilities/charts-visualization/test/clean-install.json", "dependsOn": [], "conflictsWith": [] }
 		},
 		{
 			"id": "file-ui", "displayName": "File UI", "kind": "operations-ui-infrastructure", "status": "planned", "defaultInstalled": false,
