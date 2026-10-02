@@ -49,9 +49,13 @@ try {
  const beforeDrag=await currentX();const startPoint=await hitPoint(rendered,'Selected native node');
  await page.mouse.move(startPoint.x,startPoint.y);await page.mouse.down();await page.mouse.move(startPoint.x+40,startPoint.y+20,{steps:5});await page.mouse.up();await expect.poll(currentX,{message:'Native pointer drag changes the authoritative graph position'}).not.toBe(beforeDrag);
  // The parent rejects both the document proposal and vendor visual state.
- await page.getByLabel('Reject proposals',{exact:true}).check();const rejectedX=await currentX();const beforeTransform=await rendered.getAttribute('style');
- await rendered.scrollIntoViewIfNeeded();await rendered.focus();await expect(rendered).toBeFocused();await expect(rendered).toHaveClass(/selected/);await rendered.press('ArrowRight');await expect.poll(currentX,{message:'Parent rejection preserves the authoritative keyboard position'}).toBe(rejectedX);await expect(rendered).toHaveAttribute('style',beforeTransform!);
- const viewport=main.locator('.react-flow__viewport');const viewportBefore=await viewport.getAttribute('style');await main.getByRole('button',{name:/zoom in/i}).click();await expect(viewport).toHaveAttribute('style',viewportBefore!);
+ await page.getByLabel('Reject proposals',{exact:true}).check();
+ // React Flow hides nodes until ResizeObserver measures them after a controlled reset.
+ // Geometry and authoritative graph bytes are the invariants, not incidental visibility/z-index styles.
+ await expect(rendered).toBeVisible();const rejectedGraph=await page.getByTestId('graph-json').innerText();const rejectedX=await currentX();
+ const beforeTransform=await rendered.evaluate(element=>getComputedStyle(element).transform);assert.notEqual(beforeTransform,'none');
+ await rendered.scrollIntoViewIfNeeded();await rendered.focus();await expect(rendered).toBeFocused();await expect(rendered).toHaveClass(/selected/);await rendered.press('ArrowRight');await expect.poll(currentX,{message:'Parent rejection preserves the authoritative keyboard position'}).toBe(rejectedX);await expect(rendered).toBeVisible();await expect(rendered).toHaveCSS('transform',beforeTransform);await expect(page.getByTestId('graph-json')).toHaveText(rejectedGraph);
+ const viewport=main.locator('.react-flow__viewport');const viewportBefore=await viewport.evaluate(element=>getComputedStyle(element).transform);assert.notEqual(viewportBefore,'none');await main.getByRole('button',{name:/zoom in/i}).click();await expect(viewport).toHaveCSS('transform',viewportBefore);await expect(page.getByTestId('graph-json')).toHaveText(rejectedGraph);
  await page.getByLabel('Reject proposals',{exact:true}).uncheck();
  // Escape destroys the old gesture; its later mouseup cannot apply another edit.
  await rendered.scrollIntoViewIfNeeded();await rendered.focus();await expect(rendered).toBeFocused();const escapePoint=await hitPoint(rendered,'Escape gesture node');const beforeEscapeDrag=await currentX();
