@@ -126,11 +126,16 @@ describe("reference command palette", () => {
 		await waitFor(() => expect(execute).toHaveBeenCalledTimes(2));
 	});
 
-	it("keeps a controlled reopened session open after stale success and rejection", async () => {
+	it.each([
+		"success",
+		"rejection",
+	] as const)("keeps a controlled reopened session open after stale %s", async (outcome) => {
+		let resolve!: () => void;
 		let reject!: (error: Error) => void;
 		const execute = vi.fn(() =>
 			execute.mock.calls.length === 1
-				? new Promise<void>((_, rej) => {
+				? new Promise<void>((res, rej) => {
+						resolve = res;
 						reject = rej;
 					})
 				: Promise.resolve(),
@@ -155,7 +160,8 @@ describe("reference command palette", () => {
 		fireEvent.click(await screen.findByRole("option", { name: "Delayed" }));
 		fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
 		fireEvent.click(screen.getByRole("button", { name: "Open command menu" }));
-		reject(new Error("stale rejection"));
+		if (outcome === "success") resolve();
+		else reject(new Error("stale rejection"));
 		await new Promise((done) => setTimeout(done, 10));
 		expect(screen.queryByRole("alert")).toBeNull();
 		fireEvent.click(screen.getByRole("option", { name: "Delayed" }));
