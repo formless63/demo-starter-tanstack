@@ -10,7 +10,7 @@ The frozen v1 contract is [CAPABILITY.md](capabilities/rich-text/CAPABILITY.md).
 
 Implementation is in-progress. Required gates: source/distributable parity; malicious and oversized document tests; actual editor controlled/rejected changes and replacement/undo tests; SSR/hydration; accessible browser interactions on generated consumer and native reference route; independent install/typecheck/build/removal/rebuild; governance and full exact-head hosted CI. Local policy blocks Chromium/Nitro Unix sockets; no restriction bypass is attempted and no browser acceptance is claimed from DOM substitutes. Published CI evidence will be recorded before metadata promotion.
 
-## Local results
+## Initial local results (before hosted correction)
 
 - 113 focused tests passed: strict schema and hostile input; actual Tiptap transactions; controlled accept/reject; external replacement and undo/redo privacy; all formatting/link controls; whole-document selection; canonical adjacent text/mark normalization; literal/empty clipboard; failed lazy loading; actual SSR/hydration and runtime asset parity.
 - Root and authored TypeScript, governance and agent guidance checks passed. Root Biome passes with pre-existing warnings.
@@ -21,3 +21,9 @@ Implementation is in-progress. Required gates: source/distributable parity; mali
 Whole-document blockquote selection and adjacent-text normalization were found by actual-editor tests and corrected before publication. Callback handling, plain-text-only clipboard, strict links and history reset boundaries remain the frozen v1 scope.
 
 Final test discovery is verified: Playwright lists `rich-text.e2e.ts`, Bun does not discover it, and CI installs Chromium before generic reference tests. A later root typecheck attempt during another build was OOM-killed; earlier root/authored typechecks passed, and final exact-head typecheck/build remain mandatory in hosted CI.
+
+## Hosted hydration correction
+
+The first hosted generated-consumer browser run on `ab3f583` completed all editor interaction assertions but correctly failed the preserved console-error gate with React #418. The standalone HTML response omitted an encoding declaration; real HTML byte decoding interpreted the UTF-8 ellipsis in “Loading editor…” as windows-1252 “Loading editorâ€¦”. This is independent of JSX development/production runtime selection. The fixture now declares UTF-8 in both HTTP Content-Type and an early meta charset, with a shared shipped HTML helper. A permanent regression compiles the actual shipped SSR and minified production client, hydrates both the header and meta-declared UTF-8 byte paths with no errors, and demonstrates #418 if both declarations are removed. The same module/loading/editor code is exercised. The root-focused suite now has 114 passing tests; hosted Chromium remains required and its error assertion is unchanged.
+
+On the UTF-8 correction, root/authored typechecks, the root production Node/Nitro build, and independent consumer installation/typecheck/build/removal/rebuild all passed locally. The byte-level regression and 114-test suite passed. These checks do not replace the mandatory hosted Chromium/full-CI gates.
