@@ -1,3 +1,4 @@
+import {waitForPwa} from './pwa-wait';
 import assert from 'node:assert/strict';
 import { mkdtemp,cp,writeFile,readFile,rm,mkdir,symlink,stat,readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -13,9 +14,9 @@ async function command(args:string[]) {
 let servingBase='/';let privateReads=0;let unsafeHeaders=false;let errorPage=false;let tamper=false;
 const publicCredentials:string[]=[];
 const httpTrace: {path:string;status:number;type:string;cache:string;cookiePresent:boolean;destination:string;mode:string}[]=[];
-async function waitForWorker(page:Page,label:string,predicate:()=>unknown|Promise<unknown>) {
+async function waitForWorker(page:Page,label:string,predicate:()=>boolean|Promise<boolean>) {
  console.info(`[PWA stage] ${label}`);
- try {await page.waitForFunction(predicate,undefined,{timeout:30000});}
+ try {await waitForPwa(()=>page.evaluate(predicate),label);}
  catch(error){
   const state=await page.evaluate(async()=>({path:location.pathname,secure:window.isSecureContext,online:navigator.onLine,controller:navigator.serviceWorker.controller?.scriptURL,registrations:(await navigator.serviceWorker.getRegistrations()).map(registration=>({scope:registration.scope,active:registration.active?{url:registration.active.scriptURL,state:registration.active.state}:null,installing:registration.installing?{url:registration.installing.scriptURL,state:registration.installing.state}:null,waiting:registration.waiting?{url:registration.waiting.scriptURL,state:registration.waiting.state}:null})),statuses:Array.from(document.querySelectorAll('output')).map(element=>element.textContent),caches:await caches.keys()})).catch(()=>({diagnostics:'page unavailable'}));
   console.error(`[PWA failed] ${label}`,JSON.stringify({state,http:httpTrace.slice(-20)}));
@@ -69,7 +70,11 @@ try {
  if(process.argv.includes('--build-only')){console.info('Native production fixture build and exact injected manifest passed; browser not run');process.exitCode=0;}
  else {browser=await chromium.launch();
  const context=await browser.newContext({serviceWorkers:'allow'});observe(context,'root');let page=await context.newPage();await page.goto(`${origin}/pwa-test`);
+ const fresh=await page.evaluate(async()=>({registrations:(await navigator.serviceWorker.getRegistrations()).length,caches:(await caches.keys()).length}));
+ assert.deepEqual(fresh,{registrations:0,caches:0},'Fresh context has no prior registration or cache to reuse');
  await page.evaluate(()=>fetch('/login',{method:'POST'}));
+ const signedIn=await page.evaluate(async()=>await(await fetch('/api/private')).json());
+ assert.ok(signedIn.session.includes('session=private-user'),'Fixture cookie is actually sent on ordinary authenticated requests');
  await page.getByRole('button',{name:'Enable offline notice'}).click();
  await waitForWorker(page,'root initial activation',async()=>!!(await navigator.serviceWorker.getRegistration())?.active);
  console.info('[PWA precache credential observations]',JSON.stringify({count:publicCredentials.length,withCookie:publicCredentials.filter(value=>value!=='').length,requests:httpTrace.filter(item=>item.path.startsWith('/pwa-offline/'))}));

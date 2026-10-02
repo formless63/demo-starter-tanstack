@@ -18,7 +18,8 @@
     "scripts/pwa-vite.ts",
     "scripts/pwa-client-fixture.tsx",
     "public/pwa-offline/offline.html",
-    "scripts/pwa-removed-check.ts"
+    "scripts/pwa-removed-check.ts",
+    "scripts/pwa-wait.ts"
   ],
   "build": true,
   "verificationCommands": [

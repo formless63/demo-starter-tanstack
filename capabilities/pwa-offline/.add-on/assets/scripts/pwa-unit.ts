@@ -1,3 +1,4 @@
+import {waitForPwa} from './pwa-wait';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { cacheableResponse,eligibleNavigation,validBase,validPublicPath,cachePrefix } from '../src/integrations/pwa-offline/policy';
@@ -38,3 +39,8 @@ await controller.register();assert.equal(calls,1);assert.equal(controller.getSna
 console.info('PWA policy, privacy exclusions, base paths, owned registration and synthetic install rejection passed');
 
 await import('./pwa-worker-unit');
+
+let pollingAttempts=0;
+await waitForPwa(async()=>{pollingAttempts++;await Promise.resolve();return pollingAttempts>=3;},'await resolved false before readiness');
+assert.equal(pollingAttempts,3,'Pending/false async predicates must not satisfy readiness');
+console.info('Awaited PWA predicate regression passed: two resolved false values before actual true');
