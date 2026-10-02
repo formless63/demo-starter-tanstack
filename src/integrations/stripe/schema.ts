@@ -132,6 +132,7 @@ export const stripeOperations = pgTable(
 			.$type<OperationStatus>()
 			.notNull(),
 		intent: jsonb("intent").$type<FrozenIntent>(),
+		checkoutRemoteId: varchar("checkout_remote_id", { length: 128 }),
 		createdAt: time("created_at").notNull(),
 		updatedAt: time("updated_at").notNull(),
 		firstDispatchAt: time("first_dispatch_at"),

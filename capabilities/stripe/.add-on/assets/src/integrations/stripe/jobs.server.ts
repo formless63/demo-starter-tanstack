@@ -215,7 +215,9 @@ export function createStripeJobs(wiring: StripeWiring) {
 				(!initial.intent ||
 					initial.intent.accountId !== config.accountId ||
 					initial.intent.mode !== config.mode ||
-					(initial.firstDispatchAt && !replayAllowed(initial.firstDispatchAt)))
+					(initial.firstDispatchAt &&
+						!initial.checkoutRemoteId &&
+						!replayAllowed(initial.firstDispatchAt)))
 			) {
 				await db
 					.update(stripeOperations)
@@ -263,14 +265,39 @@ export function createStripeJobs(wiring: StripeWiring) {
 			const state =
 				claimed.kind === "create_checkout"
 					? await withStripe(config, signal, (sdk) =>
-							sdk.checkout.sessions.create(
-								requireIntent(claimed.intent).params,
-								{
-									idempotencyKey: `gs-stripe:${id}`,
-								},
-							),
+							claimed.checkoutRemoteId
+								? sdk.checkout.sessions.retrieve(claimed.checkoutRemoteId)
+								: sdk.checkout.sessions.create(
+										requireIntent(claimed.intent).params,
+										{ idempotencyKey: `gs-stripe:${id}` },
+									),
 						)
 					: await retrieve(source, signal);
+			if (claimed.kind === "create_checkout") {
+				if (
+					state.object !== "checkout.session" ||
+					state.livemode !== (config.mode === "live") ||
+					(typeof state.customer === "string"
+						? state.customer
+						: state.customer?.id) !== source.remoteId
+				)
+					throw new StripeCapabilityError("unsupported");
+				parse(opaqueId, state.id);
+				signal.throwIfAborted();
+				const [known] = await db
+					.update(stripeOperations)
+					.set({ checkoutRemoteId: state.id, updatedAt: new Date() })
+					.where(
+						and(
+							eq(stripeOperations.id, id),
+							eq(stripeOperations.attemptToken, attemptToken),
+							eq(stripeOperations.revision, claimed.revision),
+						),
+					)
+					.returning();
+				if (!known) throw new StripeCapabilityError("conflict");
+			}
+
 			signal.throwIfAborted();
 			await db.transaction(async (tx) => {
 				await service.binding(trusted, source.id, source.resourceKind, tx);
@@ -342,7 +369,10 @@ export function createStripeJobs(wiring: StripeWiring) {
 				error instanceof StripeCapabilityError ? error.code : "unavailable";
 			const write = initial.kind === "create_checkout";
 			const uncertainWrite =
-				write && token && !(error instanceof StripeProviderRejection);
+				write &&
+				token &&
+				(initial.checkoutRemoteId ||
+					!(error instanceof StripeProviderRejection));
 			const retry =
 				!signal.aborted &&
 				(code === "unavailable" || code === "deadline_exceeded") &&
@@ -350,6 +380,7 @@ export function createStripeJobs(wiring: StripeWiring) {
 				(!write ||
 					(!!initial.intent &&
 						(!initial.firstDispatchAt ||
+							initial.checkoutRemoteId ||
 							replayAllowed(initial.firstDispatchAt))));
 			await db.transaction(async (tx) => {
 				if (token) {
