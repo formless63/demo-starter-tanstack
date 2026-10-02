@@ -108,6 +108,9 @@ Medusa v1 (completed and reference-enabled) uses `src/integrations/medusa` for b
 
 - `bun run data-table:typecheck` and `bun run data-table:browser`: native v9 asset typecheck and real SSR/hydration/client/manual state regression; no database. `bun run add-ons:test data-table` also verifies clean install and removal rebuild.
 
+Rich Text: `bun run rich-text:unit`, `rich-text:typecheck`, `rich-text:browser` and `add-ons:test rich-text`. Hosted Chromium tests run both native reference development/production and independent consumer SSR-hydration/editor/removal lifecycle.
+
+File UI: `file-ui:unit`, `file-ui:protocol`, `file-ui:browser`, `file-ui:compat`, root-only `file-ui:database` and bounded explicit `file-ui:reconcile`. `add-ons:test file-ui` proves actual opt-in install, shipped UI, real supported storage and independent removal. Docker/browser gates must run hosted where unavailable locally; never bypass sandbox restrictions.
 `bun run markdown-code:unit` verifies the actual server parser and native React SSR component without services. `bun run markdown-code:typecheck` checks the authored component and full Bun/browser fixture in isolation. `bun run markdown-code:browser` exercises real Chromium hydration/copy/hostile input/theme and audits the client metafile; `bun run add-ons:test markdown-code` installs the official generated consumer, typechecks/builds and removes/rebuilds. `bun run add-ons:verify:reference markdown-code` executes installed-boundary proof; root Playwright additionally covers `/markdown-test` in development and production.
 
 `bun run markdown-code:dom` exercises the installed React component’s hydration readiness, clipboard status and stale-completion guards under DOM emulation; it supplements, never replaces, the real Chromium reference and generated-consumer gates. Renderer tests also normalize malformed persisted document shapes and enforce display/copy equality.
