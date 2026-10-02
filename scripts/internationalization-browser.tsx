@@ -27,7 +27,7 @@ await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));const ori
 let browser:Awaited<ReturnType<typeof chromium.launch>>|undefined;
 try {
  browser=await chromium.launch({headless:true});const page=await browser.newPage();const errors:string[]=[];const external:string[]=[];
- page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});page.on('request',request=>{if(!request.url().startsWith(origin))external.push(request.url());});
+ page.on('pageerror',error=>{errors.push(error.message);console.error('I18n browser page error:',error.message);});page.on('console',message=>{if(message.type()==='error'){errors.push(message.text());console.error('I18n browser console error:',message.text());}});page.on('request',request=>{if(!request.url().startsWith(origin))external.push(request.url());});
  await page.goto(origin);await expect(page.getByTestId('currency')).toHaveText('SERVER EUR 1 234,50');
  await page.getByRole('button',{name:'de',exact:true}).click();await expect(page.getByTestId('greeting')).toHaveText('Hallo Ada');
  await page.getByRole('button',{name:'en',exact:true}).click();await expect(page.getByTestId('greeting')).toHaveText('Hello Ada');
@@ -47,7 +47,12 @@ try {
 
  await page.getByRole('button',{name:'de',exact:true}).click();await page.getByRole('button',{name:'Cancel locale change'}).click();await page.waitForTimeout(250);await expect(page.getByTestId('greeting')).toHaveText('مرحبًا Ada');
  await page.getByRole('button',{name:'de',exact:true}).click();await page.getByRole('button',{name:'Toggle example'}).click();await page.waitForTimeout(250);await page.getByRole('button',{name:'Toggle example'}).click();await expect(page.getByTestId('greeting')).toHaveText('Hello Ada');
- await page.getByRole('button',{name:'en',exact:true}).press('Enter');await expect(page.getByRole('status')).toHaveText('idle');
+ // press() does not wait for enabled state. On remount, focus can otherwise remain on Toggle example.
+ const english=page.getByRole('button',{name:'en',exact:true});
+ await expect(english).toBeEnabled();await english.focus();await expect(english).toBeFocused();
+ console.info('I18n browser: remounted English control is enabled and focused before keyboard activation');
+ await expect(page).toHaveURL(/locale=ar/);
+ await page.keyboard.press('Enter');await expect(page).toHaveURL(/locale=en/);await expect(page.getByRole('region',{name:'Localized example'})).toBeVisible();await expect(page.getByRole('status')).toHaveText('idle');
  assert.deepEqual(errors,[]);assert.deepEqual(external,[]);assert.equal(await page.evaluate(()=>localStorage.length),0);
  console.info('Native Chromium hydration, divergent ICU payload, Arabic RTL/plurals, escaping, rapid changes, cancellation, unmount and Back/Forward passed');
 }finally{await browser?.close();server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));await rm(directory,{recursive:true,force:true});}
