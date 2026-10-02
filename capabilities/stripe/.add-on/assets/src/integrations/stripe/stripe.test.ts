@@ -338,3 +338,44 @@ test("whole transport deadline cancels slow headers and concurrent clients remai
 		await new Promise<void>((resolve) => server.close(() => resolve()));
 	}
 });
+
+test("all six snapshot hints remain ownership-free and unknown versions are ignored", async () => {
+	const types = [
+		"checkout.session.completed",
+		"checkout.session.async_payment_succeeded",
+		"checkout.session.async_payment_failed",
+		"payment_intent.succeeded",
+		"payment_intent.payment_failed",
+		"payment_intent.canceled",
+	];
+	for (const type of types) {
+		const payment = type.startsWith("payment_intent.");
+		const result = await verifyStripeRequest(
+			signed({
+				...event,
+				type,
+				data: {
+					object: {
+						object: payment ? "payment_intent" : "checkout.session",
+						id: payment ? "pi_fixture" : "cs_fixture",
+						metadata: { actor: "forged", scope: "foreign" },
+					},
+				},
+			}),
+			connection,
+		);
+		expect(result).toMatchObject({
+			type,
+			kind: payment ? "payment" : "checkout",
+			remoteId: payment ? "pi_fixture" : "cs_fixture",
+		});
+		expect(JSON.stringify(result)).not.toContain("forged");
+		expect(Object.keys(result).sort()).toEqual([
+			"bodySHA256",
+			"eventId",
+			"kind",
+			"remoteId",
+			"type",
+		]);
+	}
+});

@@ -197,7 +197,7 @@ export function createStripeCapability(wiring: StripeWiring) {
 		if (!wiring.resolveOffer || !wiring.approvedRedirects)
 			throw new StripeCapabilityError("unconfigured");
 		const items = [...parsed.items].sort((a, b) =>
-			a.offerId.localeCompare(b.offerId),
+			a.offerId < b.offerId ? -1 : a.offerId > b.offerId ? 1 : 0,
 		);
 		const normalized = { customerBindingId: parsed.customerBindingId, items };
 		const digest = createHash("sha256")

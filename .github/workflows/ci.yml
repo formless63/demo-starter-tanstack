@@ -103,6 +103,7 @@ jobs:
           bun run stripe:unit
           bun run stripe:durable
           bun run stripe:migrations
+          bun run stripe:worker
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run add-ons:test:composition
