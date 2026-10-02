@@ -17,6 +17,7 @@ import { Route as ApiOpenapiDotjsonRouteImport } from './routes/api/openapi[.]js
 import { Route as ApiTransfersStageRouteImport } from './routes/api/transfers-stage'
 import { Route as AppApiKeysRouteImport } from './routes/app.api-keys'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
+import { Route as AppPaymentsRouteImport } from './routes/app.payments'
 import { Route as AppProjectsRouteImport } from './routes/app.projects'
 import { Route as AppTransfersRouteImport } from './routes/app.transfers'
 import { Route as DocsApiRouteImport } from './routes/docs.api'
@@ -64,6 +65,11 @@ const AppApiKeysRoute = AppApiKeysRouteImport.update({
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPaymentsRoute = AppPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProjectsRoute = AppProjectsRouteImport.update({
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/payments': typeof AppPaymentsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/payments': typeof AppPaymentsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   '/api/transfers-stage': typeof ApiTransfersStageRoute
   '/app/api-keys': typeof AppApiKeysRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/payments': typeof AppPaymentsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
   '/docs/api': typeof DocsApiRoute
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
     | '/api/transfers-stage'
     | '/app/api-keys'
     | '/app/notifications'
+    | '/app/payments'
     | '/app/projects'
     | '/app/transfers'
     | '/docs/api'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/api/transfers-stage'
     | '/app/api-keys'
     | '/app/notifications'
+    | '/app/payments'
     | '/app/projects'
     | '/app/transfers'
     | '/docs/api'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/api/transfers-stage'
     | '/app/api-keys'
     | '/app/notifications'
+    | '/app/payments'
     | '/app/projects'
     | '/app/transfers'
     | '/docs/api'
@@ -294,6 +306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNotificationsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/payments': {
+      id: '/app/payments'
+      path: '/payments'
+      fullPath: '/app/payments'
+      preLoaderRoute: typeof AppPaymentsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/projects': {
       id: '/app/projects'
       path: '/projects'
@@ -356,6 +375,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppApiKeysRoute: typeof AppApiKeysRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
+  AppPaymentsRoute: typeof AppPaymentsRoute
   AppProjectsRoute: typeof AppProjectsRoute
   AppTransfersRoute: typeof AppTransfersRoute
 }
@@ -363,6 +383,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppApiKeysRoute: AppApiKeysRoute,
   AppNotificationsRoute: AppNotificationsRoute,
+  AppPaymentsRoute: AppPaymentsRoute,
   AppProjectsRoute: AppProjectsRoute,
   AppTransfersRoute: AppTransfersRoute,
 }
@@ -387,3 +408,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

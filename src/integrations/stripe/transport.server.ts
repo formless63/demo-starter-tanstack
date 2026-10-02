@@ -7,6 +7,8 @@ import {
 	StripeCapabilityError,
 } from "./contract";
 
+export class StripeProviderRejection extends StripeCapabilityError {}
+
 /** Owns its timer/listeners; caller must dispose after the complete SDK operation. */
 export function operationDeadline(signal?: AbortSignal, milliseconds = 15_000) {
 	const controller = new AbortController();
@@ -131,9 +133,47 @@ export async function withStripe<T>(
 		if (deadline.signal.aborted) throw deadline.signal.reason;
 		if (transportFailure) throw transportFailure;
 		if (error instanceof StripeCapabilityError) throw error;
+		if (
+			error instanceof Stripe.errors.StripeError &&
+			error.statusCode &&
+			error.statusCode >= 400 &&
+			error.statusCode < 500 &&
+			![409, 429].includes(error.statusCode)
+		) {
+			throw new StripeProviderRejection(
+				error.statusCode === 401 || error.statusCode === 403
+					? "unconfigured"
+					: error.statusCode === 404
+						? "not_found"
+						: "unsupported",
+			);
+		}
 		// SDK errors can carry headers, response bodies and request identifiers. Never expose them.
 		throw new StripeCapabilityError("unavailable");
 	} finally {
 		deadline.dispose();
+	}
+}
+
+/** Bounds waiting for trusted application seams; transport independently receives the same signal. */
+export async function withinSignal<T>(
+	signal: AbortSignal,
+	work: () => Promise<T>,
+): Promise<T> {
+	signal.throwIfAborted();
+	let abort: () => void = () => {};
+	const cancelled = new Promise<never>((_, reject) => {
+		abort = () =>
+			reject(
+				signal.reason instanceof StripeCapabilityError
+					? signal.reason
+					: new StripeCapabilityError("cancelled"),
+			);
+		signal.addEventListener("abort", abort, { once: true });
+	});
+	try {
+		return await Promise.race([work(), cancelled]);
+	} finally {
+		signal.removeEventListener("abort", abort);
 	}
 }

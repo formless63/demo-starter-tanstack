@@ -49,6 +49,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | Realtime | Done | Optional | Baseline Node; human session integration | Authenticated SSE and WebSocket hints, bounded output; optional Cache fanout | [Realtime contract](capabilities/realtime/CAPABILITY.md) |
 | Notifications | Done | Optional | Jobs + baseline PostgreSQL/Drizzle | Durable recipient-scoped in-app records, atomic delivery enqueue, optional Email/ntfy/hints | [Notifications contract](capabilities/notifications/CAPABILITY.md) |
 | Import / Export | Done | Optional | Jobs + Object Storage; baseline PostgreSQL/Drizzle/Node | Scoped durable bounded CSV transfers and personal Projects round-trip | [Import / Export contract](capabilities/import-export/CAPABILITY.md) |
+| Stripe | In progress | Optional | Jobs + Webhooks | Hosted one-time Checkout, local status and durable scoped reconciliation | [Stripe contract](capabilities/stripe/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 

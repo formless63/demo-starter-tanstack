@@ -24,7 +24,11 @@ import {
 	type StripeTransaction,
 	type StripeWiring,
 } from "./service.server";
-import { withStripe } from "./transport.server";
+import {
+	StripeProviderRejection,
+	withinSignal,
+	withStripe,
+} from "./transport.server";
 
 const payload = z.union([
 	z.strictObject({ operationId: uuid }),
@@ -274,7 +278,9 @@ export function createStripeJobs(wiring: StripeWiring) {
 				if (claimed.kind === "create_checkout") {
 					if (
 						state.object !== "checkout.session" ||
-						state.livemode !== (config.mode === "live")
+						state.livemode !== (config.mode === "live") ||
+						(claimed.intent?.expectedCurrency &&
+							state.currency !== claimed.intent.expectedCurrency)
 					)
 						throw new StripeCapabilityError("unsupported");
 					const customer =
@@ -328,15 +334,18 @@ export function createStripeJobs(wiring: StripeWiring) {
 					)
 					.returning();
 				if (!finished) throw new StripeCapabilityError("conflict");
+				signal.throwIfAborted();
 			});
 			return { status: "processed" };
 		} catch (error) {
 			const code =
 				error instanceof StripeCapabilityError ? error.code : "unavailable";
 			const write = initial.kind === "create_checkout";
+			const uncertainWrite =
+				write && token && !(error instanceof StripeProviderRejection);
 			const retry =
 				!signal.aborted &&
-				code === "unavailable" &&
+				(code === "unavailable" || code === "deadline_exceeded") &&
 				context.retryCount < (context.retryLimit ?? 5) &&
 				(!write ||
 					(!!initial.intent &&
@@ -359,7 +368,7 @@ export function createStripeJobs(wiring: StripeWiring) {
 					.set({
 						status: retry
 							? "queued"
-							: write && token
+							: uncertainWrite
 								? "reconciliation_required"
 								: code === "cancelled" && !token
 									? "cancelled"
@@ -380,7 +389,7 @@ export function createStripeJobs(wiring: StripeWiring) {
 			});
 			if (retry) throw new Error("Stripe retry unavailable.");
 			return {
-				status: write && token ? "reconciliation_required" : "ignored",
+				status: uncertainWrite ? "reconciliation_required" : "ignored",
 				errorCode: code,
 			};
 		}
@@ -456,13 +465,14 @@ export function createStripeJobs(wiring: StripeWiring) {
 					)
 					.returning();
 				if (!finished) throw new StripeCapabilityError("conflict");
+				signal.throwIfAborted();
 			});
 			return { status: "processed" };
 		} catch (error) {
 			const code =
 				error instanceof StripeCapabilityError ? error.code : "unavailable";
 			const retry =
-				code === "unavailable" &&
+				(code === "unavailable" || code === "deadline_exceeded") &&
 				context.retryCount < (context.retryLimit ?? 5) &&
 				!signal.aborted;
 			await db.transaction(async (tx) => {
@@ -488,7 +498,17 @@ export function createStripeJobs(wiring: StripeWiring) {
 						errorCode: code,
 					})
 					.where(
-						and(eq(stripeInbox.id, id), eq(stripeInbox.attemptToken, token)),
+						and(
+							eq(stripeInbox.id, id),
+							or(
+								eq(stripeInbox.attemptToken, token),
+								and(
+									isNull(stripeInbox.attemptToken),
+									eq(stripeInbox.revision, initial.revision),
+									eq(stripeInbox.state, "received"),
+								),
+							),
+						),
 					);
 			});
 			if (retry) throw new Error("Stripe retry unavailable.");
@@ -554,6 +574,45 @@ export function createStripeJobs(wiring: StripeWiring) {
 		}
 		return { operations: stale.length, receipts: receipts.length };
 	}
+	async function repairInboxInTransaction(
+		tx: StripeTransaction,
+		id: string,
+		signal: AbortSignal,
+	) {
+		parse(uuid, id);
+		const [row] = await tx
+			.select()
+			.from(stripeInbox)
+			.where(eq(stripeInbox.id, id))
+			.for("update");
+		if (!row?.bindingId) throw new StripeCapabilityError("not_found");
+		const [binding] = await tx
+			.select()
+			.from(stripeBindings)
+			.where(
+				and(
+					eq(stripeBindings.id, row.bindingId),
+					isNull(stripeBindings.retiredAt),
+				),
+			);
+		if (!binding) throw new StripeCapabilityError("not_found");
+		await authorizeCallback(binding, signal);
+		if (row.state !== "failed") return { requeued: false };
+		await tx
+			.update(stripeInbox)
+			.set({
+				state: "received",
+				attemptToken: null,
+				leaseUntil: null,
+				errorCode: null,
+				updatedAt: new Date(),
+				revision: sql`${stripeInbox.revision}+1`,
+			})
+			.where(eq(stripeInbox.id, id));
+		await wiring.enqueue(tx, { inboxId: id });
+		return { requeued: true };
+	}
+
 	const jobs = {
 		"stripe.process": defineJob({
 			payload,
@@ -576,11 +635,13 @@ export function createStripeJobs(wiring: StripeWiring) {
 					meta.signal,
 					AbortSignal.timeout(45_000),
 				]);
-				return "operationId" in input
-					? processOperation(input.operationId, meta, signal)
-					: processInbox(input.inboxId, meta, signal);
+				return withinSignal(signal, () =>
+					"operationId" in input
+						? processOperation(input.operationId, meta, signal)
+						: processInbox(input.inboxId, meta, signal),
+				);
 			},
 		}),
 	};
-	return { jobs, recoverInTransaction };
+	return { jobs, recoverInTransaction, repairInboxInTransaction };
 }
