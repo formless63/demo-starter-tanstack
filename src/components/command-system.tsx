@@ -43,6 +43,10 @@ export function CommandPalette({
 }) {
 	const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
 	const open = controlledOpen ?? uncontrolledOpen;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: presentation generation intentionally tracks open transitions.
+	useEffect(() => {
+		runToken.current += 1;
+	}, [open]);
 	const setOpen = (value: boolean) => {
 		if (value !== open) runToken.current += 1;
 		if (controlledOpen === undefined) setUncontrolledOpen(value);
@@ -96,7 +100,7 @@ export function CommandPalette({
 				setError(cause instanceof Error ? cause.message : "Command failed");
 		} finally {
 			running.current = false;
-			if (mounted.current && token === runToken.current) setPending(null);
+			if (mounted.current) setPending(null);
 		}
 	};
 	return (
