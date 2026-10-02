@@ -89,7 +89,10 @@
       "realtime",
       "notifications",
       "import-export",
-      "ops-admin"
+      "ops-admin",
+      "invoice-ninja",
+      "stripe",
+      "medusa"
     ]
   },
   "frameworkEvaluations": {
@@ -1259,7 +1262,7 @@
       "id": "invoice-ninja",
       "displayName": "Invoice Ninja",
       "kind": "business-integration",
-      "status": "in-progress",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [
         "jobs",
@@ -1302,7 +1305,7 @@
       "id": "stripe",
       "displayName": "Stripe",
       "kind": "business-integration",
-      "status": "in-progress",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [
         "jobs",
@@ -1373,13 +1376,13 @@
         ],
         "conflictsWith": []
       },
-      "summary": "Hosted one-time Checkout and scoped durable reconciliation (implementation in progress)."
+      "summary": "Hosted one-time Checkout and scoped durable reconciliation."
     },
     {
       "id": "medusa",
       "displayName": "Medusa",
       "kind": "business-integration",
-      "status": "in-progress",
+      "status": "done",
       "defaultInstalled": false,
       "requires": [
         "jobs",

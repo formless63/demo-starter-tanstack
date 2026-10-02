@@ -2,7 +2,7 @@
 
 A deployable, provider-neutral TanStack Start and React starter with Bun, PostgreSQL/Drizzle, passwordless Better Auth, Tailwind CSS 4, shadcn conventions, Base UI where appropriate, Tabler Icons, Docker/Compose, CI, and optional reusable capabilities.
 
-The root repository is also a reference application. It intentionally enables every completed capability so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
+The root repository is also a reference application. It intentionally enables all seventeen completed capabilities so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
 
 ## Start your application
 
@@ -49,7 +49,9 @@ Baseline components are not optional capability modules. Future integrations in 
 | Realtime | Done | Optional | Baseline Node; human session integration | Authenticated SSE and WebSocket hints, bounded output; optional Cache fanout | [Realtime contract](capabilities/realtime/CAPABILITY.md) |
 | Notifications | Done | Optional | Jobs + baseline PostgreSQL/Drizzle | Durable recipient-scoped in-app records, atomic delivery enqueue, optional Email/ntfy/hints | [Notifications contract](capabilities/notifications/CAPABILITY.md) |
 | Import / Export | Done | Optional | Jobs + Object Storage; baseline PostgreSQL/Drizzle/Node | Scoped durable bounded CSV transfers and personal Projects round-trip | [Import / Export contract](capabilities/import-export/CAPABILITY.md) |
-| Stripe | In progress | Optional | Jobs + Webhooks | Hosted one-time Checkout, local status and durable scoped reconciliation | [Stripe contract](capabilities/stripe/CAPABILITY.md) |
+| Invoice Ninja | Done | Optional | Jobs + Webhooks | Approved unsent drafts, exact monetary projections and durable scoped reconciliation | [Invoice Ninja contract](capabilities/invoice-ninja/CAPABILITY.md) |
+| Stripe | Done | Optional | Jobs + Webhooks | Hosted one-time Checkout, local status and durable scoped reconciliation | [Stripe contract](capabilities/stripe/CAPABILITY.md) |
+| Medusa | Done | Optional | Jobs + Webhooks | Bound product/order Admin reads and durable subscriber-bridge reconciliation | [Medusa contract](capabilities/medusa/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -288,6 +290,8 @@ Import / Export is completed: [contract](capabilities/import-export/CAPABILITY.m
 
 Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
 
-Invoice Ninja v1 is in progress with reference wiring under verification; clean consumers remain opt-in. Its independent add-on now includes scoped durable operations/receipts, native routes, exact monetary projections and data-preserving removal. Final native-provider, lifecycle, browser and production acceptance remains required. See [contract](capabilities/invoice-ninja/CAPABILITY.md).
+Invoice Ninja v1 is completed and reference-enabled; clean consumers remain opt-in. Its independent add-on includes scoped durable operations/receipts, native routes, approved unsent drafts, exact monetary projections and data-preserving removal. Pinned native-provider, lifecycle, browser and canonical production verification passed. Deployment-specific draft policy and financial certification remain outside this acceptance. See [contract](capabilities/invoice-ninja/CAPABILITY.md).
 
-Medusa v1 is in progress: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers defaultInstalled:false. Native reference routes/UI are included; the pinned disposable native backend/bridge fixture is required in the generic lifecycle. See [contract](capabilities/medusa/CAPABILITY.md). The existing fourteen completed capabilities remain unchanged.
+Stripe v1 is completed and reference-enabled for approved hosted one-time Checkout and scoped durable reconciliation. Jobs and Webhooks are required; clean consumers remain opt-in. Full combined lifecycle, browser, canonical container and worker verification passed using local protocol/persistence fixtures, without sandbox/live payments or financial certification. See [contract](capabilities/stripe/CAPABILITY.md).
+
+Medusa v1 is completed and reference-enabled: optional bound product/order read reconciliation, Jobs + Webhooks required, clean consumers `defaultInstalled: false`. Native reference routes/UI and the pinned disposable Medusa 2.21.2 backend/subscriber bridge passed the generic lifecycle and combined production gates. No checkout/payment workflow or external deployment is certified. See [contract](capabilities/medusa/CAPABILITY.md). All seventeen completed capabilities remain opt-in for clean consumers.

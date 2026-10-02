@@ -21,7 +21,7 @@ Manual setup remains supported. Use the recipes below, copy relevant `docs/templ
 
 ## Full/reference setup
 
-Keep the completed capabilities when their features fit the application, or when you want the repository's complete reference paths intact.
+The reference enables all seventeen completed capabilities, including Invoice Ninja, Stripe and Medusa. Keep them when their features fit the application, or when you want the repository's complete reference paths intact. Clean generated consumers still select capabilities explicitly (`defaultInstalled: false`). Provider credentials, trusted application policies and any remote setup remain operator-owned; completed local/CI verification is not financial or deployment certification.
 
 ```bash
 cp .env.example .env.local
@@ -64,7 +64,7 @@ Use `bun install --frozen-lockfile` for subsequent reproducible installs after c
 
 ### Remove Jobs
 
-Remove Webhooks first: it hard-requires Jobs. Audit Log, Cache, Email, Storage and API Platform may remain independently installed.
+Remove or recompose every Jobs-dependent application integration first: Webhooks, Notifications, Import / Export, Invoice Ninja, Stripe and Medusa. Audit Log, Cache, Email, Storage and API Platform may remain independently installed.
 
 
 First stop workers and prevent producers from adding new work. Decide whether queued jobs must be drained or archived.
@@ -229,12 +229,20 @@ Opt-in Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary
 
 ## Remove Invoice Ninja
 
+Remove `invoice-ninja` from `referenceApplication.enabledCapabilities`, keeping `defaultInstalled: false`.
+
 Stop/drain its workers and settle or explicitly recover outstanding attempts. Remove `/app/invoices`, Invoice Ninja API routes/navigation, `src/lib/invoice-ninja.server.ts` and its Jobs registry import/spread. Remove provider runtime files and optional environment settings, but retain application-owned schema/validation/error types, all tables/data, applied SQL/journal/history and Jobs/Webhooks. Keep schema declarations in Drizzle until deliberately migrating data ownership. Never delete provider invoices or deregister callbacks as a side effect. See the capability contract for exact limitations.
 
 ## Removing Stripe independently
+
+Remove `stripe` from `referenceApplication.enabledCapabilities`, keeping `defaultInstalled: false`.
 
 Stop Stripe producers and worker processing first; settle/expire active attempts using explicit bounded recovery. Remove `/api/integrations/stripe` routes, `/app/payments` page/navigation, `src/lib/stripe.server.ts`, and `referenceStripeJobs` import/spread from the existing Jobs registry. Remove Stripe operational scripts and runtime files except `schema.ts`/`contract.ts`, then remove the `stripe` runtime dependency. Retain provider schema exports and all committed migration SQL/metadata, bindings, projections, operation ledgers and receipt history. Keep Jobs and Webhooks. Rebuild routes, run capability/root checks, typecheck/build and Jobs doctor/smoke. Remove authoring workspace separately only if desired. This never deregisters remote callbacks, revokes credentials or deletes provider resources; those need separate operator authorization. See [Stripe contract](../capabilities/stripe/CAPABILITY.md).
 
 ## Medusa removal
 
+Remove `medusa` from `referenceApplication.enabledCapabilities`, keeping `defaultInstalled: false`.
+
 Stop Medusa producers and the existing worker, settle or expire active45s attempts, then remove `src/routes/app.medusa.tsx`, `src/routes/api/integrations/medusa`, `src/lib/medusa-http.server.ts`, `src/lib/medusa.server.ts`, the Commerce navigation link and Medusa registry import/spread. Retain the Medusa schema, projection/contract declarations, four tables and migration history; remove the remaining Medusa runtime files and scripts. Keep Jobs and Webhooks. Rebuild the route tree, typecheck/build and verify retained rows before restarting remaining handlers. Remote resources and credentials are unaffected; their deletion/revocation requires a separately authorized operator action. The clean fixture proves this lifecycle on its own disposable database.
+
+Keep all additive provider SQL and cumulative snapshots described in the [integrated migration history](CAPABILITIES.md#integrated-provider-migration-history). Application removal and deleting reusable authoring workspaces are separate choices; neither authorizes data deletion or rewriting applied history.
