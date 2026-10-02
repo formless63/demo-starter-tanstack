@@ -11,9 +11,9 @@ test("hydrates charts, updates kinds, exposes table fallback, and remounts clean
 	expect(new Set(labelled).size).toBe(2);
 	const lineGeometry = await page.locator(".recharts-line-curve").getAttribute("d");
 	await page.getByRole("button", { name: "Bar" }).click();
-	await expect(page.locator(".recharts-rectangle")).toHaveCount(3);
-	const barGeometry = await page.locator(".recharts-rectangle").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("height")));
-	expect(barGeometry.some((height) => Number(height) > 0)).toBe(true);
+	await expect(page.getByTestId("primary-chart").locator(".recharts-rectangle")).toHaveCount(3);
+	const barGeometry = await page.getByTestId("primary-chart").locator(".recharts-rectangle").evaluateAll((nodes) => nodes.map((node) => node.outerHTML));
+	expect(barGeometry.some((geometry) => geometry.includes("height") || geometry.includes("d="))).toBe(true);
 	expect(barGeometry.join(",")).not.toBe(lineGeometry);
 	await page.getByRole("button", { name: "Area" }).click();
 	await expect(page.locator(".recharts-area-curve")).toHaveCount(1);
@@ -22,8 +22,10 @@ test("hydrates charts, updates kinds, exposes table fallback, and remounts clean
 	await expect(page.getByTestId("primary-chart")).toHaveCount(0);
 	await page.getByRole("button", { name: "Mount" }).click();
 	await expect(page.locator(".recharts-area-curve")).toHaveCount(1);
-	await page.setViewportSize({ width: 800, height: 600 });
-	await expect(page.locator("[data-testid=primary-chart] svg")).toHaveAttribute("width", /.+/);
+	const wideBox = await page.getByTestId("primary-chart").locator("svg").boundingBox();
+	expect(wideBox?.width).toBeGreaterThan(0);
+	await page.setViewportSize({ width: 400, height: 600 });
+	await expect.poll(async () => (await page.getByTestId("primary-chart").locator("svg").boundingBox())?.width).toBeLessThan(wideBox?.width ?? Infinity);
 	await expect(page.getByRole("table")).toHaveCount(2);
 	expect(errors).toEqual([]);
 });

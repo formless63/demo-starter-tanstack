@@ -31,7 +31,10 @@ function ChartsTest() {
 			</nav>
 			<section>
 				{visible && (
-					<div data-testid="primary-chart" style={{ width: "640px" }}>
+					<div
+						data-testid="primary-chart"
+						style={{ width: "90vw", maxWidth: "640px" }}
+					>
 						<Chart
 							data={data}
 							kind={kind}
