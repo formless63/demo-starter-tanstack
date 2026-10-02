@@ -1610,7 +1610,7 @@
       "id": "file-ui",
       "displayName": "File UI",
       "kind": "operations-ui-infrastructure",
-      "status": "planned",
+      "status": "in-progress",
       "defaultInstalled": false,
       "requires": [
         "object-storage"
@@ -1621,7 +1621,33 @@
       ],
       "baselineRequirements": [],
       "externalRequirements": [],
-      "summary": "Upload, browse, preview, and manage object-backed files."
+      "summary": "Upload, browse, preview, and manage object-backed files.",
+      "documentationPath": "capabilities/file-ui/CAPABILITY.md",
+      "evaluationDocument": "FILE_UI_MODULE_EVALUATION.md",
+      "agentSkill": ".agents/skills/capability-change/SKILL.md",
+      "scripts": [
+        "file-ui:unit",
+        "file-ui:protocol",
+        "file-ui:compat",
+        "file-ui:browser",
+        "file-ui:protocol:node"
+      ],
+      "environmentVariables": [],
+      "migrations": [
+        "drizzle/0016_file_ui.sql"
+      ],
+      "runtimeServices": [],
+      "tanstackAddOn": {
+        "addOnId": "file-ui",
+        "sourceDirectory": "capabilities/file-ui/.add-on",
+        "manifestPath": "capabilities/file-ui/.add-on/info.json",
+        "distributablePath": "capabilities/file-ui/add-on.json",
+        "cleanInstallFixture": "capabilities/file-ui/test/clean-install.json",
+        "dependsOn": [
+          "object-storage"
+        ],
+        "conflictsWith": []
+      }
     },
     {
       "id": "rich-text",

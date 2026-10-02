@@ -105,7 +105,15 @@
     "medusa:compat": "bun scripts/medusa-native-compat.ts",
     "data-table:browser": "bun capabilities/data-table/.add-on/assets/scripts/data-table-browser.tsx",
     "data-table:typecheck": "tsc --noEmit -p capabilities/data-table/test/tsconfig.json",
-    "data-table:unit": "vitest run --config vitest.data-table.config.ts"
+    "data-table:unit": "vitest run --config vitest.data-table.config.ts",
+    "file-ui:unit": "bun scripts/file-ui-unit.ts",
+    "file-ui:protocol": "bun scripts/file-ui-protocol.ts",
+    "file-ui:compat": "bun scripts/file-ui-compat.ts",
+    "file-ui:browser": "bun scripts/file-ui-browser.tsx",
+    "file-ui:database": "bun scripts/file-ui-database.ts",
+    "file-ui:reconcile": "bun scripts/file-ui-reconcile.ts",
+    "file-ui:protocol:node": "bun build scripts/file-ui-protocol.ts --target=node --outfile=/tmp/file-ui-protocol-node.mjs && node /tmp/file-ui-protocol-node.mjs",
+    "file-ui:http": "bun scripts/file-ui-http.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",
