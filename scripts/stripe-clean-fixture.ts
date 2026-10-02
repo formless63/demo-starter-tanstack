@@ -5,8 +5,9 @@ import {readFile,rm,writeFile} from "node:fs/promises";
 import pg from "pg";
 import {drizzle} from "drizzle-orm/node-postgres";
 import {migrate} from "drizzle-orm/node-postgres/migrator";
+import {trackFixturePool} from "./stripe-fixture-pool";
 const cta=JSON.parse(await readFile(".cta.json","utf8"));assert.equal(cta.projectName,"stripe-addon-clean-install");assert.ok(process.env.DATABASE_URL);
-const admin=new pg.Pool({connectionString:process.env.DATABASE_URL});const name=`stripe_addon_${randomUUID().replaceAll("-","")}`;const url=new URL(process.env.DATABASE_URL);url.pathname=`/${name}`;const pool=new pg.Pool({connectionString:url.toString()});
+const admin=new pg.Pool({connectionString:process.env.DATABASE_URL});const name=`stripe_addon_${randomUUID().replaceAll("-","")}`;const url=new URL(process.env.DATABASE_URL);url.pathname=`/${name}`;const pool=new pg.Pool({connectionString:url.toString()});const closePool=trackFixturePool(pool);
 function run(command:string,args:string[]){const result=spawnSync(command,args,{stdio:"inherit",env:{...process.env,DATABASE_URL:url.toString(),PGBOSS_DATABASE_URL:url.toString(),STRIPE_FIXTURE_DATABASE_URL:url.toString()}});assert.equal(result.status,0,`${command} ${args.join(" ")}`);}
 try {
  await admin.query(`CREATE DATABASE "${name}"`);await migrate(drizzle(pool),{migrationsFolder:"drizzle"});await migrate(drizzle(pool),{migrationsFolder:"drizzle"});
@@ -24,10 +25,10 @@ try {
  for(const file of ["jobs.server.ts","service.server.ts","transport.server.ts","webhook.server.ts","config.server.ts","projection.ts","stripe.test.ts"])await rm(`src/integrations/stripe/${file}`);
  await rm("src/lib/stripe.server.ts");await rm("src/routes/api/integrations/stripe",{recursive:true,force:true});
  const registry=await readFile("src/integrations/jobs/registry.ts","utf8");await writeFile("src/integrations/jobs/registry.ts",registry.split("\n").filter(line=>!line.includes("referenceStripeJobs")).join("\n"));
- for(const script of ["stripe-unit.ts","stripe-durable-fixture.ts"])await rm(`scripts/${script}`);
+ for(const script of ["stripe-unit.ts","stripe-durable-fixture.ts","stripe-clean-fixture.ts","stripe-fixture-pool.ts"])await rm(`scripts/${script}`);
  await rm("stripe-unit.mjs");await rm("stripe-durable.mjs");await rm("stripe-worker-fixture.mjs");await rm("stripe-jobs-worker.mjs");await rm("scripts/stripe-worker-fixture.ts");
  const pkg=JSON.parse(await readFile("package.json","utf8"));delete pkg.dependencies.stripe;for(const key of Object.keys(pkg.scripts))if(key.startsWith("stripe:"))delete pkg.scripts[key];await writeFile("package.json",JSON.stringify(pkg,null,2)+"\n");
  run("bun",["x","tsc","--noEmit"]);run("bun",["run","jobs:doctor"]);run("bun",["run","jobs:smoke"]);run("bun",["run","build"]);
  assert.equal((await pool.query("select id from stripe_binding where id=$1",[retained])).rowCount,1);assert.equal((await pool.query("select id from stripe_operation where id=$1",[retainedOperation])).rowCount,1);assert.equal((await pool.query("select binding_id from stripe_projection where binding_id=$1",[retained])).rowCount,1);assert.equal((await pool.query("select id from stripe_inbox where id=$1",[retainedInbox])).rowCount,1);assert.ok(await readFile("drizzle/0011_stripe_v1.sql","utf8"));assert.ok(await readFile("src/integrations/stripe/schema.ts","utf8"));assert.equal((await pool.query("select * from drizzle.__drizzle_migrations")).rowCount,3);assert.deepEqual((await pool.query("select id,data,output,state from pgboss.job where name='stripe.process' order by id")).rows,retainedJobs);
  console.info("Stripe independent removal/rebuild retains bindings/history/schema/migrations, Jobs and Webhooks; no remote deletion.");
-} finally {await pool.end();await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);await admin.end();}
+} finally {try{await closePool();await admin.query(`DROP DATABASE IF EXISTS "${name}"`);}finally{await admin.end();}}

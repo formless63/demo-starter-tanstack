@@ -1,0 +1,28 @@
+{
+  "id": "data-table",
+  "name": "data-table",
+  "displayName": "Data Table",
+  "description": "Accessible TanStack Table primitives with controlled client and manual server modes.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "@tanstack/react-table": "9.2.4"
+    },
+    "devDependencies": {
+      "@playwright/test": "1.63.0",
+      "@types/bun": "1.4.2"
+    },
+    "scripts": {
+      "data-table:browser": "bun scripts/data-table-browser.tsx"
+    }
+  }
+}
