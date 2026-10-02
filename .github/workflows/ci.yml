@@ -93,9 +93,16 @@ jobs:
       - run: bun run file-ui:compat
       - run: bun run pwa:unit
       - run: bun run pwa:packaging
+      - run: bun run internationalization:router
+      - run: bun run internationalization:packaging
+      - run: bun run internationalization:typecheck
+      - run: bun run internationalization:unit
       - run: bun run markdown-code:typecheck
       - run: bun run markdown-code:unit
       - run: bun run markdown-code:dom
+      - run: bun run flow-canvas:typecheck
+      - run: bun run flow-canvas:unit
+      - run: bun run flow-canvas:dom
       - run: bun run project:check
       - run: bun run project:status
       - run: bun run theme:check
@@ -151,6 +158,7 @@ jobs:
       - run: bun run file-ui:http
       - run: bun run file-ui:browser
       - run: bun run add-ons:verify:reference pwa-offline
+      - run: bun run add-ons:verify:reference internationalization
       - run: bun run add-ons:verify:reference markdown-code
       - run: bun run test:e2e
       - run: docker compose up -d worker

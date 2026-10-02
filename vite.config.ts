@@ -15,6 +15,7 @@ const config = defineConfig({
 			optimizeDeps: {
 				noDiscovery: true,
 				include: [
+					"@xyflow/react",
 					"@tanstack/react-hotkeys",
 					"@tiptap/react",
 					"@tiptap/starter-kit",
