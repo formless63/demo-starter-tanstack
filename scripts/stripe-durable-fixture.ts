@@ -12,10 +12,11 @@ import {createStripeCapability,type StripeWiring} from "../src/integrations/stri
 import {createStripeJobs} from "../src/integrations/stripe/jobs.server";
 import {stripeBindings,stripeInbox,stripeOperations,stripeProjections} from "../src/integrations/stripe/schema";
 import {StripeCapabilityError} from "../src/integrations/stripe/contract";
+import {trackFixturePool} from "./stripe-fixture-pool";
 const adminUrl=process.env.STRIPE_FIXTURE_DATABASE_URL??process.env.DATABASE_URL;
 assert.ok(adminUrl,"Explicit disposable fixture PostgreSQL URL required");
 const admin=new pg.Pool({connectionString:adminUrl});const name=`stripe_fixture_${randomUUID().replaceAll("-","")}`;const url=new URL(adminUrl);url.pathname=`/${name}`;
-const pool=new pg.Pool({connectionString:url.toString()});const db=drizzle(pool,{schema});const boss=new PgBoss({connectionString:url.toString(),migrate:true});
+const pool=new pg.Pool({connectionString:url.toString()});const closePool=trackFixturePool(pool);const db=drizzle(pool,{schema});const boss=new PgBoss({connectionString:url.toString(),migrate:true});
 let holdGet=false;let releaseGet:(()=>void)|undefined;
 function releaseHeldGet(){releaseGet?.();}
 let allow=true;let callbackAllow=true;let outcome="normal";let posts=0;let gets=0;let paymentStatus="unpaid";let checkoutState="complete";let paymentState="succeeded";
@@ -104,5 +105,11 @@ try {
  const queue=await pool.query("select data from pgboss.job");for(const row of queue.rows){const fields=Object.keys(row.data);assert.equal(fields.length,1);assert.ok(fields[0]==="operationId"||fields[0]==="inboxId");assert.ok(!JSON.stringify(row.data).includes("private"));}
  const sqlFiles=JSON.parse(await readFile("drizzle/meta/_journal.json","utf8")).entries;assert.equal(sqlFiles.length>=1,true);assert.ok(await readFile("drizzle/0011_stripe_v1.sql","utf8"));
  assert.ok((await db.select().from(stripeProjections)).length>=2);assert.equal(keys[0],`gs-stripe:${op}`);assert.ok(new URLSearchParams(bodies[0]).get("automatic_tax[enabled]") === "false");
- console.info("Stripe disposable PostgreSQL18 ownership/ledger/receipt rollback/privacy/cutoff fixtures passed; no provider API requests.");
-} finally {releaseHeldGet();await boss.stop({graceful:true});server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));await pool.end();await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);await admin.end();}
+} finally {
+ try {
+  releaseHeldGet();await boss.stop({graceful:true});server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));
+  // Pool.end() can resolve before its clients close; never force-kill those connections.
+  await closePool();await admin.query(`DROP DATABASE IF EXISTS "${name}"`);
+ } finally {await admin.end();}
+}
+console.info("Stripe disposable PostgreSQL18 ownership/ledger/receipt rollback/privacy/cutoff and connection teardown fixtures passed; no provider API requests.");

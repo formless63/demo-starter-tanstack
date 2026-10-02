@@ -83,6 +83,8 @@ jobs:
       - run: bun run agents:test
       - run: bun run capabilities:status
       - run: bun run capabilities:check
+      - run: bun run data-table:typecheck
+      - run: bun run data-table:unit
       - run: bun run project:check
       - run: bun run project:status
       - run: bun run theme:check

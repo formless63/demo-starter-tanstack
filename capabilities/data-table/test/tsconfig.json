@@ -1,0 +1,1 @@
+{"extends": "../../../tsconfig.json", "include": ["../.add-on/assets/src/components/data-table.tsx", "../.add-on/assets/scripts/data-table-example.tsx", "../.add-on/assets/scripts/data-table-client.tsx"], "exclude": []}

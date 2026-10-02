@@ -246,3 +246,7 @@ Remove `medusa` from `referenceApplication.enabledCapabilities`, keeping `defaul
 Stop Medusa producers and the existing worker, settle or expire active45s attempts, then remove `src/routes/app.medusa.tsx`, `src/routes/api/integrations/medusa`, `src/lib/medusa-http.server.ts`, `src/lib/medusa.server.ts`, the Commerce navigation link and Medusa registry import/spread. Retain the Medusa schema, projection/contract declarations, four tables and migration history; remove the remaining Medusa runtime files and scripts. Keep Jobs and Webhooks. Rebuild the route tree, typecheck/build and verify retained rows before restarting remaining handlers. Remote resources and credentials are unaffected; their deletion/revocation requires a separately authorized operator action. The clean fixture proves this lifecycle on its own disposable database.
 
 Keep all additive provider SQL and cumulative snapshots described in the [integrated migration history](CAPABILITIES.md#integrated-provider-migration-history). Application removal and deleting reusable authoring workspaces are separate choices; neither authorizes data deletion or rewriting applied history.
+
+### Remove Data Table
+
+Remove application imports, the component and its browser fixture scripts/package script, then remove the table dependency. Keep Playwright if other tests use it. Follow the exact [Data Table removal contract](../capabilities/data-table/CAPABILITY.md), then typecheck and build. No migrations or stored data are affected.

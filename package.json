@@ -102,7 +102,10 @@
     "stripe:worker": "bun build scripts/jobs-worker.ts --target=node --outfile=/tmp/stripe-reference-worker.mjs && STRIPE_WORKER_SCRIPT=/tmp/stripe-reference-worker.mjs bun scripts/stripe-worker-fixture.ts",
     "medusa:unit": "bun scripts/medusa-unit.ts",
     "medusa:smoke": "bun scripts/medusa-database-fixture.ts",
-    "medusa:compat": "bun scripts/medusa-native-compat.ts"
+    "medusa:compat": "bun scripts/medusa-native-compat.ts",
+    "data-table:browser": "bun capabilities/data-table/.add-on/assets/scripts/data-table-browser.tsx",
+    "data-table:typecheck": "tsc --noEmit -p capabilities/data-table/test/tsconfig.json",
+    "data-table:unit": "vitest run --config vitest.data-table.config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",
@@ -127,6 +130,7 @@
     "@tanstack/react-hotkeys": "0.12.1",
     "@tanstack/react-query": "^5.103.2",
     "@tanstack/react-query-devtools": "^5.103.2",
+    "@tanstack/react-table": "9.2.4",
     "@tanstack/react-router": "^1.170.39",
     "@tanstack/react-router-devtools": "^1.167.2",
     "@tanstack/react-router-ssr-query": "^1.167.3",
@@ -159,12 +163,12 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.5",
     "@playwright/test": "^1.55.0",
-    "@testing-library/react": "16.3.3",
     "@scalar/openapi-parser": "^0.29.8",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/cli": "0.71.0",
     "@tanstack/devtools-vite": "^0.8.5",
     "@tanstack/router-cli": "^1.167.38",
+    "@testing-library/react": "16.3.3",
     "@types/node": "^24.0.0",
     "@types/nodemailer": "8.0.2",
     "@types/pg": "^8.15.6",
@@ -172,8 +176,8 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
     "crossws": "0.4.12",
-    "jsdom": "30.1.1",
     "dotenv": "^17.3.1",
+    "jsdom": "30.1.1",
     "typescript": "^6.0.2",
     "vite": "^8.0.0",
     "vitest": "^3.2.4"
