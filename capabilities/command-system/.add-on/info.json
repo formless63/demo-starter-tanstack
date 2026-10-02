@@ -1,0 +1,21 @@
+{
+  "id": "command-system",
+  "name": "command-system",
+  "displayName": "Command System",
+  "description": "Accessible, cleanup-safe command palette and application command registry.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": ["file-router"],
+  "dependsOn": [],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "@base-ui/react": "1.8.0",
+      "@tanstack/react-hotkeys": "0.12.1"
+    },
+    "scripts": {"command-system:unit": "bun scripts/command-system-unit.ts"}
+  }
+}

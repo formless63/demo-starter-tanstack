@@ -1,0 +1,17 @@
+// Operator installs this in a SEPARATE Medusa 2.21.2 project. No starter backend dependency.
+import type { SubscriberArgs, SubscriberConfig } from '@medusajs/framework';
+import { deliverBridge } from './application-bridge/producer.server';
+import { parse, opaqueId } from './application-bridge/contract';
+
+export default async function commerceHint({event}:SubscriberArgs<{id:string}>){
+ const type=event.name as 'product.created'|'product.updated'|'product.deleted'|'order.placed';
+ // Pinned complete-cart workflow emits order.placed data:{id:createdOrder.id}.
+ const resourceId=parse(opaqueId,event.data.id);
+ const targetUrl=process.env.MEDUSA_BRIDGE_TARGET_URL;
+ const connectionId=process.env.MEDUSA_BRIDGE_CONNECTION_ID;
+ const secret=process.env.MEDUSA_BRIDGE_WEBHOOK_SECRET;
+ if(!targetUrl||!connectionId||!secret)throw new Error('Commerce bridge is not configured.');
+ await deliverBridge({type,resourceKind:type.startsWith('product.')?'product':'order',resourceId},{targetUrl,connectionId,secret,development:process.env.NODE_ENV==='test'||process.env.NODE_ENV==='development'});
+ // Native subscriber retry can create a new ID. Provider event infrastructure owns durability.
+}
+export const config:SubscriberConfig={event:['product.created','product.updated','product.deleted','order.placed']};

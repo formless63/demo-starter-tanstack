@@ -1,1 +1,60 @@
-{"projectName":"data-table-addon-clean-install","framework":"React","blank":true,"packageManager":"bun","toolchain":"biome","expectedOfficialAddOns":[],"forbiddenOfficialAddOns":["drizzle","better-auth","postgres-jobs","search"],"expectedFiles":["src/components/data-table.tsx","capabilities/data-table/CAPABILITY.md"],"build":true}
+{
+  "projectName": "data-table-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "expectedOfficialAddOns": [],
+  "forbiddenOfficialAddOns": [
+    "drizzle",
+    "better-auth",
+    "postgres-jobs",
+    "search"
+  ],
+  "expectedFiles": [
+    "src/components/data-table.tsx",
+    "capabilities/data-table/CAPABILITY.md",
+    "scripts/data-table-browser.tsx",
+    "scripts/data-table-example.tsx",
+    "scripts/data-table-client.tsx",
+    "scripts/data-table-remove.ts"
+  ],
+  "build": true,
+  "verificationCommands": [
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "x",
+      "playwright",
+      "install",
+      "chromium"
+    ],
+    [
+      "bun",
+      "run",
+      "data-table:browser"
+    ]
+  ],
+  "postBuildVerificationCommands": [
+    [
+      "bun",
+      "scripts/data-table-remove.ts"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ],
+    [
+      "bun",
+      "run",
+      "build"
+    ]
+  ]
+}
