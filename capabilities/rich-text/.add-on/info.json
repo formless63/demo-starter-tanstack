@@ -1,0 +1,30 @@
+{
+  "id": "rich-text",
+  "name": "rich-text",
+  "displayName": "Rich Text / Tiptap",
+  "description": "Bounded JSON rich-text editing and safe SSR rendering with controlled persistence ownership.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "other",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "@tiptap/react": "3.31.4",
+      "@tiptap/pm": "3.31.4",
+      "@tiptap/starter-kit": "3.31.4"
+    },
+    "devDependencies": {
+      "@playwright/test": "1.63.0",
+      "@types/bun": "1.4.2"
+    },
+    "scripts": {
+      "rich-text:browser": "bun scripts/rich-text-browser.tsx"
+    }
+  }
+}
