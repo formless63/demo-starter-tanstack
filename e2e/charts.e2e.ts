@@ -10,6 +10,8 @@ test("hydrates charts, updates kinds, exposes table fallback, and remounts clean
 	const labelled = await page.locator('[role="img"]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("aria-labelledby")));
 	expect(new Set(labelled).size).toBe(2);
 	const lineGeometry = await page.locator(".recharts-line-curve").getAttribute("d");
+	await page.getByRole("button", { name: "Update data" }).click();
+	await expect.poll(() => page.locator(".recharts-line-curve").getAttribute("d")).not.toBe(lineGeometry);
 	await page.getByRole("button", { name: "Bar" }).click();
 	await expect(page.getByTestId("primary-chart").locator(".recharts-rectangle")).toHaveCount(3);
 	const barGeometry = await page.getByTestId("primary-chart").locator(".recharts-rectangle").evaluateAll((nodes) => nodes.map((node) => node.outerHTML));

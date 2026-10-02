@@ -7,10 +7,11 @@ export const Route = createFileRoute("/charts-test")({ component: ChartsTest });
 function ChartsTest() {
 	const [kind, setKind] = useState<ChartKind>("line");
 	const [visible, setVisible] = useState(true);
+	const [variant, setVariant] = useState(false);
 	const data = [
-		{ label: "Jan", value: 2 },
-		{ label: "Feb", value: 5 },
-		{ label: "Mar", value: 3 },
+		{ label: "Jan", value: variant ? 6 : 2 },
+		{ label: "Feb", value: variant ? 1 : 5 },
+		{ label: "Mar", value: variant ? 4 : 3 },
 	];
 	return (
 		<main>
@@ -27,6 +28,9 @@ function ChartsTest() {
 				</button>
 				<button type="button" onClick={() => setVisible((current) => !current)}>
 					{visible ? "Unmount" : "Mount"}
+				</button>
+				<button type="button" onClick={() => setVariant((current) => !current)}>
+					Update data
 				</button>
 			</nav>
 			<section>
