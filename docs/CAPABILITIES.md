@@ -15,7 +15,9 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 ## Completed capabilities
 
-All twenty-six completed capabilities are reference-enabled and opt-in for clean consumers.
+All twenty-six accepted completed capabilities are retained, reference-enabled and opt-in for clean consumers.
+
+Organizations, Authorization and Feature Flags are additionally reference-enabled but remain **in-progress** with `defaultInstalled: false`. This source-only integration has no current acceptance result: all integrated-tree governance, packaging, lifecycle, backend, browser, production and exact-head CI gates remain pending. Historical source results are not proof for this tree. Fault-injection fixtures remain paused pending separate review and authorization; no gate is waived.
 
 | ID | TanStack add-on ID | Status | Reference app | Default installed | Official add-on dependencies | Reusable capability requirements | External | Contract |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -255,3 +257,15 @@ Flow / Canvas source `a1a020cf7e75340e4f833c62db0d0b0e6b38d117` passed all 26 ho
 Independent opt-in native injectManifest capability. Only fixed integrity-checked public HTML/icons; no SSR/API/auth/mutation cache. Consumer fallback paths default empty. Reference `/pwa-test` is enabled. See [contract](../capabilities/pwa-offline/CAPABILITY.md) and [evaluation](../PWA_OFFLINE_MODULE_EVALUATION.md). No hard dependencies, migrations or services.
 
 There are now twenty-six completed, reference-enabled capabilities; all generated-consumer defaults remain false. Source `52f6fcb2309daad9b1474a1c2c313914f3403460` passed all 28 jobs in [hosted CI](https://github.com/formless63/demo-starter-tanstack/actions/runs/37066322525), including real Chromium root/scoped workers, credential omission, privacy boundaries, natural multi-tab updates, actual generated Start production lifecycle, owned retirement and final source-removed HTTP rebuild. This documentation/catalog promotion requires its own complete exact-head CI before merge; source success is not a promotion-head CI claim.
+
+## Identity policy capabilities
+
+Organizations, Authorization and Feature Flags are three in-progress independent opt-in add-ons. The root reference deliberately enables their auth/UI/policy/projection alongside the twenty-six accepted completed capabilities. Retaining installable authoring does not establish acceptance; generic lifecycle discovery and the full integrated-tree gates must include the three identity workspaces before promotion. The existing governance checker permits only completed reference-enabled integrations, so this deliberately in-progress preparation retains a known governance blocker. Do not mark the capabilities done or relax that gate merely to make preparation pass; resolving acceptance requires a separately reviewed next step.
+
+| ID | Official prerequisites | Optional application integrations | Canonical contract |
+| --- | --- | --- | --- |
+| organizations | Better Auth, Drizzle; baseline PostgreSQL/Node | Audit, Notifications | [Organizations](../capabilities/organizations/CAPABILITY.md) |
+| authorization | Better Auth, Drizzle; baseline PostgreSQL/Node | Organizations, API Platform, Audit | [Authorization](../capabilities/authorization/CAPABILITY.md) |
+| feature-flags | Drizzle; baseline PostgreSQL/Node | Organizations, Authorization, Audit; baseline Authentication | [Feature Flags](../capabilities/feature-flags/CAPABILITY.md) |
+
+Once separately authorized, install and prove each using `bun run add-ons:test <id>`; source preparation does not execute these commands, and embedded fault fixtures remain paused until reviewed and authorized. Shared auth/schema overlays require review when composing customized consumers; the CLI does not provide semantic merges/uninstall transactions. Preserve applied SQL/journals/data on removal. Membership lookup authorizes tenant context; active selection is UX only. Assignment evaluation uses exact scope, explicit resource predicates and credential intersections. Flags never authorize and expose only the fixed root boolean allowlist. See the contracts for precise bounds, errors, transaction ownership and native invitation crash limitations.

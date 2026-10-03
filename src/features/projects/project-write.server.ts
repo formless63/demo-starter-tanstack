@@ -6,6 +6,11 @@ import {
 	createAuditSubject,
 } from "../../integrations/audit-log/audit.server";
 import type { AuditIdentity } from "../../integrations/audit-log/validation";
+import type { AuthorizationContext } from "../../integrations/authorization/authorization.server";
+import {
+	applicationPolicy,
+	personalPolicyContext,
+} from "../../lib/application-policy.server";
 import type { ProjectData } from "./project-schema";
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -15,7 +20,15 @@ export async function insertProjectInTransaction(
 	ownerId: string,
 	data: ProjectData,
 	actor: AuditIdentity = createAuditActor("user", ownerId),
+	context: AuthorizationContext = personalPolicyContext(ownerId),
 ) {
+	// Both direct writes and durable personal imports decide inside the caller transaction.
+	await applicationPolicy.requirePermissionInTransaction(
+		tx,
+		context,
+		"projects.create",
+		{ ownerId },
+	);
 	const [project] = await tx
 		.insert(projects)
 		.values({

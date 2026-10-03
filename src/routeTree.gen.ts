@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AppOrganizationsRouteImport } from './routes/app.organizations'
+import { Route as ApiFlagsRouteImport } from './routes/api.flags'
 import { Route as ChartsTestRouteImport } from './routes/charts-test'
 import { Route as FlowTestRouteImport } from './routes/flow-test'
 import { Route as I18nTestRouteImport } from './routes/i18n-test'
@@ -196,7 +198,21 @@ const ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute =
     getParentRoute: () => rootRouteImport,
   } as any)
 
+const ApiFlagsRoute = ApiFlagsRouteImport.update({
+  id: '/api/flags',
+  path: '/api/flags',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const AppOrganizationsRoute = AppOrganizationsRouteImport.update({
+  id: '/organizations',
+  path: '/organizations',
+  getParentRoute: () => AppRoute,
+} as any)
+
 export interface FileRoutesByFullPath {
+  '/app/organizations': typeof AppOrganizationsRoute
+  '/api/flags': typeof ApiFlagsRoute
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
@@ -229,6 +245,8 @@ export interface FileRoutesByFullPath {
   '/api/integrations/invoice-ninja/webhooks/$connection/$event': typeof ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute
 }
 export interface FileRoutesByTo {
+  '/app/organizations': typeof AppOrganizationsRoute
+  '/api/flags': typeof ApiFlagsRoute
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
@@ -261,6 +279,8 @@ export interface FileRoutesByTo {
   '/api/integrations/invoice-ninja/webhooks/$connection/$event': typeof ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute
 }
 export interface FileRoutesById {
+  '/app/organizations': typeof AppOrganizationsRoute
+  '/api/flags': typeof ApiFlagsRoute
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
@@ -296,6 +316,8 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/app/organizations'
+    | '/api/flags'
     | '/'
     | '/app'
     | '/charts-test'
@@ -328,6 +350,8 @@ export interface FileRouteTypes {
     | '/api/integrations/invoice-ninja/webhooks/$connection/$event'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/app/organizations'
+    | '/api/flags'
     | '/'
     | '/app'
     | '/charts-test'
@@ -359,6 +383,8 @@ export interface FileRouteTypes {
     | '/api/integrations/stripe/webhooks/$connectionId'
     | '/api/integrations/invoice-ninja/webhooks/$connection/$event'
   id:
+    | '/app/organizations'
+    | '/api/flags'
     | '__root__'
     | '/'
     | '/app'
@@ -393,6 +419,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  ApiFlagsRoute: typeof ApiFlagsRoute
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   ChartsTestRoute: typeof ChartsTestRoute
@@ -419,6 +446,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/app/organizations': {
+      id: '/app/organizations'
+      path: '/organizations'
+      fullPath: '/app/organizations'
+      preLoaderRoute: typeof AppOrganizationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/api/flags': {
+      id: '/api/flags'
+      path: '/api/flags'
+      fullPath: '/api/flags'
+      preLoaderRoute: typeof ApiFlagsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -633,6 +674,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppOrganizationsRoute: typeof AppOrganizationsRoute
   AppApiKeysRoute: typeof AppApiKeysRoute
   AppFilesRoute: typeof AppFilesRoute
   AppInvoicesRoute: typeof AppInvoicesRoute
@@ -644,6 +686,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppOrganizationsRoute: AppOrganizationsRoute,
   AppApiKeysRoute: AppApiKeysRoute,
   AppFilesRoute: AppFilesRoute,
   AppInvoicesRoute: AppInvoicesRoute,
@@ -657,6 +700,7 @@ const AppRouteChildren: AppRouteChildren = {
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  ApiFlagsRoute: ApiFlagsRoute,
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   ChartsTestRoute: ChartsTestRoute,

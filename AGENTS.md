@@ -20,3 +20,5 @@ Read only what matches the work: `.agents/context/architecture.md` for boundarie
 Reusable capabilities and their relationships are tracked in `ROADMAP.md` and `capabilities/catalog.json`; reference-app enablement is separate from generated-consumer defaults. Before installing, removing, creating, or changing capability dependencies, use the capability-change skill. Hard dependencies must be explicit and must not form cycles.
 
 Downstream initialization uses `.agents/skills/project-onboarding/SKILL.md`; Search maintenance uses `.agents/skills/search-change/SKILL.md`; preserve domain authorization, exact PostgreSQL FTS/rank/cursor semantics and applied migration history. Appearance changes use `.agents/skills/appearance-change/SKILL.md`. Review existing materials and approved plans before customization. These workflows are baseline tooling, not capabilities.
+
+Identity policy maintenance uses `.agents/skills/identity-policy-change/SKILL.md`; preserve native dispatch/owner invariants, exact-scope transaction locks, fixed flag cohorts and retained migration history.

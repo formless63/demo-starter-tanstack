@@ -1,0 +1,12 @@
+CREATE TABLE "authorization_assignment" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"scope_kind" text NOT NULL,
+	"scope_id" text NOT NULL,
+	"user_id" text NOT NULL,
+	"role_id" text NOT NULL,
+	"created_at" timestamp (3) with time zone NOT NULL,
+	CONSTRAINT "authorization_assignment_kind_check" CHECK ("authorization_assignment"."scope_kind" IN ('user','tenant'))
+);
+
+CREATE UNIQUE INDEX "authorization_assignment_exact_idx" ON "authorization_assignment" USING btree ("scope_kind","scope_id","user_id","role_id");
+CREATE INDEX "authorization_assignment_scope_created_idx" ON "authorization_assignment" USING btree ("scope_kind","scope_id","created_at","id");

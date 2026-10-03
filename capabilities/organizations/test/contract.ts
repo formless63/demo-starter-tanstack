@@ -1,0 +1,133 @@
+import assert from "node:assert/strict";
+import {execFileSync, fork} from "node:child_process";
+import {createHmac,randomUUID} from "node:crypto";
+import {readFile} from "node:fs/promises";
+import {betterAuth} from "better-auth";
+import {createOrganizationsDrizzleAdapter} from "../../../src/integrations/organizations/adapter.server";
+import {drizzle} from "drizzle-orm/node-postgres";
+import {Pool} from "pg";
+import * as baseline from "./auth-schema";
+import * as tables from "../../../src/integrations/organizations/schema";
+import {defineOrganizations} from "../../../src/integrations/organizations/auth.server";
+import {resolveTenantContext,listOwnOrganizations,diagnoseOrganizationAdmission} from "../../../src/integrations/organizations/organizations.server";
+import {organizationConfig,organizationName,organizationSlug,pageInput,encodeCursor} from "../../../src/integrations/organizations/validation";
+
+const fixtureName=`organizations-contract-${randomUUID()}`;
+const docker=(...args:string[])=>execFileSync("docker",args,{encoding:"utf8",stdio:["ignore","pipe","pipe"]});
+let pool:Pool|undefined;
+let closeBun:(()=>Promise<void>)|undefined;
+const secret="disposable-organization-test-secret-at-least-thirty-two-characters";
+try{
+ docker("run","-d","--name",fixtureName,"-e","POSTGRES_USER=fixture","-e","POSTGRES_PASSWORD=fixture","-e","POSTGRES_DB=fixture","-p","127.0.0.1::5432","public.ecr.aws/docker/library/postgres:18.1-alpine@sha256:aa6eb304ddb6dd26df23d05db4e5cb05af8951cda3e0dc57731b771e0ef4ab29");
+ const port=docker("port",fixtureName,"5432/tcp").trim().split(":").at(-1);
+ const fixtureURL=`postgresql://fixture:fixture@127.0.0.1:${port}/fixture`;
+ pool=new Pool({connectionString:`postgresql://fixture:fixture@127.0.0.1:${port}/fixture`,options:"-c statement_timeout=5000 -c lock_timeout=2000",connectionTimeoutMillis:1000});
+ for(let i=0;;i++){try{await pool.query("SELECT 1");break;}catch{if(i>=30)throw new Error("Fixture readiness failed");await new Promise(r=>setTimeout(r,200));}}
+	await pool.query(`
+ CREATE TABLE "user" (id text PRIMARY KEY,name text,email text,email_verified boolean,image text,created_at timestamptz,updated_at timestamptz);
+ CREATE TABLE "session" (id text PRIMARY KEY,user_id text,token text,expires_at timestamptz,created_at timestamptz,updated_at timestamptz,ip_address text,user_agent text,active_organization_id text);
+ CREATE TABLE account (id text PRIMARY KEY,account_id text,provider_id text,user_id text,access_token text,refresh_token text,id_token text,access_token_expires_at timestamptz,refresh_token_expires_at timestamptz,scope text,password text,created_at timestamptz,updated_at timestamptz);
+ CREATE TABLE verification (id text PRIMARY KEY,identifier text,value text,expires_at timestamptz,created_at timestamptz,updated_at timestamptz);
+`);
+ await pool.query(await readFile("capabilities/organizations/test/schema.sql","utf8"));
+ await pool.query("ALTER ROLE fixture SET statement_timeout=5000; ALTER ROLE fixture SET lock_timeout=2000");
+ const schema={...baseline,...tables};
+ const bunDatabase=process.argv.includes("--bun-sql")?(await import("drizzle-orm/bun-sql")).drizzle<typeof schema>({connection:fixtureURL,schema}):undefined;
+ if(bunDatabase)closeBun=()=>bunDatabase.$client.close();
+ const db=bunDatabase??drizzle(pool,{schema});
+ const organizations=defineOrganizations({ORGANIZATIONS_MEMBERSHIP_LIMIT:"10"});
+ const auth=betterAuth({baseURL:"http://localhost:3000",secret,database:createOrganizationsDrizzleAdapter(db),logger:{disabled:true},plugins:[organizations.plugin],hooks:{before:organizations.before,after:organizations.after},onAPIError:organizations.onAPIError});
+ const headers=(id:string)=>{const token=`token-${id}`;return new Headers({origin:"http://localhost:3000",cookie:`better-auth.session_token=${encodeURIComponent(`${token}.${createHmac("sha256",secret).update(token).digest("base64")}`)}`});};
+ for(const id of ["owner","admin","member","recipient","other","unverified"]){await pool.query('INSERT INTO "user" VALUES ($1,$1,$2,$3,null,now(),now())',[id,`${id}@example.test`,id!=="unverified"]);await pool.query('INSERT INTO "session" VALUES ($1,$2,$3,now()+interval \'1 day\',now(),now(),null,null,null)',[`session-${id}`,id,`token-${id}`]);}
+ const routes:Record<string,string>={createOrganization:"create",updateOrganization:"update",inviteMember:"invite-member",acceptInvitation:"accept-invitation",rejectInvitation:"reject-invitation",cancelInvitation:"cancel-invitation",removeMember:"remove-member",updateMemberRole:"update-member-role",leaveOrganization:"leave",setActiveOrganization:"set-active",deleteOrganization:"delete"};
+ const call=async(method:string,body:Record<string,unknown>,id="owner",http=false)=>{
+  if(http){const response=await auth.handler(new Request(`http://localhost:3000/api/auth/organization/${routes[method]}`,{method:"POST",headers:new Headers([...headers(id),["content-type","application/json"]]),body:JSON.stringify(body)}));if(!response.ok){const safe=await response.json() as {code:string;message:string};throw Object.assign(new Error(safe.message),{code:safe.code});}return response.json();}
+  const fn=Reflect.get(auth.api,method==="inviteMember"?"createInvitation":method) as (input:{headers:Headers;body:Record<string,unknown>})=>Promise<Record<string,unknown>>;
+  return fn({headers:headers(id),body});
+ };
+ const forbidden=async(method:string,body:Record<string,unknown>,id="owner")=>{for(const http of [false,true])await assert.rejects(call(method,body,id,http));};
+ const created=await call("createOrganization",{name:"  Alpha  ",slug:"  ALPHA-ORG  "});const id=String(created.id);
+ assert.equal(created.name,"Alpha");assert.equal(created.slug,"alpha-org");
+ assert.equal((await resolveTenantContext({id:"owner"},id,db)).role,"owner");
+ await forbidden("leaveOrganization",{organizationId:id});await forbidden("deleteOrganization",{organizationId:id});
+ const own=await pool.query("SELECT id FROM member WHERE organization_id=$1",[id]);const ownerMembership=own.rows[0].id;
+ await forbidden("updateMemberRole",{organizationId:id,memberId:ownerMembership,role:"member"});
+ await forbidden("removeMember",{organizationId:id,memberIdOrEmail:ownerMembership});
+ await forbidden("inviteMember",{organizationId:id,email:"recipient@example.test",role:"owner"});
+ await forbidden("inviteMember",{organizationId:id,email:"recipient@example.test",role:"member,owner"});
+ await forbidden("createOrganization",{name:"Alpha duplicate",slug:"alpha-org"});
+ await forbidden("createOrganization",{name:"Another",slug:"another",userId:"other"});
+ await assert.rejects(auth.api.addMember({headers:headers("owner"),body:{organizationId:id,userId:"other",role:"owner"}}));
+ for(const role of ["admin","member"]){const invite=await call("inviteMember",{organizationId:id,email:`${role}@example.test`,role});await call("acceptInvitation",{invitationId:invite.id},role);}
+ const adminMembership=(await pool.query("SELECT id FROM member WHERE organization_id=$1 AND user_id='admin'",[id])).rows[0].id;
+ await forbidden("inviteMember",{organizationId:id,email:"recipient@example.test",role:"admin"},"admin");
+ await forbidden("updateMemberRole",{organizationId:id,memberId:adminMembership,role:"admin"},"admin");
+ await forbidden("removeMember",{organizationId:id,memberIdOrEmail:ownerMembership},"admin");
+ await forbidden("updateOrganization",{organizationId:id,data:{name:"Changed"}},"admin");
+ const invited=await call("inviteMember",{organizationId:id,email:"  RECIPIENT@example.test  "});
+ await forbidden("acceptInvitation",{invitationId:invited.id},"other");
+ const accepted=await Promise.allSettled([call("acceptInvitation",{invitationId:invited.id},"recipient"),call("acceptInvitation",{invitationId:invited.id},"recipient",true)]);
+ assert.equal(accepted.filter(r=>r.status==="fulfilled").length,1);for(const result of accepted)if(result.status==="rejected")assert.equal(result.reason.code??result.reason.body?.code,"conflict");assert.equal((await pool.query("SELECT count(*)::int AS count FROM member WHERE organization_id=$1 AND user_id='recipient'",[id])).rows[0].count,1);
+ const unverified=await call("inviteMember",{organizationId:id,email:"unverified@example.test"});await forbidden("acceptInvitation",{invitationId:unverified.id},"unverified");
+ const cancelled=await call("inviteMember",{organizationId:id,email:"other@example.test"});await call("cancelInvitation",{invitationId:cancelled.id});await call("cancelInvitation",{invitationId:cancelled.id},"owner",true);await forbidden("acceptInvitation",{invitationId:cancelled.id},"other");
+ const rejected=await call("inviteMember",{organizationId:id,email:"other@example.test"});await call("rejectInvitation",{invitationId:rejected.id},"other");await call("rejectInvitation",{invitationId:rejected.id},"other",true);await forbidden("acceptInvitation",{invitationId:rejected.id},"other");
+ const expiring=await call("inviteMember",{organizationId:id,email:"other@example.test"});await pool.query("UPDATE invitation SET expires_at=now() WHERE id=$1",[expiring.id]);await forbidden("acceptInvitation",{invitationId:expiring.id},"other");
+ const malformed=await call("inviteMember",{organizationId:id,email:"other@example.test",resend:true});await pool.query("UPDATE invitation SET role='owner,member' WHERE id=$1",[malformed.id]);await forbidden("acceptInvitation",{invitationId:malformed.id},"other");await forbidden("inviteMember",{organizationId:id,email:"other@example.test",resend:true});
+ const retained=await pool.query("SELECT id FROM member WHERE organization_id=$1 AND user_id='recipient'",[id]);await call("removeMember",{organizationId:id,memberIdOrEmail:retained.rows[0].id});
+ await assert.rejects(resolveTenantContext({id:"recipient"},id,db));await assert.rejects(resolveTenantContext({id:"other"},id,db));
+ const second=await call("createOrganization",{name:"Second",slug:"second-org"},"other",true);
+ const parallel=await Promise.all([resolveTenantContext({id:"owner"},id,db),resolveTenantContext({id:"other"},String(second.id),db)]);assert.notEqual(parallel[0].scope.id,parallel[1].scope.id);
+ assert.equal((await listOwnOrganizations({id:"owner"},db,{limit:1})).items.length,1);
+
+ // Database defenses and provisioning failure never establish a usable tenant.
+ await assert.rejects(pool.query("INSERT INTO member (id,organization_id,user_id,role,created_at) VALUES ($1,$2,'owner','member',now())",[randomUUID(),id]));
+ await assert.rejects(pool.query("INSERT INTO member (id,organization_id,user_id,role,created_at) VALUES ($1,$2,'other','owner',now())",[randomUUID(),id]));
+ await assert.rejects(pool.query("INSERT INTO member (id,organization_id,user_id,role,created_at) VALUES ($1,$2,'other','admin,member',now())",[randomUUID(),id]));
+ const limited=defineOrganizations({ORGANIZATIONS_CREATION_LIMIT:"1"});
+ const limitedAuth=betterAuth({baseURL:"http://localhost:3000",secret,database:createOrganizationsDrizzleAdapter(db),logger:{disabled:true},plugins:[limited.plugin],hooks:{before:limited.before,after:limited.after},onAPIError:limited.onAPIError});
+ await assert.rejects(limitedAuth.api.createOrganization({headers:headers("owner"),body:{name:"Denied",slug:"denied-limit"}}));
+ await pool.query("CREATE FUNCTION fail_fixture_creator() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.role='owner' THEN RAISE EXCEPTION 'private-provisioning-fixture'; END IF; RETURN NEW; END $$; CREATE TRIGGER fail_fixture_creator BEFORE INSERT ON member FOR EACH ROW EXECUTE FUNCTION fail_fixture_creator()");
+ for(const http of [false,true]){
+  const slug=`orphan-${http?"http":"api"}`;
+  await assert.rejects(call("createOrganization",{name:"Provisioning failure",slug},"owner",http),error=>{assert.ok(!String(error).includes("private-provisioning-fixture"));assert.ok(!String(error).includes("INSERT"));return true;});
+  const orphan:{rows:{id:string}[];rowCount:number|null}=await pool.query("SELECT id FROM organization WHERE slug=$1",[slug]);assert.equal(orphan.rowCount,1);await assert.rejects(resolveTenantContext({id:"owner"},String(orphan.rows[0].id),db));assert.equal((await diagnoseOrganizationAdmission(db,{kind:"operator"},String(orphan.rows[0].id))).hasSingleOwner,false);
+ }
+ await pool.query("DROP TRIGGER fail_fixture_creator ON member; DROP FUNCTION fail_fixture_creator()");
+ // Native admission limits are bounded read-then-check policies, not strict concurrent quotas.
+ for(const subject of ['bound-owner','bound-first','bound-second']){await pool.query('INSERT INTO "user" VALUES ($1,$1,$2,true,null,now(),now())',[subject,`${subject}@example.test`]);await pool.query('INSERT INTO "session" VALUES ($1,$2,$3,$4,now(),now(),null,null,null)',[`session-${subject}`,subject,`token-${subject}`,new Date(Date.now()+86400000)]);}
+ const bounded=defineOrganizations({ORGANIZATIONS_CREATION_LIMIT:'1',ORGANIZATIONS_MEMBERSHIP_LIMIT:'2',ORGANIZATIONS_INVITATION_LIMIT:'1',ORGANIZATIONS_INVITATION_TTL_SECONDS:'300'});
+ const boundedAuth=betterAuth({baseURL:'http://localhost:3000',secret,database:createOrganizationsDrizzleAdapter(db),logger:{disabled:true},plugins:[bounded.plugin],hooks:{before:bounded.before,after:bounded.after},onAPIError:bounded.onAPIError});
+ const boundCall=async(method:string,body:Record<string,unknown>,subject='bound-owner',http=false)=>{if(http){const response=await boundedAuth.handler(new Request(`http://localhost:3000/api/auth/organization/${routes[method]}`,{method:'POST',headers:new Headers([...headers(subject),['content-type','application/json']]),body:JSON.stringify(body)}));const safe=await response.json() as Record<string,unknown>;if(!response.ok)throw Object.assign(new Error(String(safe.message)),{code:safe.code});return safe;}return (Reflect.get(boundedAuth.api,method==='inviteMember'?'createInvitation':method) as (input:{headers:Headers;body:Record<string,unknown>})=>Promise<Record<string,unknown>>)({headers:headers(subject),body});};
+ const boundedOrg=await boundCall('createOrganization',{name:'Bounded',slug:'bounded-fixture'});
+ for(const http of [false,true])await assert.rejects(boundCall('createOrganization',{name:'Overflow',slug:`overflow-${http?'http':'api'}`},'bound-owner',http));
+ const boundedInvite=await boundCall('inviteMember',{organizationId:boundedOrg.id,email:'bound-first@example.test'});
+ for(const http of [false,true])await assert.rejects(boundCall('inviteMember',{organizationId:boundedOrg.id,email:'bound-second@example.test'},'bound-owner',http));
+ await boundCall('acceptInvitation',{invitationId:boundedInvite.id},'bound-first',true);
+ const fullInvitation=randomUUID();await pool.query("INSERT INTO invitation (id,organization_id,email,role,status,expires_at,created_at,inviter_id) VALUES ($1,$2,'bound-second@example.test','member','pending',now()+interval '1 hour',now(),'bound-owner')",[fullInvitation,boundedOrg.id]);
+ for(const http of [false,true])await assert.rejects(boundCall('acceptInvitation',{invitationId:fullInvitation},'bound-second',http));assert.equal((await pool.query('SELECT count(*)::int AS count FROM member WHERE organization_id=$1',[boundedOrg.id])).rows[0].count,2);assert.equal((await pool.query('SELECT status FROM invitation WHERE id=$1',[fullInvitation])).rows[0].status,'pending');
+
+ const failureInvite=await call("inviteMember",{organizationId:id,email:"recipient@example.test"});
+ await pool.query("CREATE FUNCTION fail_fixture_member() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'fixture-only failure'; END $$; CREATE TRIGGER fail_fixture_member BEFORE INSERT ON member FOR EACH ROW EXECUTE FUNCTION fail_fixture_member()");
+ for(const http of [false,true]){await assert.rejects(call("acceptInvitation",{invitationId:failureInvite.id},"recipient",http));assert.equal((await pool.query("SELECT status FROM invitation WHERE id=$1",[failureInvite.id])).rows[0].status,"pending");}
+ await pool.query("DROP TRIGGER fail_fixture_member ON member; DROP FUNCTION fail_fixture_member()");
+ for(const http of [false,true]){
+  await pool.query("UPDATE invitation SET status='pending' WHERE id=$1",[failureInvite.id]);
+  const child=fork(process.env.ORGANIZATIONS_FIXTURE_CHILD??"capabilities/organizations/test/accept-crash-child.ts",[...(http?["--http"]:[]),...(process.argv.includes("--bun-sql")?["--bun-sql"]:[])],{env:{...process.env,ORGANIZATIONS_FIXTURE_DATABASE_URL:fixtureURL,ORGANIZATIONS_FIXTURE_INVITATION_ID:String(failureInvite.id)},stdio:["ignore","ignore","ignore","ipc"]});
+  try{
+   await new Promise<void>((resolve,reject)=>{
+    const timeout=setTimeout(()=>reject(new Error("Crash fixture did not reach committed claim")),5000);
+    child.once("message",message=>{clearTimeout(timeout);if((message as {phase?:string}).phase!=="claim-committed")reject(new Error("Invalid crash fixture checkpoint"));else resolve();});
+    child.once("exit",()=>{clearTimeout(timeout);reject(new Error("Crash fixture exited before interruption"));});
+   });
+   assert.equal((await pool.query("SELECT status FROM invitation WHERE id=$1",[failureInvite.id])).rows[0].status,"accepted");
+  }finally{const exited=new Promise<void>(resolve=>child.once("exit",()=>resolve()));child.kill("SIGKILL");await exited;}
+  await assert.rejects(resolveTenantContext({id:"recipient"},id,db));await forbidden("acceptInvitation",{invitationId:failureInvite.id},"recipient");
+ }
+ const diagnostic=await diagnoseOrganizationAdmission(db,{kind:"operator"},id);assert.ok(diagnostic.acceptedWithoutMembership.some(row=>row.invitationId===failureInvite.id));
+ assert.equal(organizationConfig({}).creationLimit,10);for(const bad of ["01","1.5","-1","101"," "]){assert.throws(()=>organizationConfig({ORGANIZATIONS_CREATION_LIMIT:bad}));}
+ assert.equal(organizationName("a".repeat(100)).length,100);assert.throws(()=>organizationName("a".repeat(101)));assert.throws(()=>organizationName("a\u0000b"));assert.equal(organizationSlug("ABC"),"abc");assert.throws(()=>organizationSlug("a--b"));assert.throws(()=>pageInput({limit:101}));const cursor=encodeCursor({createdAt:new Date(),id:"opaque"});assert.ok(pageInput({cursor}).cursor);assert.throws(()=>pageInput({cursor:`${cursor}=`}));
+ for(const [setting,min,max] of [["ORGANIZATIONS_CREATION_LIMIT",1,100],["ORGANIZATIONS_MEMBERSHIP_LIMIT",1,1000],["ORGANIZATIONS_INVITATION_LIMIT",1,1000],["ORGANIZATIONS_INVITATION_TTL_SECONDS",300,604800]] as const){for(const value of [min,max])organizationConfig({[setting]:String(value)});for(const value of [String(min-1),String(max+1),"01","+1","1.0","1e2"," ","-1"])assert.throws(()=>organizationConfig({[setting]:value}));}
+ assert.equal(organizationSlug("a".repeat(63)).length,63);assert.throws(()=>organizationSlug("a".repeat(64)));
+ const held=await pool.connect();await held.query("BEGIN");await held.query("LOCK TABLE member IN ACCESS EXCLUSIVE MODE");try{await assert.rejects(resolveTenantContext({id:"owner"},id,db),{code:"timeout"});}finally{await held.query("ROLLBACK");held.release();}
+ console.info("Organizations independent native dispatch contract passed (HTTP/auth.api, PostgreSQL, no optional capabilities).");
+}finally{await closeBun?.();await pool?.end();docker("rm","-f",fixtureName);}
