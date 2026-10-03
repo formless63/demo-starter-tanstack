@@ -1,4 +1,7 @@
-import { getRequestHeaders } from "@tanstack/react-start/server";
+import {
+	getRequestHeaders,
+	setResponseHeader,
+} from "@tanstack/react-start/server";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "#/db";
 import { AuthorizationError } from "#/integrations/authorization/validation";
@@ -8,6 +11,7 @@ import {
 	resolveTenantContext,
 	setOrganizationTransactionBounds,
 } from "#/integrations/organizations/organizations.server";
+import { organization } from "#/integrations/organizations/schema";
 import {
 	normalizeOrganizationError,
 	OrganizationError,
@@ -18,16 +22,20 @@ import { auth } from "#/lib/auth";
 import { organizationNotes } from "./schema";
 
 async function actor() {
+	setResponseHeader("Cache-Control", "private, no-store");
+	setResponseHeader("Vary", "Cookie");
 	const session = await auth.api.getSession({ headers: getRequestHeaders() });
 	if (!session?.user) throw new OrganizationError("unauthenticated");
 	return session.user;
 }
-export async function ownOrganizations() {
+export async function ownOrganizations(input: { cursor?: string } = {}) {
 	const user = await actor();
+	if (!input || typeof input !== "object" || Array.isArray(input))
+		throw new OrganizationError("invalid-input");
 	try {
 		return await db.transaction(async (tx) => {
 			await setOrganizationTransactionBounds(tx);
-			return listOwnOrganizations(user, tx);
+			return listOwnOrganizations(user, tx, { cursor: input.cursor });
 		});
 	} catch (error) {
 		if (error instanceof AuthorizationError)
@@ -41,7 +49,7 @@ export async function ownOrganizations() {
 		throw normalizeOrganizationError(error);
 	}
 }
-export async function organizationSummary(id: string) {
+export async function organizationSummary(id: string, cursor?: string) {
 	const user = await actor();
 	try {
 		return await db.transaction(async (tx) => {
@@ -52,14 +60,30 @@ export async function organizationSummary(id: string) {
 				context,
 				"notes.read",
 			);
-			const members = await listOrganizationMembers(user, id, tx);
+			const [details] = await tx
+				.select({
+					id: organization.id,
+					name: organization.name,
+					slug: organization.slug,
+				})
+				.from(organization)
+				.where(eq(organization.id, context.scope.id))
+				.limit(1);
+			if (!details) throw new OrganizationError("not-found");
+			const members = await listOrganizationMembers(user, id, tx, { cursor });
 			const notes = await tx
 				.select()
 				.from(organizationNotes)
 				.where(eq(organizationNotes.organizationId, context.scope.id))
 				.orderBy(desc(organizationNotes.createdAt), desc(organizationNotes.id))
 				.limit(25);
-			return { context, members: members.items, notes };
+			return {
+				context,
+				organization: details,
+				members: members.items,
+				membersNextCursor: members.nextCursor,
+				notes,
+			};
 		});
 	} catch (error) {
 		if (error instanceof AuthorizationError)

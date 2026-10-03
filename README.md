@@ -4,7 +4,7 @@ A deployable, provider-neutral TanStack Start and React starter with Bun, Postgr
 
 The root repository is also a reference application. It intentionally enables all twenty-six completed capabilities so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
 
-Organizations, Authorization and Feature Flags are additionally reference-enabled but remain **in-progress** with `defaultInstalled: false`. This source-only integration has no current acceptance result: all integrated-tree governance, packaging, lifecycle, backend, browser, production and exact-head CI gates remain pending. Historical source results are not proof for this tree. Fault-injection fixtures remain paused pending separate review and authorization; no gate is waived.
+Organizations, Authorization and Feature Flags have prepared candidate runtime wiring but remain **in-progress** with `defaultInstalled: false`. They are not yet in the accepted `referenceApplication.enabledCapabilities` list. Following the existing PWA acceptance sequence, reference enablement and `done` are promoted together only after the required verification. Source review, static checks and focused tests do not establish full integrated acceptance; lifecycle, backend, browser, production and exact-head CI evidence remain required. Fault-injection fixtures remain paused; no gate is waived.
 
 ## Start your application
 

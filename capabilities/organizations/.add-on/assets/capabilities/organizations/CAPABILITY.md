@@ -1,8 +1,10 @@
 # Organizations / Tenancy
 
-Status: **in-progress**. Root reference composition is enabled; clean consumers remain opt-in (`defaultInstalled: false`).
+Status: **in-progress**. Candidate root runtime composition is prepared but not yet accepted reference enablement; clean consumers remain opt-in (`defaultInstalled: false`).
 
 Current acceptance: pending on the integrated tree. This source-only preparation does not execute verification. Historical source-branch pass claims are not current evidence. Governance, retained-package parity, independent lifecycle, backend, browser, production and exact-head hosted CI gates remain required before `done`. Fault-injection fixtures (including interruption, timeout, outage and database-failure probes) remain paused pending separate review and authorization; retaining their source does not waive any requirement.
+
+Prepared candidate runtime wiring does not imply accepted reference enablement. Keep this capability outside `referenceApplication.enabledCapabilities` until its required verification supports promotion to `done`; generated-consumer defaults remain false.
 
 ## Cross-framework v1 contract
 

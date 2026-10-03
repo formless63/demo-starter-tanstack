@@ -4,7 +4,7 @@ This guide answers: “I cloned this repository—how do I turn it into my appli
 
 Before removing anything, create a branch and run `bun run capabilities:status`. The root reference application deliberately enables all completed capabilities, while generated consumers opt in independently.
 
-Organizations, Authorization and Feature Flags are additionally reference-enabled but remain **in-progress** with `defaultInstalled: false`. This source-only integration has no current acceptance result: all integrated-tree governance, packaging, lifecycle, backend, browser, production and exact-head CI gates remain pending. Historical source results are not proof for this tree. Fault-injection fixtures remain paused pending separate review and authorization; no gate is waived.
+Organizations, Authorization and Feature Flags have prepared candidate runtime wiring but remain **in-progress** with `defaultInstalled: false`. They are not yet in the accepted `referenceApplication.enabledCapabilities` list. Following the existing PWA acceptance sequence, reference enablement and `done` are promoted together only after the required verification. Source review, static checks and focused tests do not establish full integrated acceptance; lifecycle, backend, browser, production and exact-head CI evidence remain required. Fault-injection fixtures remain paused; no gate is waived.
 
 ## Recommended agent-led onboarding
 
@@ -23,7 +23,7 @@ Manual setup remains supported. Use the recipes below, copy relevant `docs/templ
 
 ## Full/reference setup
 
-The reference retains all twenty-six accepted completed capabilities, including Flow / Canvas, Internationalization and PWA / Offline, and additionally enables the three in-progress identity capabilities. Keep them when their features fit the application, or when you want the repository's complete reference paths intact. Clean generated consumers still select capabilities explicitly (`defaultInstalled: false`). Provider credentials, trusted application policies and any remote setup remain operator-owned; completed local/CI verification is not financial or deployment certification.
+The reference retains all twenty-six accepted completed capabilities, including Flow / Canvas, Internationalization and PWA / Offline, and retains prepared runtime wiring for the three in-progress identity candidates. Candidate wiring is not an acceptance claim; complete the required verification before treating those modules as accepted reference integrations. Clean generated consumers still select capabilities explicitly (`defaultInstalled: false`). Provider credentials, trusted application policies and any remote setup remain operator-owned; completed local/CI verification is not financial or deployment certification.
 
 ```bash
 cp .env.example .env.local
