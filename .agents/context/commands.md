@@ -1,6 +1,6 @@
 # Commands
 
-Organizations, Authorization and Feature Flags are additionally reference-enabled but remain **in-progress** with `defaultInstalled: false`. This source-only integration has no current acceptance result: all integrated-tree governance, packaging, lifecycle, backend, browser, production and exact-head CI gates remain pending. Historical source results are not proof for this tree. Fault-injection fixtures remain paused pending separate review and authorization; no gate is waived. Commands below document required verification; listing them does not authorize execution during source-only preparation.
+Organizations, Authorization and Feature Flags have prepared candidate runtime wiring but remain **in-progress** with `defaultInstalled: false`. They are not yet in the accepted `referenceApplication.enabledCapabilities` list. Following the existing PWA acceptance sequence, reference enablement and `done` are promoted together only after the required verification. Source review, static checks and focused tests do not establish full integrated acceptance; lifecycle, backend, browser, production and exact-head CI evidence remain required. Fault-injection fixtures remain paused; no gate is waived. Commands below document required verification; listing them does not authorize execution during source-only preparation.
 
 - `bun install --frozen-lockfile`: reproduce dependencies.
 - `docker compose up -d postgres`: start only PostgreSQL 18 for local development; application services are not started.

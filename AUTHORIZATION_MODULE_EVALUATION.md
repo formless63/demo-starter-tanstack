@@ -4,7 +4,7 @@ Status: **in-progress**. Canonical [contract](capabilities/authorization/CAPABIL
 
 Current acceptance: pending on the integrated tree. This source-only preparation does not execute verification. Historical source-branch pass claims are not current evidence. Governance, retained-package parity, independent lifecycle, backend, browser, production and exact-head hosted CI gates remain required before `done`. Fault-injection fixtures (including interruption, timeout, outage and database-failure probes) remain paused pending separate review and authorization; retaining their source does not waive any requirement.
 
-Source-level governance blocker: the root `scripts/capabilities-check.ts` currently requires every reference-enabled capability to be `done`. This preparation deliberately keeps these three entries `in-progress` and reference-enabled, so the unchanged checker cannot yet accept that catalog state. The gate is preserved; resolving this conflict requires an explicit reviewed decision, not a false completion promotion or a weakened check. No checker was executed during source-only preparation.
+Acceptance sequencing: the unchanged root `scripts/capabilities-check.ts` requires every accepted reference-enabled capability to be `done`. Prepared candidate runtime wiring remains present, while these three `in-progress` entries are excluded from the accepted reference-enabled list. This follows the existing PWA source-to-acceptance sequence and corrects premature metadata without weakening a gate. Promote status and reference enablement together only after required verification; this source-only correction is not runtime acceptance.
 
 | Option | Assessment for this bounded v1 |
 | --- | --- |

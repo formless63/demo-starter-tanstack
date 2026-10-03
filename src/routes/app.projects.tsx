@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { isBetaDashboardEnabled } from "#/features/feature-flags/product-flags";
 import { useProductFlags } from "#/features/feature-flags/use-product-flags";
 import { ProjectForm } from "#/features/projects/project-form";
 import type { ProjectInput } from "#/features/projects/project-schema";
@@ -49,7 +50,7 @@ function ProjectsPage() {
 	});
 	return (
 		<section>
-			{flags.data?.["beta.dashboard"] && (
+			{isBetaDashboardEnabled(flags) && (
 				<aside
 					aria-label="Beta dashboard"
 					className="mb-6 rounded-xl border bg-card p-5"

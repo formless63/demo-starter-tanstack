@@ -17,44 +17,46 @@ const requiredWave = [
 	"search",
 	"realtime",
 	"notifications",
-	"organizations",
-	"authorization",
-	"feature-flags",
 ];
 
 const completed = catalog.capabilities.filter(
 	({ status }) => status === "done",
 );
-const identityInProgress = ["organizations", "authorization", "feature-flags"];
-const integrated = catalog.capabilities.filter(
-	({ status, id }) =>
-		status === "done" ||
-		(status === "in-progress" && identityInProgress.includes(id)),
-);
+const identityCandidates = ["organizations", "authorization", "feature-flags"];
 
-test("the reference app enables the complete optional capability wave", () => {
+test("accepted reference enablement matches completed capabilities", () => {
 	// Require this wave while allowing future completed capabilities through discovery.
-	expect(integrated.map(({ id }) => id)).toEqual(
+	expect(completed.map(({ id }) => id)).toEqual(
 		expect.arrayContaining(requiredWave),
 	);
 	expect([...catalog.referenceApplication.enabledCapabilities].sort()).toEqual(
-		integrated.map(({ id }) => id).sort(),
+		completed.map(({ id }) => id).sort(),
 	);
 	for (const id of requiredWave)
 		expect(
-			integrated.find((capability) => capability.id === id)?.defaultInstalled,
+			completed.find((capability) => capability.id === id)?.defaultInstalled,
 		).toBe(false);
 	expect(completed.length).toBeGreaterThanOrEqual(26);
-	for (const id of identityInProgress)
-		expect(
-			catalog.capabilities.find((capability) => capability.id === id)?.status,
-		).toBe("in-progress");
 	// Email runtime and awaited auth delivery must survive merges from the older base.
 	expect(pkg.dependencies.nodemailer).toBeTruthy();
 	expect(readFileSync("src/lib/auth.ts", "utf8")).toContain("sendMagicLink");
 	expect(readFileSync("src/lib/auth.ts", "utf8")).toContain(
 		"await getApplicationEmail().sendEmail",
 	);
+});
+
+test("prepared identity candidates remain unaccepted and opt-in", () => {
+	for (const id of identityCandidates) {
+		const candidate = catalog.capabilities.find(
+			(capability) => capability.id === id,
+		);
+		expect(candidate?.status).toBe("in-progress");
+		expect(candidate?.defaultInstalled).toBe(false);
+		expect(catalog.referenceApplication.enabledCapabilities).not.toContain(id);
+		expect(existsSync(`capabilities/${id}/.add-on/info.json`)).toBe(true);
+		expect(existsSync(`capabilities/${id}/test/clean-install.json`)).toBe(true);
+		expect(existsSync(`src/integrations/${id}`)).toBe(true);
+	}
 });
 
 test("the generic lifecycle matrix discovers completed and authored in-progress add-ons", () => {

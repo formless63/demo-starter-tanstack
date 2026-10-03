@@ -17,7 +17,7 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 All twenty-six accepted completed capabilities are retained, reference-enabled and opt-in for clean consumers.
 
-Organizations, Authorization and Feature Flags are additionally reference-enabled but remain **in-progress** with `defaultInstalled: false`. This source-only integration has no current acceptance result: all integrated-tree governance, packaging, lifecycle, backend, browser, production and exact-head CI gates remain pending. Historical source results are not proof for this tree. Fault-injection fixtures remain paused pending separate review and authorization; no gate is waived.
+Organizations, Authorization and Feature Flags have prepared candidate runtime wiring but remain **in-progress** with `defaultInstalled: false`. They are not yet in the accepted `referenceApplication.enabledCapabilities` list. Following the existing PWA acceptance sequence, reference enablement and `done` are promoted together only after the required verification. Source review, static checks and focused tests do not establish full integrated acceptance; lifecycle, backend, browser, production and exact-head CI evidence remain required. Fault-injection fixtures remain paused; no gate is waived.
 
 | ID | TanStack add-on ID | Status | Reference app | Default installed | Official add-on dependencies | Reusable capability requirements | External | Contract |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -260,7 +260,7 @@ There are now twenty-six completed, reference-enabled capabilities; all generate
 
 ## Identity policy capabilities
 
-Organizations, Authorization and Feature Flags are three in-progress independent opt-in add-ons. The root reference deliberately enables their auth/UI/policy/projection alongside the twenty-six accepted completed capabilities. Retaining installable authoring does not establish acceptance; generic lifecycle discovery and the full integrated-tree gates must include the three identity workspaces before promotion. The existing governance checker permits only completed reference-enabled integrations, so this deliberately in-progress preparation retains a known governance blocker. Do not mark the capabilities done or relax that gate merely to make preparation pass; resolving acceptance requires a separately reviewed next step.
+Organizations, Authorization and Feature Flags are three in-progress independent opt-in add-ons. Their auth/UI/policy/projection runtime wiring is prepared alongside the twenty-six accepted completed capabilities, but the three candidates are excluded from accepted reference-enabled metadata until verification is complete. This matches PWA source `52f6fcb2309daad9b1474a1c2c313914f3403460`, which already wired the runtime while in-progress; acceptance commit `4cf217787b483f4e5a032f616636e91b2102f96b` promoted status and reference enablement together. The governance checker remains unchanged. Generic authored-in-progress lifecycle discovery still includes the identity workspaces; none of their tests or gates is removed. This metadata correction resolves premature enablement, not pending runtime acceptance.
 
 | ID | Official prerequisites | Optional application integrations | Canonical contract |
 | --- | --- | --- | --- |

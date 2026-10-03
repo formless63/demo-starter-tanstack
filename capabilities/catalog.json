@@ -101,10 +101,7 @@
       "rich-text",
       "flow-canvas",
       "internationalization",
-      "pwa-offline",
-      "organizations",
-      "authorization",
-      "feature-flags"
+      "pwa-offline"
     ]
   },
   "frameworkEvaluations": {
