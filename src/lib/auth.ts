@@ -1,14 +1,16 @@
 import { apiKey } from "@better-auth/api-key";
 import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";
 import { magicLink } from "better-auth/plugins/magic-link";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { db } from "#/db";
+import * as schema from "#/db/schema";
 import { env } from "#/env";
 import { resolveEmailConfig } from "#/integrations/email/config.server";
 import { renderMagicLinkEmail } from "#/integrations/email/magic-link.server";
+import { createOrganizationsDrizzleAdapter } from "#/integrations/organizations/adapter.server";
+import { defineOrganizations } from "#/integrations/organizations/auth.server";
+import { createBoundedOrganizationAuthDatabase } from "#/integrations/organizations/database.server";
 import { getApplicationEmail } from "./email.server";
 
 const plugins = [] as ReturnType<
@@ -87,12 +89,22 @@ if (env.MAGIC_LINK_ENABLED === "true") {
 }
 plugins.push(tanstackStartCookies());
 
+const organizations = defineOrganizations();
+const organizationsAuthDatabase = createBoundedOrganizationAuthDatabase(
+	env.DATABASE_URL,
+	schema,
+);
 export const auth = betterAuth({
 	appName: "Launchpad",
 	baseURL: env.APP_BASE_URL,
 	secret: env.BETTER_AUTH_SECRET,
-	database: drizzleAdapter(db, { provider: "pg" }),
+	database: createOrganizationsDrizzleAdapter(organizationsAuthDatabase.db),
 	emailAndPassword: { enabled: false },
+	session: {
+		additionalFields: {
+			activeOrganizationId: { type: "string", required: false, input: false },
+		},
+	},
 	socialProviders:
 		env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
 			? {
@@ -106,5 +118,9 @@ export const auth = betterAuth({
 		accountLinking: { enabled: true },
 	},
 	advanced: { useSecureCookies: env.NODE_ENV === "production" },
-	plugins,
+	plugins: [...plugins, organizations.plugin],
+	hooks: { before: organizations.before, after: organizations.after },
+	onAPIError: organizations.onAPIError,
+	logger: { disabled: true },
+	user: { deleteUser: { enabled: false } },
 });

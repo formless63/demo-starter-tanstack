@@ -39,6 +39,7 @@ export const session = pgTable(
 		updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
 			.defaultNow()
 			.notNull(),
+		activeOrganizationId: text("active_organization_id"),
 		ipAddress: text("ip_address"),
 		userAgent: text("user_agent"),
 		userId: text("user_id")
@@ -177,7 +178,13 @@ export const projects = pgTable(
 	],
 );
 
+export { organizationNotes } from "../features/organizations/schema";
 export { auditEvents } from "../integrations/audit-log/schema";
+export { authorizationAssignments } from "../integrations/authorization/schema";
+export {
+	flagDefinitions,
+	flagOverrides,
+} from "../integrations/feature-flags/schema";
 export { transfers } from "../integrations/import-export/schema";
 export {
 	bindings as invoiceNinjaBindings,
@@ -193,6 +200,11 @@ export {
 	medusaProjections,
 } from "../integrations/medusa/schema";
 export { notifications } from "../integrations/notifications/schema";
+export {
+	invitation,
+	member,
+	organization,
+} from "../integrations/organizations/schema";
 export {
 	stripeBindings,
 	stripeInbox,

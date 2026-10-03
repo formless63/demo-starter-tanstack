@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useProductFlags } from "#/features/feature-flags/use-product-flags";
 import { ProjectForm } from "#/features/projects/project-form";
 import type { ProjectInput } from "#/features/projects/project-schema";
 import {
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/app/projects")({
 const queryKey = ["projects"] as const;
 
 function ProjectsPage() {
+	const flags = useProductFlags();
 	const client = useQueryClient();
 	const [editing, setEditing] = useState<
 		Awaited<ReturnType<typeof listProjects>>[number] | null
@@ -47,6 +49,15 @@ function ProjectsPage() {
 	});
 	return (
 		<section>
+			{flags.data?.["beta.dashboard"] && (
+				<aside
+					aria-label="Beta dashboard"
+					className="mb-6 rounded-xl border bg-card p-5"
+				>
+					<h2 className="font-semibold">Beta dashboard</h2>
+					<p>Your personal workspace overview is being previewed.</p>
+				</aside>
+			)}
 			<div className="mb-8 flex items-start justify-between gap-4">
 				<div>
 					<h1 className="text-3xl font-semibold tracking-tight">Projects</h1>

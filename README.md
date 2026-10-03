@@ -4,6 +4,8 @@ A deployable, provider-neutral TanStack Start and React starter with Bun, Postgr
 
 The root repository is also a reference application. It intentionally enables all twenty-six completed capabilities so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.
 
+Organizations, Authorization and Feature Flags are additionally reference-enabled but remain **in-progress** with `defaultInstalled: false`. This source-only integration has no current acceptance result: all integrated-tree governance, packaging, lifecycle, backend, browser, production and exact-head CI gates remain pending. Historical source results are not proof for this tree. Fault-injection fixtures remain paused pending separate review and authorization; no gate is waived.
+
 ## Start your application
 
 Provide existing requirements, design artifacts and skill libraries, then ask your coding agent to **onboard this project** using the [onboarding workflow](docs/PROJECT-ONBOARDING.md). Review the proposed docs, capability choices, appearance and skill adaptations before approving customization. The [starting guide](docs/STARTING-A-PROJECT.md) retains manual setup and removal paths.
@@ -61,6 +63,9 @@ Baseline components are not optional capability modules. Future integrations in 
 | Invoice Ninja | Done | Optional | Jobs + Webhooks | Approved unsent drafts, exact monetary projections and durable scoped reconciliation | [Invoice Ninja contract](capabilities/invoice-ninja/CAPABILITY.md) |
 | Stripe | Done | Optional | Jobs + Webhooks | Hosted one-time Checkout, local status and durable scoped reconciliation | [Stripe contract](capabilities/stripe/CAPABILITY.md) |
 | Medusa | Done | Optional | Jobs + Webhooks | Bound product/order Admin reads and durable subscriber-bridge reconciliation | [Medusa contract](capabilities/medusa/CAPABILITY.md) |
+| Organizations / Tenancy | In progress | Optional | Baseline Better Auth + PostgreSQL/Drizzle + Node | Guarded native administration and authoritative tenant context | [Organizations](capabilities/organizations/CAPABILITY.md) |
+| Authorization | In progress | Optional | Baseline Better Auth + PostgreSQL/Drizzle + Node | Exact-scope code roles, assignments and explicit resource policy | [Authorization](capabilities/authorization/CAPABILITY.md) |
+| Feature Flags | In progress | Optional | Baseline PostgreSQL/Drizzle + Node | Boolean definitions, exact overrides and deterministic cohorts | [Feature Flags](capabilities/feature-flags/CAPABILITY.md) |
 
 See the [capability guide](docs/CAPABILITIES.md) for installation and removal semantics, and [ROADMAP.md](ROADMAP.md) for future architecture.
 
@@ -260,6 +265,10 @@ docker compose up -d --wait app worker
 ```
 
 For registries, set `APP_IMAGE` to the immutable image reference and use that same reference for `migrate`, `jobs-migrate`, `app`, and `worker`. The stack is plain Compose and remains deployment-provider neutral.
+
+## Identity policy track
+
+Native Better Auth organization administration is separate from application permissions. Tenant selection never shares personal Projects. Exact-scope policy unions code roles and retains owner predicates; boolean flags only control an innocuous panel. Explicit local operator demo commands live in `scripts/identity-demo.ts`; nothing seeds on startup. Independent clean consumer lifecycle, scoped reference, browser and production checks pass; hosted CI verifies the complete generic capability matrix. See [installation/removal](docs/STARTING-A-PROJECT.md#identity-policy-capabilities).
 
 ## Repository conventions
 
