@@ -22,7 +22,11 @@ const requiredWave = [
 const completed = catalog.capabilities.filter(
 	({ status }) => status === "done",
 );
-const identityCapabilities = ["organizations", "authorization", "feature-flags"];
+const identityCapabilities = [
+	"organizations",
+	"authorization",
+	"feature-flags",
+];
 
 test("accepted reference enablement matches completed capabilities", () => {
 	// Require this wave while allowing future completed capabilities through discovery.
