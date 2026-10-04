@@ -1,5 +1,9 @@
 # TanStack Start Full-Stack Starter
 
+## Container preview
+
+For a pull-only, private preview of the full 29-module reference application, use the [GHCR preview guide](docs/CONTAINER-PREVIEW.md). It includes PostgreSQL, explicit migrations, the worker and a local sign-in inbox; provider-backed features need their own configuration.
+
 A deployable, provider-neutral TanStack Start and React starter with Bun, PostgreSQL/Drizzle, passwordless Better Auth, Tailwind CSS 4, shadcn conventions, Base UI where appropriate, Tabler Icons, Docker/Compose, CI, and optional reusable capabilities.
 
 The root repository is also a reference application. It intentionally enables all twenty-nine completed capabilities so installation, integration, and production paths stay exercised; a clean generated consumer receives capabilities only when it explicitly selects them.

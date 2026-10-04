@@ -14,3 +14,6 @@ todos.json
 .claude/settings.local.json
 test-results
 playwright-report
+
+# Keep only the blank preview template; local preview secrets stay ignored.
+!.env.preview.example
