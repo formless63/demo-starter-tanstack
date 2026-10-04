@@ -1,6 +1,6 @@
 # Jobs capability
 
-Status: done and optional (`defaultInstalled: false`). The root reference application enables Jobs so its integrated path remains continuously tested; a clean generated consumer does not receive it unless selected. Evaluation: `JOBS_MODULE_EVALUATION.md`.
+Status: done and optional (`defaultInstalled: false`). The root reference application enables Jobs so its integrated path remains continuously tested; a clean generated consumer does not receive it unless selected. Evaluation: `docs/evaluations/JOBS_MODULE_EVALUATION.md`.
 
 ## Requirements
 

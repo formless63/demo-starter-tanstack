@@ -58,7 +58,7 @@ Only implemented capabilities receive an add-on directory. In-progress identity 
 | Notifications | Jobs; baseline PostgreSQL/Drizzle | Email, Realtime, Audit Log, Observability | Optional ntfy; optional SMTP through Email | Enabled | No | Done |
 | AI | None beyond baseline Node runtime | Jobs, Object Storage, Observability, Audit Log | Configured model provider only on use | Enabled | No | Done |
 
-AI uses a private OpenAI-compatible adapter with pinned OpenAI SDK 7.25.0, real incremental streaming, authoritative application-owned Zod validation through a single deadline/cancellation scope, stop-only structured success and no retries. It is backendless at normal build/start/worker/readiness; generic clean lifecycles execute local HTTP fixtures under Bun and Node, and shared production smokes execute the final image without production credentials. See [evaluation](AI_MODULE_EVALUATION.md).
+AI uses a private OpenAI-compatible adapter with pinned OpenAI SDK 7.25.0, real incremental streaming, authoritative application-owned Zod validation through a single deadline/cancellation scope, stop-only structured success and no retries. It is backendless at normal build/start/worker/readiness; generic clean lifecycles execute local HTTP fixtures under Bun and Node, and shared production smokes execute the final image without production credentials. See [evaluation](docs/evaluations/AI_MODULE_EVALUATION.md).
 
 Object Storage uses standard AWS SDK v3, with real private streaming/presign/multipart verification on RustFS and Garage. Optional third-party Noooste Garage UI 0.13.0 is infrastructure, not a capability dependency. No storage is needed for build/start; application owners decide readiness policy. MinIO is not the default. Email pins Nodemailer 10.0.13 for lazy provider-neutral SMTP with explicit TLS, safe messages/errors, no retries, and awaited Better Auth magic links. Mailpit v1.31.3 verifies real SMTP and deterministic Chaos; no provider SDK or generic queue is added.
 
@@ -165,7 +165,7 @@ Invoice Ninja, Stripe and Medusa v1 are completed independent Jobs/Webhooks add-
 Rich Text / Tiptap v1 is completed and reference-enabled: independent optional add-on, bounded JSON schema, escaped SSR plus client-only Tiptap, accessible controlled editing and explicit undo reset boundaries. Full combined exact-head CI gates integration merge; no persistence/provider/collaboration integration in v1.
 ### File UI implementation
 
-File UI is completed, reference-enabled, opt-in, and requires only Object Storage. The frozen v1 contract covers bounded proxy upload, durable scoped idempotency/atomic metadata seams, cancellation quarantine, safe attachment downloads and accessible UI. Root Better Auth/PostgreSQL integration is separate from the synthetic no-DB consumer. Accepted source hosted lifecycle and CI gates passed; combined exact-head CI is required before merge; see `capabilities/file-ui/CAPABILITY.md` and `FILE_UI_MODULE_EVALUATION.md`.
+File UI is completed, reference-enabled, opt-in, and requires only Object Storage. The frozen v1 contract covers bounded proxy upload, durable scoped idempotency/atomic metadata seams, cancellation quarantine, safe attachment downloads and accessible UI. Root Better Auth/PostgreSQL integration is separate from the synthetic no-DB consumer. Accepted source hosted lifecycle and CI gates passed; combined exact-head CI is required before merge; see `capabilities/file-ui/CAPABILITY.md` and `docs/evaluations/FILE_UI_MODULE_EVALUATION.md`.
 
 ## Combined content-module acceptance
 

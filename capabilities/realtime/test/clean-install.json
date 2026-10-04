@@ -17,7 +17,7 @@
   "expectedFiles": [
     "src/integrations/realtime/realtime.server.ts",
     "capabilities/realtime/CAPABILITY.md",
-    "REALTIME_MODULE_EVALUATION.md",
+    "docs/evaluations/REALTIME_MODULE_EVALUATION.md",
     "server/routes/api/realtime/sse.ts",
     "server/routes/api/realtime/websocket.ts",
     "nitro.config.ts",

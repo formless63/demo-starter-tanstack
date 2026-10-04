@@ -4,7 +4,7 @@ description: Changing Search query safety, PostgreSQL FTS configuration, ranking
 ---
 # Search change
 
-Read Search CAPABILITY.md and SEARCH_MODULE_EVALUATION.md, capability-change and database-migration before editing.
+Read Search CAPABILITY.md and docs/evaluations/SEARCH_MODULE_EVALUATION.md, capability-change and database-migration before editing.
 
 - Keep PostgreSQL 18 native FTS with explicit simple, weighted A name/title and B description/body, stored generated tsvector and GIN. No triggers where generated storage works; no extensions, separate service or universal search_documents model.
 - Validate trimmed query 2–256, default limit25/max100. Bind all user text with websearch_to_tsquery; never interpolate identifiers/filters/SQL or expose raw tsquery syntax.

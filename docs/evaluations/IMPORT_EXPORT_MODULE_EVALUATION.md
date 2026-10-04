@@ -1,0 +1,31 @@
+# Import / Export evaluation
+
+Status: done. Canonical observable contract: [CAPABILITY.md](../../capabilities/import-export/CAPABILITY.md).
+
+## Cross-framework v1 contract
+
+The dispatch packet dated2026-10-01 governs exact requester/scope, receipt/job transaction, CSV bounds/escaping, current permission, retry/reconciliation and explicit cleanup semantics. This track inspected only TanStack; no sibling repository was consulted. Native Start routes/server functions, existing pg-boss/Storage and application-owned registry preserve boundaries. Storage's optional GET/PUT/HEAD AbortSignal extension uses AWS SDK send and body destruction; no new storage protocol adapter.
+
+## Upstream evidence
+
+Rechecked at launch: [official csv-parse changelog](https://github.com/adaltas/node-csv/blob/master/packages/csv-parse/CHANGELOG.md) identifies7.0.3 on2026-09-25; [official stringify changelog](https://github.com/adaltas/node-csv/blob/master/packages/csv-stringify/CHANGELOG.md) identifies6.9.0. Both exact packages install with Bun1.4.2. [PostgreSQL18 isolation](https://www.postgresql.org/docs/18/transaction-iso.html) and [timeouts](https://www.postgresql.org/docs/18/runtime-config-client.html) underpin the bounded snapshot/application transactions. [pg-boss12.35.0 supported API/types](https://github.com/timgit/pg-boss/blob/12.35.0/src/types.ts) supplies native retry metadata, cancellation, queue/id lookup and transactional Drizzle send. Existing pinned RustFS1.0.0/Garage2.4.1 fixtures are reused; no new provider account/infrastructure mutations on startup.
+
+## Verification evidence
+
+Ten CSV tests cover exact byte/row/64-column/64-code-unit-header/65,536-byte-field/262,144-byte-logical-row and normalized input/output budgets, fatal UTF8, BOM/CRLF/quoted newline/quote, safe100-issue truncation and canonical formula vectors. Dangerous65,535-byte strings (ASCII, multibyte, fullwidth and whitespace prefixes) accept the one-byte apostrophe at final65,536 bytes; dangerous65,536-byte strings fail. Actual numeric negatives remain numeric. Trusted formula-like headers remain exact; lone LF/CR cells are quoted and real Project export/reimport preserves logical rows. Bun1.4.2 and Node24.19/24.21 run the pinned CSV/Storage modules. Local HTTP abort fixtures cover preabort/no I/O, GET acquisition/body (including unconsumed bodies), PUT and HEAD.
+
+Actual PostgreSQL18.1 + pg-boss12.35.0 and separate RustFS1.0.0/Garage2.4.1 fixtures pass exact requester and two authorized tenant scopes with the same requester; idempotency replay/conflict; validation/SQL rollback; duplicate attempts; revoked apply/publication; failed-upload orphans and replaced source/hash integrity; expired artifacts; cancellation before apply and cancellation waiting on committed success; bounded PostgreSQL deadline rollback; strict statement-before-transaction timeout ordering, actual30-second SQL cap with60-second attempt,57014/25P04 classification through wrapped/swallowed errors and rollback, and native pending retries followed by safe terminal timeout on attempt5; native retry recovery; stable concurrent snapshot; no partial download pointer; scoped cursor; native reconciliation and explicit selected dry-run/execute cleanup.
+
+Six actual SIGKILL claims on each provider exhaust the unchanged five-retry policy. The fixture uses supported fetch ignoreStartAfter solely to avoid waiting through backoff; native retry count, configured delay/backoff,35-second expiry at the allowed5-second timeout, and native final failure remain intact. Supported supervision supplies final state; no internal queue-table queries or elapsed-time receipt failure. Separate Node24.21 container workers execute real queued personal Project export/import/zero-row transfers and survive a kill after atomic domain/receipt commit before queue acknowledgement without duplicate application.
+
+Project export pagination is proven with205 rows sharing one PostgreSQL microsecond, adjacent microseconds and UUID boundaries across100-row pages: complete ordered output equals the database query exactly. Fresh import IDs/current owner, other-owner exclusion, nullable descriptions, quoted content and same-transaction Audit are covered.
+
+Generic opt-in clean installation contains only Jobs/Storage closure. The separately reviewed API/Audit/Jobs/Search/Notifications composition uses its own schema snapshot excluding the uninstalled transfer export, preserves migration history and asserts CSV packages remain absent. After final code/package removal and rebuild, each provider retains the exact completed native jobs, source and output receipts, domain rows, applied migration hashes/timestamps, and both source/output objects with unchanged contents. A detached temporary fixture bundle performs independent post-removal assertions; it is removed outside the consumer application. Customized schema/registry overlays still require manual review.
+
+Root governance/lint/types/tests/build pass; development and production browser suites each pass12 cases. Supplementary host-built Node24.21 image passes explicit application/Jobs migrations, schema doctor, CSV/Storage tests, independent worker execution and database health with no S3/SMTP/Cache/AI startup configuration. This is evidence for runtime behavior, not a passed canonical Dockerfile build.
+
+## Completion evidence
+
+[Hosted CI36933470262](https://github.com/formless63/demo-starter-tanstack/actions/runs/36933470262) passed at b20eb996283524e06838fcdc3a5c316384a321db, including canonical production root verification and all13 generic capability lifecycles. The local builder registry/TLS restriction did not prevent the hosted canonical Dockerfile gate. All thirteen completed capabilities are reference-enabled and remain opt-in for generated consumers. The existing generic matrix also verifies authored in-progress add-ons before completion status.
+
+This status/documentation checkpoint requires its own exact-head full CI; the PR remains draft for parent integration coordination. Current run evidence, exact heads and hosted run links belong in the PR. Existing provider/database migrations and hashes remain immutable; explicit cleanup is separate from runtime removal.

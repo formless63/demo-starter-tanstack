@@ -4,7 +4,7 @@ description: Changing ephemeral Cache / Coordination, Redis-compatible configura
 ---
 # Cache changes
 
-Read `capabilities/cache-coordination/CAPABILITY.md` and `CACHE_COORDINATION_MODULE_EVALUATION.md`; use capability-change for packaging and observability-change for application telemetry.
+Read `capabilities/cache-coordination/CAPABILITY.md` and `docs/evaluations/CACHE_COORDINATION_MODULE_EVALUATION.md`; use capability-change for packaging and observability-change for application telemetry.
 
 - Cache is ephemeral, never durable storage, a job queue, session database, or correctness authority.
 - Never log keys, values, channels, prefixes, URLs, credentials, lease tokens, raw errors/causes, or Lua results/scripts containing data.

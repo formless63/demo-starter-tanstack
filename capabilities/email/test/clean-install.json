@@ -18,7 +18,7 @@
     "src/integrations/email/email.test.ts",
     "scripts/email-compat.ts",
     "compose.email.yaml",
-    "EMAIL_MODULE_EVALUATION.md",
+    "docs/evaluations/EMAIL_MODULE_EVALUATION.md",
     "capabilities/email/CAPABILITY.md",
     ".agents/skills/email-change/SKILL.md"
   ],

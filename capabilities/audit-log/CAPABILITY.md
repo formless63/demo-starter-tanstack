@@ -1,6 +1,6 @@
 # Audit Log capability
 
-Status: done; optional (`defaultInstalled: false`). The reference application proves Projects writes. Evaluation: `AUDIT_LOG_MODULE_EVALUATION.md`.
+Status: done; optional (`defaultInstalled: false`). The reference application proves Projects writes. Evaluation: `docs/evaluations/AUDIT_LOG_MODULE_EVALUATION.md`.
 
 ## Requirements and boundaries
 

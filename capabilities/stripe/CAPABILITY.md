@@ -1,6 +1,6 @@
 # Stripe v1
 
-Status: done and reference-enabled after full combined lifecycle, browser and canonical production/CI acceptance. Clean consumers remain opt-in. See [evaluation](../../STRIPE_MODULE_EVALUATION.md) for the accepted implementation revision and fixture limits.
+Status: done and reference-enabled after full combined lifecycle, browser and canonical production/CI acceptance. Clean consumers remain opt-in. See [evaluation](../../docs/evaluations/STRIPE_MODULE_EVALUATION.md) for the accepted implementation revision and fixture limits.
 
 Stripe is independently optional (`defaultInstalled: false`), requires Jobs and Webhooks, and targets stripe-node 23.0.0 / request API `2026-09-30.endive`. Hosted Checkout payment mode supports approved existing one-time Prices and already-bound customers. It does not implement subscriptions, refunds, manual capture, payouts, Connect, card handling or financial policy. Identity/Organizations, Audit Log and Notifications remain optional application wiring.
 

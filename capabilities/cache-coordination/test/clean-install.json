@@ -18,7 +18,7 @@
     "scripts/cache-unit.ts",
     "scripts/cache-smoke.ts",
     "compose.cache.yaml",
-    "CACHE_COORDINATION_MODULE_EVALUATION.md",
+    "docs/evaluations/CACHE_COORDINATION_MODULE_EVALUATION.md",
     "capabilities/cache-coordination/CAPABILITY.md",
     "scripts/cache-removal-data-fixture.ts"
   ],

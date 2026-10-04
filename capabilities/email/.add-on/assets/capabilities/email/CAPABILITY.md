@@ -1,6 +1,6 @@
 # Email capability
 
-Status: done. Optional foundational server capability (`defaultInstalled: false`); reference-app integration is tested separately. Evaluation: `EMAIL_MODULE_EVALUATION.md`.
+Status: done. Optional foundational server capability (`defaultInstalled: false`); reference-app integration is tested separately. Evaluation: `docs/evaluations/EMAIL_MODULE_EVALUATION.md`.
 
 ## Requirements and boundaries
 
