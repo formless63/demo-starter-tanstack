@@ -18,9 +18,9 @@ These foundations are not independently installable capabilities and must not be
 
 ## Current status
 
-`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, `AI`, `Search`, `Realtime`, `Notifications`, `Import / Export`, `Ops / Admin`, `Invoice Ninja`, `Stripe`, `Medusa`, `Charts / Visualization`, `Command System`, `Data Table`, `Markdown / Code Content`, `File UI`, `Rich Text / Tiptap`, `Flow / Canvas`, `Internationalization`, and `PWA / Offline` are twenty-six completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
+`Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, `AI`, `Search`, `Realtime`, `Notifications`, `Import / Export`, `Ops / Admin`, `Invoice Ninja`, `Stripe`, `Medusa`, `Charts / Visualization`, `Command System`, `Data Table`, `Markdown / Code Content`, `File UI`, `Rich Text / Tiptap`, `Flow / Canvas`, `Internationalization`, `PWA / Offline`, `Organizations / Tenancy`, `Authorization`, and `Feature Flags` are twenty-nine completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
 
-Organizations, Authorization and Feature Flags have prepared candidate runtime wiring but remain **in-progress** with `defaultInstalled: false`. They are not yet in the accepted `referenceApplication.enabledCapabilities` list. Following the existing PWA acceptance sequence, reference enablement and `done` are promoted together only after the required verification. Source review, static checks and focused tests do not establish full integrated acceptance; lifecycle, backend, browser, production and exact-head CI evidence remain required. Fault-injection fixtures remain paused; no gate is waived.
+Acceptance verified on 2026-10-04: merged main `05fcf715483ef30bc56d5c1f40de77fed958baef` passed [all 31 hosted CI jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37178672085), including the three identity capability lifecycles and the root application checks. Organizations, Authorization and Feature Flags are done, reference-enabled and opt-in (`defaultInstalled: false`). This records the tested implementation baseline; later changes still require their applicable checks.
 
 `defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
@@ -39,7 +39,7 @@ capabilities/<id>/
 
 The official pinned TanStack CLI compiles each `.add-on` directory; repository scripts only discover entries from `capabilities/catalog.json`, invoke that CLI, and verify clean installation. They are not an alternative generator. Each catalog entry records its stable TanStack add-on ID; add-on `dependsOn` and conflict sets use those CLI IDs, while capability `requires` uses capability IDs. The checker ensures completed hard capability dependencies are also expressed in official add-on metadata. `bun run add-ons:compile` rebuilds every declared distributable, while `bun run add-ons:test <id>` verifies that the committed output is current, installs it through normal TanStack mechanics into a clean scaffold, resolves official dependencies, and builds the result.
 
-Only implemented capabilities receive an add-on directory. In-progress identity workspaces are retained for source preparation and future acceptance; their presence is not a completion claim. Planned entries remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
+Only implemented capabilities receive an add-on directory. All 29 implemented workspaces have passed their independent lifecycle checks and merged-main CI. Planned entries remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
 
 ### Done
 
@@ -72,9 +72,9 @@ Object Storage uses standard AWS SDK v3, with real private streaming/presign/mul
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Organizations / Tenancy | Starter authentication | Audit Log, Notifications | PostgreSQL | In progress |
-| Authorization | Starter authentication | Organizations, API Platform, Audit Log | PostgreSQL | In progress |
-| Feature Flags | None | Organizations, Authorization, Audit Log | PostgreSQL | In progress |
+| Organizations / Tenancy | Starter authentication | Audit Log, Notifications | PostgreSQL | Done |
+| Authorization | Starter authentication | Organizations, API Platform, Audit Log | PostgreSQL | Done |
+| Feature Flags | None | Organizations, Authorization, Audit Log | PostgreSQL | Done |
 
 Starter authentication is a baseline requirement, not a capability edge.
 
@@ -156,7 +156,7 @@ Architecture pre-wave remediation keeps the sparse dependency graph unchanged: b
 
 Agent-led existing-material onboarding, portable `.project` profiles/provenance/skill reviews, semantic theme import/generation and Light/Dark/System policy are baseline starter tooling. See `docs/PROJECT-ONBOARDING.md` and `docs/APPEARANCE.md`. They introduce no capability IDs or hard dependency edges and do not advance a planned runtime capability. Deferred profile selections remain unavailable until implemented through capability governance.
 
-Bounded baseline maintenance aligns Better Auth/API Key and the bundled Drizzle adapter at 1.7.7, canonical Jobs process roles/native attempt context and routing-safe transactional enqueue, and Project input limits (name 120, description 1000). All twenty-six completed capabilities remain opt-in for clean consumers and enabled in the root reference; baseline maintenance adds no hard capability edges.
+Bounded baseline maintenance aligns Better Auth/API Key and the bundled Drizzle adapter at 1.7.7, canonical Jobs process roles/native attempt context and routing-safe transactional enqueue, and Project input limits (name 120, description 1000). All twenty-nine completed capabilities remain opt-in for clean consumers and enabled in the root reference; baseline maintenance adds no hard capability edges.
 
 Search v1 uses explicit simple PostgreSQL18 full-text search, weighted A/B STORED vectors and GIN in application-owned tables, ts_rank_cd normalization32 and bounded canonical numeric-float4 keysets with six-digit timestamps and opaque IDs. The disposable lifecycle database survives the generic final removal build before rows/vector/GIN/history checks and teardown. The root Projects POST integration enforces existing owners. Add-on assets install no universal search table or production domain migration.
 
@@ -169,18 +169,22 @@ File UI is completed, reference-enabled, opt-in, and requires only Object Storag
 
 ## Combined content-module acceptance
 
-Both independently reviewed source heads passed full hosted CI: Rich Text `4754559bba71c36c357325f9b4d1231d3808d0cf` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37034217024)) and File UI `73c442b9b8729e17c8cb30a6879d87da80f31c5b` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37036091357)). This combined integration retains their accepted runtime and all inherited gates. The published combined head still requires its own complete hosted CI before merge; source success is not a combined-CI claim.
+Both independently reviewed source heads passed full hosted CI: Rich Text `4754559bba71c36c357325f9b4d1231d3808d0cf` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37034217024)) and File UI `73c442b9b8729e17c8cb30a6879d87da80f31c5b` ([24 jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37036091357)). This combined integration retains their accepted runtime and all inherited gates. That combined integration is included in the accepted main linked in this document.
 
 ## Flow / Canvas and Internationalization acceptance
 
-Flow / Canvas source `a1a020cf7e75340e4f833c62db0d0b0e6b38d117` passed all 26 hosted jobs ([run 37051676575](https://github.com/formless63/demo-starter-tanstack/actions/runs/37051676575)); Internationalization source `d422d4b24d9ea4a5904870564041465d8e050ef2` passed all 26 hosted jobs ([run 37052978536](https://github.com/formless63/demo-starter-tanstack/actions/runs/37052978536)). Both sources and their composition were independently reviewed. The combined integration preserves accepted main ancestry, both exact source parents, runtime source bytes, authored/compiled parity, migrations and all inherited gates. That integration brought the catalog to twenty-five completed, reference-enabled capabilities; every generated-consumer default remains false. The new combined head still requires its own complete hosted CI, including native development/production Chromium, provider verification and all generated-consumer install/removal lifecycles, before merge. Source CI success is not a combined-CI result.
+Flow / Canvas source `a1a020cf7e75340e4f833c62db0d0b0e6b38d117` passed all 26 hosted jobs ([run 37051676575](https://github.com/formless63/demo-starter-tanstack/actions/runs/37051676575)); Internationalization source `d422d4b24d9ea4a5904870564041465d8e050ef2` passed all 26 hosted jobs ([run 37052978536](https://github.com/formless63/demo-starter-tanstack/actions/runs/37052978536)). Both sources and their composition were independently reviewed. The combined integration preserves accepted main ancestry, both exact source parents, runtime source bytes, authored/compiled parity, migrations and all inherited gates. That integration brought the catalog to twenty-five completed, reference-enabled capabilities; every generated-consumer default remains false. That integration is included in the current accepted main; the exact merged-main CI evidence is linked in this document.
 
 ## PWA / Offline acceptance
 
 PWA / Offline is completed and reference-enabled: independent opt-in native injectManifest, exact three-file public allowlist, no data or SSR cache, natural-tab-close updates and SAME-URL two-phase retirement.
 
-Source `52f6fcb2309daad9b1474a1c2c313914f3403460` passed all 28 jobs in [hosted CI](https://github.com/formless63/demo-starter-tanstack/actions/runs/37066322525), including real Chromium root/scoped workers, credential omission, privacy boundaries, natural multi-tab updates, actual generated Start production lifecycle, owned retirement and final source-removed HTTP rebuild. This documentation/catalog promotion requires its own complete exact-head CI before merge; source success is not a promotion-head CI claim.
+Source `52f6fcb2309daad9b1474a1c2c313914f3403460` passed all 28 jobs in [hosted CI](https://github.com/formless63/demo-starter-tanstack/actions/runs/37066322525), including real Chromium root/scoped workers, credential omission, privacy boundaries, natural multi-tab updates, actual generated Start production lifecycle, owned retirement and final source-removed HTTP rebuild. That historical promotion is included in the accepted main linked in this document.
 
 ### Identity policy Wave 2
 
-Organizations → Authorization → Feature Flags are in-progress independent opt-in add-ons, with prepared candidate reference wiring, not yet accepted reference enablement. Isolated PostgreSQL/consumer lifecycles, scoped reference policies, browser/production checks and the generic hosted CI matrix remain required, with current integrated-tree acceptance pending and fault-injection fixtures paused. See their capability contracts and decision documents. Native Better Auth admission bounds are not serialized quotas, and its invitation claim/membership crash window is documented explicitly.
+Organizations, Authorization and Feature Flags are completed independent opt-in add-ons with accepted reference integration and passing lifecycle/root CI. See their capability contracts and decision documents. Native Better Auth admission bounds are not serialized quotas, and its invitation claim/membership crash window remains documented explicitly.
+
+## Scope completion
+
+All 29 capability modules in this roadmap are implemented, merged and verified in the reference application. Framework/library evaluation ideas remain optional research, not missing modules. Package publication, live provider accounts, deployment-specific policy and production operation remain separate application-owner responsibilities. All generated-consumer defaults remain false.
