@@ -1,10 +1,10 @@
 # Feature Flags v1
 
-Status: **in-progress**. Independent opt-in (`defaultInstalled: false`) PostgreSQL boolean provider. Candidate runtime wiring is prepared; accepted reference enablement remains pending. See [evaluation](../../docs/evaluations/FEATURE_FLAGS_MODULE_EVALUATION.md).
+Status: **done**. Independent opt-in (`defaultInstalled: false`) PostgreSQL boolean provider. Root runtime wiring is accepted and reference-enabled. See [evaluation](../../docs/evaluations/FEATURE_FLAGS_MODULE_EVALUATION.md).
 
-Current acceptance: pending on the integrated tree. This source-only preparation does not execute verification. Historical source-branch pass claims are not current evidence. Governance, retained-package parity, independent lifecycle, backend, browser, production and exact-head hosted CI gates remain required before `done`. Fault-injection fixtures (including interruption, timeout, outage and database-failure probes) remain paused pending separate review and authorization; retaining their source does not waive any requirement.
+Acceptance verified on 2026-10-04: merged main `05fcf715483ef30bc56d5c1f40de77fed958baef` passed [all 31 hosted CI jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37178672085), including the three identity capability lifecycles and the root application checks. Organizations, Authorization and Feature Flags are done, reference-enabled and opt-in (`defaultInstalled: false`). This records the tested implementation baseline; later changes still require their applicable checks.
 
-Prepared candidate runtime wiring does not imply accepted reference enablement. Keep this capability outside `referenceApplication.enabledCapabilities` until its required verification supports promotion to `done`; generated-consumer defaults remain false.
+This capability is accepted in `referenceApplication.enabledCapabilities`; generated-consumer defaults remain false.
 
 ## Contract
 
@@ -24,4 +24,4 @@ Use generic compile/test tooling. `.add-on` overlay authoring is authoritative; 
 
 ## Verification
 
-The retained disposable PostgreSQL18 contract targets supplied golden vectors/boundaries, Unicode JSON encoding, unknown/disabled/default, exact precedence, deterministic cohorts, conflicts/no-op, rollback, retained values, timeout/outage and malformed stored data. Required acceptance includes independent Bun/Node24 clean consumer install/runtime/removal/rebuild, root checks, development/production browser coverage, production migration/worker behavior and the full generic hosted capability matrix. Results remain pending on the integrated tree; fault-injection execution remains paused pending review and authorization.
+The retained disposable PostgreSQL18 contract targets supplied golden vectors/boundaries, Unicode JSON encoding, unknown/disabled/default, exact precedence, deterministic cohorts, conflicts/no-op, rollback, retained values, timeout/outage and malformed stored data. Required acceptance includes independent Bun/Node24 clean consumer install/runtime/removal/rebuild, root checks, development/production browser coverage, production migration/worker behavior and the full generic hosted capability matrix. The current merged-main CI passed this capability lifecycle; see the acceptance evidence above.
