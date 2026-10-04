@@ -18,7 +18,7 @@
   "expectedFiles": [
     "src/integrations/notifications/notifications.server.ts",
     "capabilities/notifications/CAPABILITY.md",
-    "NOTIFICATIONS_MODULE_EVALUATION.md",
+    "docs/evaluations/NOTIFICATIONS_MODULE_EVALUATION.md",
     "src/integrations/jobs/worker.server.ts",
     "src/integrations/notifications/schema.ts",
     "drizzle/0000_notifications.sql",

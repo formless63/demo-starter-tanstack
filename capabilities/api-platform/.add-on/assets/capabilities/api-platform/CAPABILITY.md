@@ -1,6 +1,6 @@
 # API Platform capability
 
-Status: done and optional. The reference application installs it to prove integration; generated consumers opt in. Evaluation: `API_PLATFORM_MODULE_EVALUATION.md`.
+Status: done and optional. The reference application installs it to prove integration; generated consumers opt in. Evaluation: `docs/evaluations/API_PLATFORM_MODULE_EVALUATION.md`.
 
 ## Requirements
 

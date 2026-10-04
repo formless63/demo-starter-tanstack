@@ -34,7 +34,7 @@ Contract version1 changes require reviewing payload privacy, delivery/transactio
 
 ## Verification and agent guidance
 
-Targeted contract tests, clean install/build/removal, actual Node transports or PostgreSQL/Jobs and ntfy fixtures; generic CI matrix discovers this workspace when marked done. Follow `.agents/skills/notifications-change/SKILL.md` and `capability-change`. Evaluation: `NOTIFICATIONS_MODULE_EVALUATION.md`.
+Targeted contract tests, clean install/build/removal, actual Node transports or PostgreSQL/Jobs and ntfy fixtures; generic CI matrix discovers this workspace when marked done. Follow `.agents/skills/notifications-change/SKILL.md` and `capability-change`. Evaluation: `docs/evaluations/NOTIFICATIONS_MODULE_EVALUATION.md`.
 
 Delivery safety: only explicitly typed safe transient failures retry. Unknown failures after adapter invocation, wrapper deadline and cancellation are terminal ambiguous/rejected; no SMTP cancellation or process-kill exactly-once guarantee. Preabort performs no lookup/send; deferred loading is bounded and cancelled lookup never dispatches late. Jobs output is restricted to finite outcome/category keys. ntfy deliberately retains at-least-once HTTP retries with duplicate risk after a lost response; HTTP loopback requires explicit development/test mode. The integrated baseline worker supplies native optional JobHandlerContext; Notifications composes its signal without duplicating worker policy. Real composed worker tests cover expiry and forced close, preserve native settlement, and prevent deferred lookup from dispatching late.
 

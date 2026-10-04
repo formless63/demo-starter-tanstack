@@ -25,7 +25,7 @@
     "src/lib/webhooks.server.ts",
     "scripts/webhooks-smoke.ts",
     "capabilities/webhooks/CAPABILITY.md",
-    "WEBHOOKS_MODULE_EVALUATION.md"
+    "docs/evaluations/WEBHOOKS_MODULE_EVALUATION.md"
   ],
   "expectedFileText": {
     "src/integrations/jobs/registry.ts": [

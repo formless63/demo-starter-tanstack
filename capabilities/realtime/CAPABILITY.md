@@ -28,4 +28,4 @@ Contract version1 changes require reviewing payload privacy, delivery/transactio
 
 ## Verification and agent guidance
 
-Targeted contract tests, clean install/build/removal, actual Node transports or PostgreSQL/Jobs and ntfy fixtures; generic CI matrix discovers this workspace when marked done. Follow `.agents/skills/realtime-change/SKILL.md` and `capability-change`. Evaluation: `REALTIME_MODULE_EVALUATION.md`.
+Targeted contract tests, clean install/build/removal, actual Node transports or PostgreSQL/Jobs and ntfy fixtures; generic CI matrix discovers this workspace when marked done. Follow `.agents/skills/realtime-change/SKILL.md` and `capability-change`. Evaluation: `docs/evaluations/REALTIME_MODULE_EVALUATION.md`.

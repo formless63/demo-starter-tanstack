@@ -88,7 +88,7 @@ Retain the `pgboss` PostgreSQL schema and queued/history data by default. Applic
 
 If this is a fresh, never-deployed project with no database worth retaining, you may separately choose to rebuild its initial database state. Do not make that cleanup part of the code-removal recipe. In an already-deployed application, dropping `pgboss` must be a new explicit operation/migration after backup and retention review.
 
-If the downstream fork will never reinstall or develop Jobs, follow “Prune add-on authoring source” in [CAPABILITIES.md](CAPABILITIES.md): delete `capabilities/jobs/`, optionally delete `JOBS_MODULE_EVALUATION.md` and `.agents/skills/jobs-change/`, change the catalog entry to `deferred`, remove its implementation-only metadata, and update the roadmap. Keep the stable `jobs` ID because planned capabilities reference it.
+If the downstream fork will never reinstall or develop Jobs, follow “Prune add-on authoring source” in [CAPABILITIES.md](CAPABILITIES.md): delete `capabilities/jobs/`, optionally delete `docs/evaluations/JOBS_MODULE_EVALUATION.md` and `.agents/skills/jobs-change/`, change the catalog entry to `deferred`, remove its implementation-only metadata, and update the roadmap. Keep the stable `jobs` ID because planned capabilities reference it.
 
 ### Remove API Platform
 
@@ -114,7 +114,7 @@ Review shared files manually:
 
 The verified non-destructive recipe retains API-key rows and migration history. For a fresh, never-deployed project, you may instead regenerate a consolidated initial migration only if no database has ever applied the old files, while preserving boolean `email_verified` semantics. For any deployed application, dropping `apikey` requires a new explicit migration after credential-retention review; never edit or delete an applied migration.
 
-If the downstream fork will never reinstall or develop API Platform, delete `capabilities/api-platform/`, optionally delete `API_PLATFORM_MODULE_EVALUATION.md` and `.agents/skills/api-contract-change/`, change its catalog entry to `deferred`, remove implementation-only metadata, and update the roadmap. Keep the stable `api-platform` ID because planned capabilities reference it.
+If the downstream fork will never reinstall or develop API Platform, delete `capabilities/api-platform/`, optionally delete `docs/evaluations/API_PLATFORM_MODULE_EVALUATION.md` and `.agents/skills/api-contract-change/`, change its catalog entry to `deferred`, remove implementation-only metadata, and update the roadmap. Keep the stable `api-platform` ID because planned capabilities reference it.
 
 ### Remove Jobs and API Platform
 
@@ -152,7 +152,7 @@ Stop producers/users of signed URLs first; account for outstanding URLs and mult
 
 Storage's optional wrapper is owned by `src/lib/storage.server.ts`; if removing Observability while keeping Storage, delete that wrapper, reference/telemetry scripts and telemetry-only unit case, remove `storage:reference:smoke`, and use standalone `storage:smoke` in compatibility CI instead. The reusable Storage integration imports no telemetry package and continues to work.
 
-If abandoning authoring too, prune `capabilities/object-storage/`, `OBJECT_STORAGE_MODULE_EVALUATION.md`, and `.agents/skills/storage-change/`; retain the stable catalog ID as `deferred`, remove implementation metadata and update docs/roadmap. Removing code never authorizes deleting persisted objects or credentials. The clean-scaffold fixture applies runtime removal and rebuilds without AWS packages; reference removal is also verified in a disposable copy.
+If abandoning authoring too, prune `capabilities/object-storage/`, `docs/evaluations/OBJECT_STORAGE_MODULE_EVALUATION.md`, and `.agents/skills/storage-change/`; retain the stable catalog ID as `deferred`, remove implementation metadata and update docs/roadmap. Removing code never authorizes deleting persisted objects or credentials. The clean-scaffold fixture applies runtime removal and rebuilds without AWS packages; reference removal is also verified in a disposable copy.
 
 ### Remove Email
 
@@ -164,7 +164,7 @@ If abandoning authoring too, prune `capabilities/object-storage/`, `OBJECT_STORA
 
 If keeping Email while removing Observability, remove the app-owned wrapper and `src/lib/email.test.ts`/`scripts/email-telemetry.ts`, change auth to use reusable `getEmail()` directly and remove only the telemetry assertion from the root smoke. Reusable Email and its clean fixture contain no Observability dependency.
 
-For authoring pruning, additionally delete `capabilities/email/`, `EMAIL_MODULE_EVALUATION.md` and `.agents/skills/email-change/`, set the stable catalog ID to `deferred`, remove implementation metadata and update ROADMAP/docs. Keep the ID because future capabilities reference it. Clean installation/removal and reference-app removal are verified in disposable copies; no CLI uninstall transaction is claimed.
+For authoring pruning, additionally delete `capabilities/email/`, `docs/evaluations/EMAIL_MODULE_EVALUATION.md` and `.agents/skills/email-change/`, set the stable catalog ID to `deferred`, remove implementation metadata and update ROADMAP/docs. Keep the ID because future capabilities reference it. Clean installation/removal and reference-app removal are verified in disposable copies; no CLI uninstall transaction is claimed.
 
 ## Why there is no removal command
 
@@ -201,7 +201,7 @@ Dropping deployed audit history requires a **new explicit destructive migration*
 
 If keeping Cache but removing Observability, delete only `src/lib/cache.server.ts` and `scripts/cache-telemetry.ts`, remove `cache:telemetry` and its CI command, and use core `getCache()` directly. Reusable Cache assets import no Observability.
 
-Authoring pruning is separate: remove `capabilities/cache-coordination/`, `CACHE_COORDINATION_MODULE_EVALUATION.md`, `.agents/skills/cache-change/`, and retain the stable catalog ID as `deferred` without implementation metadata; update ROADMAP/docs. TanStack provides no automatic uninstall transaction. The clean fixture proves runtime removal and rebuild without Redis packages or a service.
+Authoring pruning is separate: remove `capabilities/cache-coordination/`, `docs/evaluations/CACHE_COORDINATION_MODULE_EVALUATION.md`, `.agents/skills/cache-change/`, and retain the stable catalog ID as `deferred` without implementation metadata; update ROADMAP/docs. TanStack provides no automatic uninstall transaction. The clean fixture proves runtime removal and rebuild without Redis packages or a service.
 
 Cache callers explicitly decode Buffer reads, use setWithoutExpiry only deliberately, and own close() for manual createCache instances. Lease TTLs are seconds (2–300), stale token results are false. Recreate subscriptions after failure; commands reconnect only on later explicit operations. No backend deletion is part of removal.
 
@@ -217,7 +217,7 @@ To add AI to a lean generated consumer, explicitly select `capabilities/ai/add-o
 2. Delete `src/integrations/search/search.server.ts`, `validation.ts`, Search tests, `src/features/projects/search.integration.test.ts`, and `scripts/search-smoke.ts` / fixture-only `search-clean-fixture.ts`; remove `search:smoke` from package scripts. No Search package/environment/daemon/readiness or bespoke CI job exists to remove.
 3. Retain `src/integrations/search/schema.ts`, its schema import, Projects `searchVector` generated declaration and `project_search_vector_idx`, `drizzle/0004_search.sql`, snapshots/journal and all project records. The schema-only helper has no runtime Search dependency. Keeping declarations prevents accidental drops from later db:generate. A generated clean consumer retains its own domain schema/history; Search ships no production migration.
 4. Remove `search` from `referenceApplication.enabledCapabilities` when present, keeping defaultInstalled false. Update docs and run governance/types/tests/build/E2E and the production migration/container path. Build/start needs no Search operation.
-5. If also pruning authoring, remove `capabilities/search/`, `SEARCH_MODULE_EVALUATION.md` and `.agents/skills/search-change/`, retain stable catalog ID as deferred, remove implementation metadata and update ROADMAP/docs. Other capability statuses stay unchanged.
+5. If also pruning authoring, remove `capabilities/search/`, `docs/evaluations/SEARCH_MODULE_EVALUATION.md` and `.agents/skills/search-change/`, retain stable catalog ID as deferred, remove implementation metadata and update ROADMAP/docs. Other capability statuses stay unchanged.
 
 Removing Search code never deletes application records. Dropping the generated column/index later requires a new explicit reviewed migration; preserve applied migration history. There is no CLI uninstall transaction. The clean lifecycle fixture builds before removal and after removal, proving retained domain records, generated vector, schema helper and migration hashes.
 

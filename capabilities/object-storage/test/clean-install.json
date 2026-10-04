@@ -2,7 +2,7 @@
  "projectName": "storage-addon-clean-install", "framework": "React", "blank": true,
  "packageManager": "bun", "toolchain": "biome", "expectedOfficialAddOns": [],
  "forbiddenOfficialAddOns": ["drizzle", "better-auth", "postgres-jobs", "api-platform", "observability"],
- "expectedFiles": ["src/integrations/storage/storage.server.ts", "scripts/storage-unit.ts", "scripts/storage-smoke.ts", "compose.storage.yaml", "infrastructure/storage/garage.toml", "OBJECT_STORAGE_MODULE_EVALUATION.md", "capabilities/object-storage/CAPABILITY.md"],
+ "expectedFiles": ["src/integrations/storage/storage.server.ts", "scripts/storage-unit.ts", "scripts/storage-smoke.ts", "compose.storage.yaml", "infrastructure/storage/garage.toml", "docs/evaluations/OBJECT_STORAGE_MODULE_EVALUATION.md", "capabilities/object-storage/CAPABILITY.md"],
  "verificationCommands": [
   ["bun", "x", "tsc", "--noEmit"], ["bun", "run", "storage:unit"], ["bun", "run", "build"],
   ["bun", "run", "storage:compat", "--garage-ui"], ["bun", "scripts/storage-removal-fixture.ts"], ["bun", "x", "tsc", "--noEmit"]
