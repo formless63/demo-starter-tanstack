@@ -1,0 +1,53 @@
+{
+  "projectName": "authorization-addon-clean-install",
+  "framework": "React",
+  "blank": true,
+  "packageManager": "bun",
+  "toolchain": "biome",
+  "addOnConfig": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "expectedOfficialAddOns": [
+    "better-auth",
+    "drizzle"
+  ],
+  "forbiddenOfficialAddOns": [
+    "organizations",
+    "audit-log",
+    "notifications",
+    "api-platform",
+    "postgres-jobs",
+    "feature-flags"
+  ],
+  "expectedFiles": [
+    "src/integrations/authorization/authorization.server.ts",
+    "capabilities/authorization/CAPABILITY.md"
+  ],
+  "verificationCommands": [
+    [
+      "bun",
+      "capabilities/authorization/test/contract.ts"
+    ],
+    [
+      "bun",
+      "capabilities/authorization/test/node.ts",
+      "authorization"
+    ],
+    [
+      "bun",
+      "x",
+      "tsc",
+      "--noEmit"
+    ]
+  ],
+  "build": true,
+  "postBuildVerificationCommands": [
+    [
+      "bun",
+      "capabilities/authorization/test/lifecycle.ts",
+      "authorization"
+    ]
+  ]
+}

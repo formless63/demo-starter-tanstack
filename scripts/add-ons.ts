@@ -1,3 +1,4 @@
+import { officialPrerequisitesFirst } from "./add-on-order";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
@@ -219,7 +220,11 @@ async function withAddOnServer<T>(
 				`http://127.0.0.1:${port}/${c.tanstackAddOn.addOnId}.json`,
 			]),
 		);
-		return await work([...aliases.values()], aliases);
+		const official = officialPrerequisitesFirst(
+			ordered.map(c => c.tanstackAddOn),
+			new Set(catalog.capabilities.flatMap(c => c.tanstackAddOn ? [c.tanstackAddOn.addOnId] : [])),
+		);
+		return await work([...official, ...aliases.values()], aliases);
 	} finally {
 		await new Promise<void>((resolveClose, reject) =>
 			server.close((error) => (error ? reject(error) : resolveClose())),

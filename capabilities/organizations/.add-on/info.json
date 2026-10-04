@@ -1,0 +1,69 @@
+{
+  "id": "organizations",
+  "name": "organizations",
+  "displayName": "Organizations / Tenancy",
+  "description": "Native guarded Better Auth organizations and authoritative tenant context.",
+  "version": "1.0.0",
+  "type": "add-on",
+  "phase": "example",
+  "category": "auth",
+  "modes": [
+    "file-router"
+  ],
+  "dependsOn": [
+    "better-auth",
+    "drizzle"
+  ],
+  "author": "TanStack Launchpad",
+  "license": "MIT",
+  "packageAdditions": {
+    "dependencies": {
+      "better-auth": "1.7.7",
+      "@better-auth/core": "1.7.7",
+      "drizzle-orm": "^0.45.1",
+      "pg": "^8.16.3",
+      "drizzle-kit": "^0.31.9",
+      "dotenv": "^17.3.1",
+      "@t3-oss/env-core": "^0.13.10",
+      "zod": "^4.3.6"
+    },
+    "scripts": {
+      "db:generate": "drizzle-kit generate",
+      "db:migrate": "drizzle-kit migrate"
+    }
+  },
+  "envVars": [
+    {
+      "name": "ORGANIZATIONS_CREATION_LIMIT",
+      "default": "10",
+      "description": "Server-only bounded native admission setting; not a serialized quota.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "ORGANIZATIONS_MEMBERSHIP_LIMIT",
+      "default": "100",
+      "description": "Server-only bounded native admission setting; not a serialized quota.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "ORGANIZATIONS_INVITATION_LIMIT",
+      "default": "100",
+      "description": "Server-only bounded native admission setting; not a serialized quota.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    },
+    {
+      "name": "ORGANIZATIONS_INVITATION_TTL_SECONDS",
+      "default": "172800",
+      "description": "Server-only bounded native admission setting; not a serialized quota.",
+      "required": false,
+      "secret": false,
+      "file": ".env.local"
+    }
+  ]
+}

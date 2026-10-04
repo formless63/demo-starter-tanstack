@@ -15,7 +15,9 @@ The presence of `capabilities/<id>/.add-on` in this repository means the add-on 
 
 ## Completed capabilities
 
-All twenty-six completed capabilities are reference-enabled and opt-in for clean consumers.
+All twenty-six accepted completed capabilities are retained, reference-enabled and opt-in for clean consumers.
+
+Organizations, Authorization and Feature Flags have prepared candidate runtime wiring but remain **in-progress** with `defaultInstalled: false`. They are not yet in the accepted `referenceApplication.enabledCapabilities` list. Following the existing PWA acceptance sequence, reference enablement and `done` are promoted together only after the required verification. Source review, static checks and focused tests do not establish full integrated acceptance; lifecycle, backend, browser, production and exact-head CI evidence remain required. Fault-injection fixtures remain paused; no gate is waived.
 
 | ID | TanStack add-on ID | Status | Reference app | Default installed | Official add-on dependencies | Reusable capability requirements | External | Contract |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -255,3 +257,15 @@ Flow / Canvas source `a1a020cf7e75340e4f833c62db0d0b0e6b38d117` passed all 26 ho
 Independent opt-in native injectManifest capability. Only fixed integrity-checked public HTML/icons; no SSR/API/auth/mutation cache. Consumer fallback paths default empty. Reference `/pwa-test` is enabled. See [contract](../capabilities/pwa-offline/CAPABILITY.md) and [evaluation](../PWA_OFFLINE_MODULE_EVALUATION.md). No hard dependencies, migrations or services.
 
 There are now twenty-six completed, reference-enabled capabilities; all generated-consumer defaults remain false. Source `52f6fcb2309daad9b1474a1c2c313914f3403460` passed all 28 jobs in [hosted CI](https://github.com/formless63/demo-starter-tanstack/actions/runs/37066322525), including real Chromium root/scoped workers, credential omission, privacy boundaries, natural multi-tab updates, actual generated Start production lifecycle, owned retirement and final source-removed HTTP rebuild. This documentation/catalog promotion requires its own complete exact-head CI before merge; source success is not a promotion-head CI claim.
+
+## Identity policy capabilities
+
+Organizations, Authorization and Feature Flags are three in-progress independent opt-in add-ons. Their auth/UI/policy/projection runtime wiring is prepared alongside the twenty-six accepted completed capabilities, but the three candidates are excluded from accepted reference-enabled metadata until verification is complete. This matches PWA source `52f6fcb2309daad9b1474a1c2c313914f3403460`, which already wired the runtime while in-progress; acceptance commit `4cf217787b483f4e5a032f616636e91b2102f96b` promoted status and reference enablement together. The governance checker remains unchanged. Generic authored-in-progress lifecycle discovery still includes the identity workspaces; none of their tests or gates is removed. This metadata correction resolves premature enablement, not pending runtime acceptance.
+
+| ID | Official prerequisites | Optional application integrations | Canonical contract |
+| --- | --- | --- | --- |
+| organizations | Better Auth, Drizzle; baseline PostgreSQL/Node | Audit, Notifications | [Organizations](../capabilities/organizations/CAPABILITY.md) |
+| authorization | Better Auth, Drizzle; baseline PostgreSQL/Node | Organizations, API Platform, Audit | [Authorization](../capabilities/authorization/CAPABILITY.md) |
+| feature-flags | Drizzle; baseline PostgreSQL/Node | Organizations, Authorization, Audit; baseline Authentication | [Feature Flags](../capabilities/feature-flags/CAPABILITY.md) |
+
+Once separately authorized, install and prove each using `bun run add-ons:test <id>`; source preparation does not execute these commands, and embedded fault fixtures remain paused until reviewed and authorized. Shared auth/schema overlays require review when composing customized consumers; the CLI does not provide semantic merges/uninstall transactions. Preserve applied SQL/journals/data on removal. Membership lookup authorizes tenant context; active selection is UX only. Assignment evaluation uses exact scope, explicit resource predicates and credential intersections. Flags never authorize and expose only the fixed root boolean allowlist. See the contracts for precise bounds, errors, transaction ownership and native invitation crash limitations.

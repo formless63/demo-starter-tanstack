@@ -8,6 +8,7 @@ import {
 	createAuditSubject,
 } from "#/integrations/audit-log/audit.server";
 import type { AuditIdentity } from "#/integrations/audit-log/validation";
+import type { AuthorizationContext } from "#/integrations/authorization/authorization.server";
 import {
 	safeSearch,
 	searchAfter,
@@ -20,6 +21,10 @@ import {
 	parseSearchInput,
 	type SearchRequest,
 } from "#/integrations/search/validation";
+import {
+	applicationPolicy,
+	personalPolicyContext,
+} from "#/lib/application-policy.server";
 import { auth } from "#/lib/auth";
 import { createNotificationInTransaction } from "../../integrations/notifications/transaction.server";
 import {
@@ -47,7 +52,13 @@ export async function currentUser() {
 	const session = await auth.api.getSession({ headers: getRequestHeaders() });
 	return session?.user ?? null;
 }
-export async function findProjectsForOwner(ownerId: string) {
+export async function findProjectsForOwner(
+	ownerId: string,
+	context: AuthorizationContext = personalPolicyContext(ownerId),
+) {
+	await applicationPolicy.requirePermission(db, context, "projects.read", {
+		ownerId,
+	});
 	return db
 		.select(projectFields)
 		.from(projects)
@@ -66,9 +77,16 @@ export async function insertProjectForOwner(
 	ownerId: string,
 	data: ProjectData,
 	actor: AuditIdentity = createAuditActor("user", ownerId),
+	context: AuthorizationContext = personalPolicyContext(ownerId),
 ) {
 	const result = await db.transaction(async (tx) => {
-		const project = await insertProjectInTransaction(tx, ownerId, data, actor);
+		const project = await insertProjectInTransaction(
+			tx,
+			ownerId,
+			data,
+			actor,
+			context,
+		);
 		const { notification } = await createNotificationInTransaction(tx, {
 			recipientId: ownerId,
 			type: "projects.created",
@@ -94,6 +112,12 @@ export async function changeProjectForOwner(
 	data: ProjectData & { id: string },
 ) {
 	return db.transaction(async (tx) => {
+		await applicationPolicy.requirePermissionInTransaction(
+			tx,
+			personalPolicyContext(ownerId),
+			"projects.update",
+			{ ownerId },
+		);
 		const [project] = await tx
 			.update(projects)
 			.set({
@@ -120,6 +144,12 @@ export async function changeProject(data: ProjectData & { id: string }) {
 }
 export async function removeProjectForOwner(ownerId: string, id: string) {
 	return db.transaction(async (tx) => {
+		await applicationPolicy.requirePermissionInTransaction(
+			tx,
+			personalPolicyContext(ownerId),
+			"projects.delete",
+			{ ownerId },
+		);
 		const [project] = await tx
 			.delete(projects)
 			.where(and(eq(projects.id, id), eq(projects.ownerId, ownerId)))
@@ -144,6 +174,12 @@ export async function searchProjectsForOwner(
 	ownerId: string,
 	request: SearchRequest,
 ) {
+	await applicationPolicy.requirePermission(
+		db,
+		personalPolicyContext(ownerId),
+		"projects.read",
+		{ ownerId },
+	);
 	const input = parseSearchInput(request);
 	const query = searchQuery(input.query);
 	const rank = searchRank(projects.searchVector, query);

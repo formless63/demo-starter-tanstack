@@ -8,6 +8,7 @@ import {
 } from "../features/projects/project-schema";
 import { insertProjectInTransaction } from "../features/projects/project-write.server";
 import { AuditLogError } from "../integrations/audit-log/validation";
+import { AuthorizationError } from "../integrations/authorization/validation";
 import { createTransferTransactions } from "../integrations/import-export/database.server";
 import { createTransferJobs } from "../integrations/import-export/jobs.server";
 import {
@@ -44,6 +45,14 @@ const registry = createTransferRegistry([
 				try {
 					await insertProjectInTransaction(tx, context.requesterId, data);
 				} catch (error) {
+					if (error instanceof AuthorizationError)
+						throw new TransferError(
+							error.code === "timeout"
+								? "timeout"
+								: error.code === "forbidden" || error.code === "unauthenticated"
+									? "forbidden"
+									: "unavailable",
+						);
 					if (error instanceof AuditLogError && error.code === "DATABASE_ERROR")
 						throw new TransferError("unavailable");
 					throw error;
