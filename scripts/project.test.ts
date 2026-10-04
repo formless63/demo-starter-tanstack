@@ -10,7 +10,6 @@ import {
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
-import catalog from "../capabilities/catalog.json";
 import { applyTheme } from "./lib/theme.ts";
 import { checkProject, loadProject, projectStatus } from "./lib/project.ts";
 import {
@@ -73,23 +72,26 @@ describe("project bootstrap contract", () => {
 		rmSync(resolve(root, "docs/templates/project/PROJECT.md"));
 		expect(checkProject(root)).toContain("Missing PROJECT template.");
 	});
+	test("rejects unfinished selected", () => {
+		const root = fixture();
+		const path = resolve(root, "capabilities/catalog.json");
+		const catalog = JSON.parse(readFileSync(path, "utf8"));
+		// Keep this negative case independent of the real roadmap's completion.
+		catalog.capabilities.find(
+			(entry: { id: string }) => entry.id === "realtime",
+		).status = "in-progress";
+		writeFileSync(path, JSON.stringify(catalog));
+		change(root, "config", (data) => {
+			data.capabilities.selected.push("realtime");
+			data.capabilities.deferred = [];
+		});
+		expect(() => loadProject(root)).toThrow("not implemented");
+	});
 	test.each([
 		[
 			"unknown ID",
 			(d: any) => d.capabilities.selected.push("unknown-id"),
 			"Unknown capability",
-		],
-		[
-			"unfinished selected",
-			(d: any) => {
-				const unfinished = catalog.capabilities.find(
-					({ status }) => status !== "done",
-				);
-				if (!unfinished) throw new Error("Fixture requires an unfinished capability");
-				d.capabilities.selected.push(unfinished.id);
-				d.capabilities.deferred = [];
-			},
-			"not implemented",
 		],
 		[
 			"overlap",
