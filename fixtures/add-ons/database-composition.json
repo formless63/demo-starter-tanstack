@@ -20,7 +20,11 @@
 		"drizzle.config.ts": "drizzle.config.ts",
 		"src/db/schema.ts": "fixtures/add-ons/database-composition-schema.txt",
 		"drizzle": "drizzle",
-		"scripts/database-composition-fixture.ts": "scripts/database-composition-fixture.ts"
+		"scripts/database-composition-fixture.ts": "scripts/database-composition-fixture.ts",
+		"src/features/organizations/schema.ts": "src/features/organizations/schema.ts",
+		"src/integrations/organizations/schema.ts": "src/integrations/organizations/schema.ts",
+		"src/integrations/authorization/schema.ts": "src/integrations/authorization/schema.ts",
+		"src/integrations/feature-flags/schema.ts": "src/integrations/feature-flags/schema.ts"
 	},
 	"expectedOfficialAddOns": [
 		"drizzle",

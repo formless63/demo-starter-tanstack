@@ -10,6 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
+import catalog from "../capabilities/catalog.json";
 import { applyTheme } from "./lib/theme.ts";
 import { checkProject, loadProject, projectStatus } from "./lib/project.ts";
 import {
@@ -79,9 +80,13 @@ describe("project bootstrap contract", () => {
 			"Unknown capability",
 		],
 		[
-			"planned selected",
+			"unfinished selected",
 			(d: any) => {
-				d.capabilities.selected.push("organizations");
+				const unfinished = catalog.capabilities.find(
+					({ status }) => status !== "done",
+				);
+				if (!unfinished) throw new Error("Fixture requires an unfinished capability");
+				d.capabilities.selected.push(unfinished.id);
 				d.capabilities.deferred = [];
 			},
 			"not implemented",

@@ -20,6 +20,8 @@ These foundations are not independently installable capabilities and must not be
 
 `Jobs`, `API Platform / Machine Auth / OpenAPI`, `Observability`, `Object Storage`, `Email`, `Webhooks`, `Audit Log`, `Cache / Coordination`, `AI`, `Search`, `Realtime`, `Notifications`, `Import / Export`, `Ops / Admin`, `Invoice Ninja`, `Stripe`, `Medusa`, `Charts / Visualization`, `Command System`, `Data Table`, `Markdown / Code Content`, `File UI`, `Rich Text / Tiptap`, `Flow / Canvas`, `Internationalization`, and `PWA / Offline` are twenty-six completed reusable capabilities. All are enabled in the root reference application so integration and deployment paths stay tested. Each has `defaultInstalled: false`: a clean base/generated consumer receives a capability only when it explicitly selects or installs it.
 
+Organizations, Authorization and Feature Flags have prepared candidate runtime wiring but remain **in-progress** with `defaultInstalled: false`. They are not yet in the accepted `referenceApplication.enabledCapabilities` list. Following the existing PWA acceptance sequence, reference enablement and `done` are promoted together only after the required verification. Source review, static checks and focused tests do not establish full integrated acceptance; lifecycle, backend, browser, production and exact-head CI evidence remain required. Fault-injection fixtures remain paused; no gate is waived.
+
 `defaultInstalled` never means “currently wired into the reference application.” Reference-app integration is tracked separately in `capabilities/catalog.json`. No package is installed merely because it appears in this roadmap.
 
 ## Custom add-on workspace
@@ -37,7 +39,7 @@ capabilities/<id>/
 
 The official pinned TanStack CLI compiles each `.add-on` directory; repository scripts only discover entries from `capabilities/catalog.json`, invoke that CLI, and verify clean installation. They are not an alternative generator. Each catalog entry records its stable TanStack add-on ID; add-on `dependsOn` and conflict sets use those CLI IDs, while capability `requires` uses capability IDs. The checker ensures completed hard capability dependencies are also expressed in official add-on metadata. `bun run add-ons:compile` rebuilds every declared distributable, while `bun run add-ons:test <id>` verifies that the committed output is current, installs it through normal TanStack mechanics into a clean scaffold, resolves official dependencies, and builds the result.
 
-Only implemented capabilities receive an add-on directory. Planned entries such as Organizations remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
+Only implemented capabilities receive an add-on directory. In-progress identity workspaces are retained for source preparation and future acceptance; their presence is not a completion claim. Planned entries remain catalog metadata until implementation, and installing one add-on never installs the rest of the catalog. Distributables stay under `capabilities/<id>/add-on.json`; external publication is intentionally deferred.
 
 ### Done
 
@@ -70,9 +72,9 @@ Object Storage uses standard AWS SDK v3, with real private streaming/presign/mul
 
 | Capability | Requires | Integrates with | External | Status |
 | --- | --- | --- | --- | --- |
-| Organizations / Tenancy | Starter authentication | Audit Log, Notifications | PostgreSQL | Planned |
-| Authorization | Starter authentication | Organizations, API Platform, Audit Log | PostgreSQL | Planned |
-| Feature Flags | None | Organizations, Authorization, Audit Log | PostgreSQL | Planned |
+| Organizations / Tenancy | Starter authentication | Audit Log, Notifications | PostgreSQL | In progress |
+| Authorization | Starter authentication | Organizations, API Platform, Audit Log | PostgreSQL | In progress |
+| Feature Flags | None | Organizations, Authorization, Audit Log | PostgreSQL | In progress |
 
 Starter authentication is a baseline requirement, not a capability edge.
 
@@ -178,3 +180,7 @@ Flow / Canvas source `a1a020cf7e75340e4f833c62db0d0b0e6b38d117` passed all 26 ho
 PWA / Offline is completed and reference-enabled: independent opt-in native injectManifest, exact three-file public allowlist, no data or SSR cache, natural-tab-close updates and SAME-URL two-phase retirement.
 
 Source `52f6fcb2309daad9b1474a1c2c313914f3403460` passed all 28 jobs in [hosted CI](https://github.com/formless63/demo-starter-tanstack/actions/runs/37066322525), including real Chromium root/scoped workers, credential omission, privacy boundaries, natural multi-tab updates, actual generated Start production lifecycle, owned retirement and final source-removed HTTP rebuild. This documentation/catalog promotion requires its own complete exact-head CI before merge; source success is not a promotion-head CI claim.
+
+### Identity policy Wave 2
+
+Organizations → Authorization → Feature Flags are in-progress independent opt-in add-ons, with prepared candidate reference wiring, not yet accepted reference enablement. Isolated PostgreSQL/consumer lifecycles, scoped reference policies, browser/production checks and the generic hosted CI matrix remain required, with current integrated-tree acceptance pending and fault-injection fixtures paused. See their capability contracts and decision documents. Native Better Auth admission bounds are not serialized quotas, and its invitation claim/membership crash window is documented explicitly.

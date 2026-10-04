@@ -4,6 +4,8 @@ This guide answers: “I cloned this repository—how do I turn it into my appli
 
 Before removing anything, create a branch and run `bun run capabilities:status`. The root reference application deliberately enables all completed capabilities, while generated consumers opt in independently.
 
+Organizations, Authorization and Feature Flags have prepared candidate runtime wiring but remain **in-progress** with `defaultInstalled: false`. They are not yet in the accepted `referenceApplication.enabledCapabilities` list. Following the existing PWA acceptance sequence, reference enablement and `done` are promoted together only after the required verification. Source review, static checks and focused tests do not establish full integrated acceptance; lifecycle, backend, browser, production and exact-head CI evidence remain required. Fault-injection fixtures remain paused; no gate is waived.
+
 ## Recommended agent-led onboarding
 
 1. Clone/generate the starter and reproduce dependencies.
@@ -21,7 +23,7 @@ Manual setup remains supported. Use the recipes below, copy relevant `docs/templ
 
 ## Full/reference setup
 
-The reference enables all twenty-three completed capabilities, including File UI and Rich Text / Tiptap. Keep them when their features fit the application, or when you want the repository's complete reference paths intact. Clean generated consumers still select capabilities explicitly (`defaultInstalled: false`). Provider credentials, trusted application policies and any remote setup remain operator-owned; completed local/CI verification is not financial or deployment certification.
+The reference retains all twenty-six accepted completed capabilities, including Flow / Canvas, Internationalization and PWA / Offline, and retains prepared runtime wiring for the three in-progress identity candidates. Candidate wiring is not an acceptance claim; complete the required verification before treating those modules as accepted reference integrations. Clean generated consumers still select capabilities explicitly (`defaultInstalled: false`). Provider credentials, trusted application policies and any remote setup remain operator-owned; completed local/CI verification is not financial or deployment certification.
 
 ```bash
 cp .env.example .env.local
@@ -271,3 +273,21 @@ Internationalization removal: first remove `src/routes/i18n-test.tsx` and `src/f
 ## PWA / Offline removal
 
 First deploy `retired: true` at the SAME historical worker URL/scope and retain its tombstone for returning clients. Allow old tabs to close naturally; verify only owned caches disappear. Then remove runtime imports/build integration/dependencies, keeping that exact public retirement script through subsequent builds. Deleting source or unregistering one browser does not retire production clients. See the full [two-phase contract](../capabilities/pwa-offline/CAPABILITY.md).
+
+## Identity policy capabilities
+
+The root reference deliberately enables all three in-progress identity capabilities; independent consumers remain opt-in. Their authored and retained source is available for preparation, but integrated-tree acceptance remains pending and fault-injection fixtures are paused. Select `capabilities/organizations/add-on.json`, `capabilities/authorization/add-on.json` or `capabilities/feature-flags/add-on.json` through the generic CLI. Review shared auth/schema/config overlays before combining them; use existing journals and generate additive migrations in a deployed application. Never replace an applied journal with a fresh scaffold journal. The root's notes example remains separate from personal Projects.
+
+### Remove Organizations
+
+Remove the organization plugin/global hooks/client plugin, dedicated auth pool, settings/env entries, organization route/navigation and notes application. Restore baseline auth's existing API-key/magic-link/OIDC dispatch hooks and adapter while preserving their behavior. Remove the optional tenant resolver/mapped-role adapters from application policy and the tenant selection in Flags projection; unresolved tenant scopes must deny. Personal Projects remain owner-filtered. Retain organization/member/invitation/note tables and native session column data, schema-only declarations and `0017_organizations_v1.sql` and its additive migration history. Keeping schema-only declarations in the migration configuration prevents accidental future drops; plugin registration/client projections can be removed without changing stored columns. Stop any organization-scoped jobs or give them an authoritative replacement resolver; stale active selection is never access. Do not delete owners/data or auto-reassign orphan organizations. Operator diagnostic/recovery is documented in the [contract](../capabilities/organizations/CAPABILITY.md).
+
+### Remove Authorization
+
+Restore explicit personal owner checks and current-member/read + owner/admin/write notes checks before removing `application-policy.server.ts` and policy calls. Remove machine-key policy adapter while keeping baseline credential verification/grants/rate limits. No protected route may lose its original predicate/guard. Delete evaluator/validation integration code and its CLI grant/revoke path; retain schema-only assignment declarations, tables and `0018_authorization_v1.sql` and its additive migration history. Organizations native administrative permissions remain valid. Flags retain their own trusted management guard and existing security boundaries.
+
+### Remove Feature Flags
+
+Remove `/api/flags`, product hook/panel, operator flag commands and provider/evaluator code; the panel defaults to absent. Preserve ordinary Authentication/Authorization and resource predicates. Retain schema-only definition/override declarations, tables and `0019_feature_flags_v1.sql` and its additive migration history. No target/membership cleanup, remote service or environment setting is implied. Disable is a reversible management action; data deletion is a separate operator-approved additive destructive migration.
+
+For every removal run governance/typecheck/build, relevant backend and development/production browser coverage, both explicit migrations, worker and production health. Generic fixtures must prove independent runtime removal/rebuild with retained data and exact migration history; those results are pending on this integrated tree. Fault-injection execution requires separate review and authorization. Removing reusable authoring is separate: prune the exact capability/evaluation, remove implementation metadata, retain stable catalog ID as deferred and update roadmap/docs. Do not remove unrelated capabilities.
