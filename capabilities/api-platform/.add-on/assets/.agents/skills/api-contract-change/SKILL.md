@@ -4,7 +4,7 @@ description: Changing public API routes, OpenAPI contracts, machine permissions,
 ---
 # API contract change
 
-1. Read `ROADMAP.md`, `capabilities/api-platform/CAPABILITY.md`, and `API_PLATFORM_MODULE_EVALUATION.md` before editing.
+1. Read `ROADMAP.md`, `capabilities/api-platform/CAPABILITY.md`, and `docs/evaluations/API_PLATFORM_MODULE_EVALUATION.md` before editing.
 2. Keep native TanStack Start server routes as the only HTTP router. Contracts describe metadata and schemas; they do not dispatch requests.
 3. Use the same Zod schemas for runtime validation and OpenAPI generation wherever practical. Contract and runtime behavior must not drift.
 4. Give every external operation a stable, unique `operationId`. Register only deliberately external routes.

@@ -4,7 +4,7 @@ description: Changing S3 configuration, storage keys, presigned URLs, multipart 
 ---
 # Storage changes
 
-Read `capabilities/object-storage/CAPABILITY.md` and `OBJECT_STORAGE_MODULE_EVALUATION.md`; use capability-change for packaging/dependency changes.
+Read `capabilities/object-storage/CAPABILITY.md` and `docs/evaluations/OBJECT_STORAGE_MODULE_EVALUATION.md`; use capability-change for packaging/dependency changes.
 
 - Keep clients and credentials server-only. Preserve lazy configuration and private objects; no ACLs, implicit bucket mutation, or required global readiness check.
 - Never log credentials, signed URLs, raw provider errors, or full object keys. Public errors use the safe classification; retain causes only on the server.

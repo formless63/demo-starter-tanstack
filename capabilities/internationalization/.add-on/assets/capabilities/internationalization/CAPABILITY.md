@@ -24,7 +24,7 @@ Run `bun run internationalization:router` (actual native Router held-navigation/
 
 Application removal and reusable source pruning are separate. Remove application routes/imports (`src/routes/i18n-test.tsx`, `src/features/i18n-reference.ts`) first, then `src/integrations/internationalization`, root `scripts/internationalization-*` and internationalization scripts in package.json. Remove i18next/react-i18next only when no other application code uses them; retain shared Playwright. Update the reference-enabled list, regenerate routes, reinstall, typecheck and rebuild. There is no data or migration to delete. Keep capability authoring sources if future installation is desired; separately prune `capabilities/internationalization` and declared metadata only if intentionally removing distribution maintenance. The guarded clean-consumer removal fixture never operates on a real application.
 
-Evaluation: [INTERNATIONALIZATION_MODULE_EVALUATION.md](../../INTERNATIONALIZATION_MODULE_EVALUATION.md).
+Evaluation: [docs/evaluations/INTERNATIONALIZATION_MODULE_EVALUATION.md](../../docs/evaluations/INTERNATIONALIZATION_MODULE_EVALUATION.md).
 
 Packaging note: the required shared `I18nExample.tsx` deliberately avoids the official CLI’s reserved `example.*`/`demo.*` basename filters. The no-install packaging regression checks every retained asset and its actual relative imports; the full generated lifecycle remains mandatory.
 

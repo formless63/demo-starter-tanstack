@@ -4,7 +4,7 @@ description: Maintaining bounded server-side AI generation, provider privacy, re
 ---
 # AI change
 
-Read capability-change, capabilities/ai/CAPABILITY.md and AI_MODULE_EVALUATION.md before changes. The prompt-derived cross-framework v1 contract is authoritative; do not consult companion repositories.
+Read capability-change, capabilities/ai/CAPABILITY.md and docs/evaluations/AI_MODULE_EVALUATION.md before changes. The prompt-derived cross-framework v1 contract is authoritative; do not consult companion repositories.
 
 - Keep the OpenAI-compatible SDK behind provider.server.ts. Do not expose provider objects, tool execution, arbitrary options, prompts or content in error/telemetry metadata.
 - Preserve lazy configuration and no import/build/start/health/worker provider network access. Never infer a model or require authentication for local compatible endpoints.

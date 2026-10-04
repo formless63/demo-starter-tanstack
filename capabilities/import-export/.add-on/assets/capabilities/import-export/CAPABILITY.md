@@ -1,6 +1,6 @@
 # Import / Export capability
 
-Status: done. Optional (`defaultInstalled: false`); the root reference enables the personal Projects example. Evaluation: [IMPORT_EXPORT_MODULE_EVALUATION.md](../../IMPORT_EXPORT_MODULE_EVALUATION.md).
+Status: done. Optional (`defaultInstalled: false`); the root reference enables the personal Projects example. Evaluation: [docs/evaluations/IMPORT_EXPORT_MODULE_EVALUATION.md](../../docs/evaluations/IMPORT_EXPORT_MODULE_EVALUATION.md).
 
 ## Requirements and ownership
 

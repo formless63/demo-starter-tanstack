@@ -1,6 +1,6 @@
 # Webhooks capability
 
-Status: done; optional (`defaultInstalled: false`). The reference application enables this primitive for explicit continuous verification. Evaluation: `WEBHOOKS_MODULE_EVALUATION.md`.
+Status: done; optional (`defaultInstalled: false`). The reference application enables this primitive for explicit continuous verification. Evaluation: `docs/evaluations/WEBHOOKS_MODULE_EVALUATION.md`.
 
 ## Requirements and boundaries
 

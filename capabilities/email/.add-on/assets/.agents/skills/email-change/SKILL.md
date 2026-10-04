@@ -4,7 +4,7 @@ description: Changing SMTP configuration, transactional delivery, magic-link ema
 ---
 # Email changes
 
-Read `capabilities/email/CAPABILITY.md` and `EMAIL_MODULE_EVALUATION.md`; use capability-change for packaging/lifecycle changes and auth-change for magic links.
+Read `capabilities/email/CAPABILITY.md` and `docs/evaluations/EMAIL_MODULE_EVALUATION.md`; use capability-change for packaging/lifecycle changes and auth-change for magic links.
 
 - Never log recipients, sender addresses, subjects, bodies, Message-ID, magic links/tokens, SMTP credentials/hosts, or raw responses/errors. Serialize only `EmailError.toJSON()`; causes stay server-only.
 - Keep explicit TLS mode and certificate validation. Do not infer security from port or expose TLS bypass. Configuration and fixed From/default reply-to remain server-owned and lazy; enabled magic links validate structure before advertising the flow.

@@ -1,6 +1,6 @@
 # Cache / Coordination capability
 
-Status: done; optional (`defaultInstalled: false`). The reference application enables explicit tooling for continuous verification; normal startup makes no cache connection. Evaluation: `CACHE_COORDINATION_MODULE_EVALUATION.md`.
+Status: done; optional (`defaultInstalled: false`). The reference application enables explicit tooling for continuous verification; normal startup makes no cache connection. Evaluation: `docs/evaluations/CACHE_COORDINATION_MODULE_EVALUATION.md`.
 
 ## Observable v1 contract
 

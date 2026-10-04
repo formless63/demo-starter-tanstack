@@ -1,6 +1,6 @@
 # Observability capability
 
-Status: done; optional (`defaultInstalled: false`). Enabled in the reference app for continuous verification. Evaluation: `OBSERVABILITY_MODULE_EVALUATION.md`.
+Status: done; optional (`defaultInstalled: false`). Enabled in the reference app for continuous verification. Evaluation: `docs/evaluations/OBSERVABILITY_MODULE_EVALUATION.md`.
 
 ## Requirements
 
