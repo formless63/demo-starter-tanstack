@@ -1,10 +1,10 @@
 # Organizations / Tenancy
 
-Status: **in-progress**. Candidate root runtime composition is prepared but not yet accepted reference enablement; clean consumers remain opt-in (`defaultInstalled: false`).
+Status: **done**. Root runtime composition is accepted and reference-enabled; clean consumers remain opt-in (`defaultInstalled: false`).
 
-Current acceptance: pending on the integrated tree. This source-only preparation does not execute verification. Historical source-branch pass claims are not current evidence. Governance, retained-package parity, independent lifecycle, backend, browser, production and exact-head hosted CI gates remain required before `done`. Fault-injection fixtures (including interruption, timeout, outage and database-failure probes) remain paused pending separate review and authorization; retaining their source does not waive any requirement.
+Acceptance verified on 2026-10-04: merged main `05fcf715483ef30bc56d5c1f40de77fed958baef` passed [all 31 hosted CI jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37178672085), including the three identity capability lifecycles and the root application checks. Organizations, Authorization and Feature Flags are done, reference-enabled and opt-in (`defaultInstalled: false`). This records the tested implementation baseline; later changes still require their applicable checks.
 
-Prepared candidate runtime wiring does not imply accepted reference enablement. Keep this capability outside `referenceApplication.enabledCapabilities` until its required verification supports promotion to `done`; generated-consumer defaults remain false.
+This capability is accepted in `referenceApplication.enabledCapabilities`; generated-consumer defaults remain false.
 
 ## Cross-framework v1 contract
 
@@ -42,4 +42,4 @@ Organization/member/invitation/session data and applied migrations survive remov
 
 ## Verification
 
-The retained `bun capabilities/organizations/test/contract.ts` fixture is designed to use a uniquely named disposable pinned PostgreSQL18.1 database for independent native HTTP/auth.api behavior with Drizzle/node-postgres. `native-claim-proof.ts` targets the committed claim before membership and ordinary compensation under Bun and bundled Node24. Required coverage includes both entrypoints, node-postgres and Bun SQL, admission/owner invariants, authoritative denial after interruption, bounded timeout/outage behavior, independent Bun/Node24 clean consumer install/runtime/removal/rebuild, root checks, development/production browser coverage and the full generic hosted capability matrix. Use no customer/production data. No integrated-tree pass is claimed; the SIGKILL, database-failure and other fault probes remain paused pending review and authorization. See [evaluation](../../docs/evaluations/ORGANIZATIONS_MODULE_EVALUATION.md).
+The retained `bun capabilities/organizations/test/contract.ts` fixture is designed to use a uniquely named disposable pinned PostgreSQL18.1 database for independent native HTTP/auth.api behavior with Drizzle/node-postgres. `native-claim-proof.ts` targets the committed claim before membership and ordinary compensation under Bun and bundled Node24. Required coverage includes both entrypoints, node-postgres and Bun SQL, admission/owner invariants, authoritative denial after interruption, bounded timeout/outage behavior, independent Bun/Node24 clean consumer install/runtime/removal/rebuild, root checks, development/production browser coverage and the full generic hosted capability matrix. Use no customer/production data. The required integrated lifecycle and root checks passed in the linked merged-main CI. See [evaluation](../../docs/evaluations/ORGANIZATIONS_MODULE_EVALUATION.md).

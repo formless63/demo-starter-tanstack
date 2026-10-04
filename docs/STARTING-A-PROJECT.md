@@ -4,7 +4,7 @@ This guide answers: “I cloned this repository—how do I turn it into my appli
 
 Before removing anything, create a branch and run `bun run capabilities:status`. The root reference application deliberately enables all completed capabilities, while generated consumers opt in independently.
 
-Organizations, Authorization and Feature Flags have prepared candidate runtime wiring but remain **in-progress** with `defaultInstalled: false`. They are not yet in the accepted `referenceApplication.enabledCapabilities` list. Following the existing PWA acceptance sequence, reference enablement and `done` are promoted together only after the required verification. Source review, static checks and focused tests do not establish full integrated acceptance; lifecycle, backend, browser, production and exact-head CI evidence remain required. Fault-injection fixtures remain paused; no gate is waived.
+Acceptance verified on 2026-10-04: merged main `05fcf715483ef30bc56d5c1f40de77fed958baef` passed [all 31 hosted CI jobs](https://github.com/formless63/demo-starter-tanstack/actions/runs/37178672085), including the three identity capability lifecycles and the root application checks. Organizations, Authorization and Feature Flags are done, reference-enabled and opt-in (`defaultInstalled: false`). This records the tested implementation baseline; later changes still require their applicable checks.
 
 ## Recommended agent-led onboarding
 
@@ -23,7 +23,7 @@ Manual setup remains supported. Use the recipes below, copy relevant `docs/templ
 
 ## Full/reference setup
 
-The reference retains all twenty-six accepted completed capabilities, including Flow / Canvas, Internationalization and PWA / Offline, and retains prepared runtime wiring for the three in-progress identity candidates. Candidate wiring is not an acceptance claim; complete the required verification before treating those modules as accepted reference integrations. Clean generated consumers still select capabilities explicitly (`defaultInstalled: false`). Provider credentials, trusted application policies and any remote setup remain operator-owned; completed local/CI verification is not financial or deployment certification.
+The reference retains all twenty-nine accepted completed capabilities, including Flow / Canvas, Internationalization and PWA / Offline, including the accepted Organizations, Authorization and Feature Flags integrations. Clean generated consumers still select capabilities explicitly (`defaultInstalled: false`). Provider credentials, trusted application policies and any remote setup remain operator-owned; completed local/CI verification is not financial or deployment certification.
 
 ```bash
 cp .env.example .env.local
@@ -276,7 +276,7 @@ First deploy `retired: true` at the SAME historical worker URL/scope and retain 
 
 ## Identity policy capabilities
 
-The root reference deliberately enables all three in-progress identity capabilities; independent consumers remain opt-in. Their authored and retained source is available for preparation, but integrated-tree acceptance remains pending and fault-injection fixtures are paused. Select `capabilities/organizations/add-on.json`, `capabilities/authorization/add-on.json` or `capabilities/feature-flags/add-on.json` through the generic CLI. Review shared auth/schema/config overlays before combining them; use existing journals and generate additive migrations in a deployed application. Never replace an applied journal with a fresh scaffold journal. The root's notes example remains separate from personal Projects.
+The root reference enables all three completed identity capabilities; independent consumers remain opt-in. Select `capabilities/organizations/add-on.json`, `capabilities/authorization/add-on.json` or `capabilities/feature-flags/add-on.json` through the generic CLI. Review shared auth/schema/config overlays before combining them; use existing journals and generate additive migrations in a deployed application. Never replace an applied journal with a fresh scaffold journal. The root's notes example remains separate from personal Projects.
 
 ### Remove Organizations
 
@@ -290,4 +290,4 @@ Restore explicit personal owner checks and current-member/read + owner/admin/wri
 
 Remove `/api/flags`, product hook/panel, operator flag commands and provider/evaluator code; the panel defaults to absent. Preserve ordinary Authentication/Authorization and resource predicates. Retain schema-only definition/override declarations, tables and `0019_feature_flags_v1.sql` and its additive migration history. No target/membership cleanup, remote service or environment setting is implied. Disable is a reversible management action; data deletion is a separate operator-approved additive destructive migration.
 
-For every removal run governance/typecheck/build, relevant backend and development/production browser coverage, both explicit migrations, worker and production health. Generic fixtures must prove independent runtime removal/rebuild with retained data and exact migration history; those results are pending on this integrated tree. Fault-injection execution requires separate review and authorization. Removing reusable authoring is separate: prune the exact capability/evaluation, remove implementation metadata, retain stable catalog ID as deferred and update roadmap/docs. Do not remove unrelated capabilities.
+For every removal run governance/typecheck/build, relevant backend and development/production browser coverage, both explicit migrations, worker and production health. Generic fixtures must prove independent runtime removal/rebuild with retained data and exact migration history; the accepted merged-main lifecycle results are linked below. Use only disposable development infrastructure for verification. Removing reusable authoring is separate: prune the exact capability/evaluation, remove implementation metadata, retain stable catalog ID as deferred and update roadmap/docs. Do not remove unrelated capabilities.
