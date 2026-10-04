@@ -4,7 +4,7 @@ description: Changing server logging, metrics, spans, redaction, OTLP configurat
 ---
 # Observability changes
 
-Read `capabilities/observability/CAPABILITY.md` and `OBSERVABILITY_MODULE_EVALUATION.md` before changing signal contracts.
+Read `capabilities/observability/CAPABILITY.md` and `docs/evaluations/OBSERVABILITY_MODULE_EVALUATION.md` before changing signal contracts.
 
 - Never log secrets. Use static messages and small reviewed fields. Request bodies, raw headers, queries, job payloads, and full auth/session objects are omitted by default. Error messages, stacks, and causes are unsafe input; keep capture generic unless an explicit safe serializer is reviewed.
 - Extend recursive redaction for application-specific fields through trusted `LOG_REDACT_FIELDS`; verify both ordinary logs and child bindings.

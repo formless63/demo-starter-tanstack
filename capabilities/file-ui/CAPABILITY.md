@@ -1,6 +1,6 @@
 # File UI capability
 
-Status: done; reference-enabled and opt-in (`defaultInstalled: false`). Sole hard capability dependency: Object Storage. Root reference implementation passed exact-source hosted gates; combined exact-head CI remains required before integration merge. Evaluation: `FILE_UI_MODULE_EVALUATION.md`.
+Status: done; reference-enabled and opt-in (`defaultInstalled: false`). Sole hard capability dependency: Object Storage. Root reference implementation passed exact-source hosted gates; combined exact-head CI remains required before integration merge. Evaluation: `docs/evaluations/FILE_UI_MODULE_EVALUATION.md`.
 
 ## Bounded v1 contract
 

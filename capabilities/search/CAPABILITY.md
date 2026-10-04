@@ -1,6 +1,6 @@
 # Search capability
 
-Status: done; optional (`defaultInstalled: false`). Evaluation: `SEARCH_MODULE_EVALUATION.md`. The root reference integration searches Projects; clean consumers choose their own domain.
+Status: done; optional (`defaultInstalled: false`). Evaluation: `docs/evaluations/SEARCH_MODULE_EVALUATION.md`. The root reference integration searches Projects; clean consumers choose their own domain.
 
 ## Requirements and boundaries
 

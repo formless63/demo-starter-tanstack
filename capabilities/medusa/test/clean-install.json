@@ -23,7 +23,7 @@
     "src/lib/medusa.server.ts",
     "drizzle/0013_medusa_v1.sql",
     "capabilities/medusa/CAPABILITY.md",
-    "MEDUSA_MODULE_EVALUATION.md"
+    "docs/evaluations/MEDUSA_MODULE_EVALUATION.md"
   ],
   "addOnConfig": {
     "drizzle": {

@@ -1,6 +1,6 @@
 # Object Storage capability
 
-Status: done; optional (`defaultInstalled: false`). Enabled in the reference application for continuous verification. Evaluation: `OBJECT_STORAGE_MODULE_EVALUATION.md`. Root application enablement is separate from consumer defaults.
+Status: done; optional (`defaultInstalled: false`). Enabled in the reference application for continuous verification. Evaluation: `docs/evaluations/OBJECT_STORAGE_MODULE_EVALUATION.md`. Root application enablement is separate from consumer defaults.
 
 ## Requirements
 

@@ -187,7 +187,7 @@ Run `bun run add-ons:preflight <id ...>` before combining custom add-ons. It exi
 
 ## Search ownership
 
-Search requires baseline PostgreSQL/Drizzle and no capability. Jobs, Object Storage and Organizations remain optional future integrations. Application tables own authorization and typed equality filters. Compose owner predicates with explicit `simple` FTS, validate query/page/cursor input, keep descending rank/timestamp/ID order, and retain exact database rank/time for continuation. No generic public table-search function or universal search_documents table is installed. Query text stays out of logs/spans/metric labels; the root uses a session-scoped POST function. See the [contract](../capabilities/search/CAPABILITY.md) for helpers and the [evaluation](../SEARCH_MODULE_EVALUATION.md) for shared v1 defaults.
+Search requires baseline PostgreSQL/Drizzle and no capability. Jobs, Object Storage and Organizations remain optional future integrations. Application tables own authorization and typed equality filters. Compose owner predicates with explicit `simple` FTS, validate query/page/cursor input, keep descending rank/timestamp/ID order, and retain exact database rank/time for continuation. No generic public table-search function or universal search_documents table is installed. Query text stays out of logs/spans/metric labels; the root uses a session-scoped POST function. See the [contract](../capabilities/search/CAPABILITY.md) for helpers and the [evaluation](evaluations/SEARCH_MODULE_EVALUATION.md) for shared v1 defaults.
 
 ## Realtime and Notifications
 
@@ -201,7 +201,7 @@ Notifications owns durable records/read state and uses caller DB/transaction exe
 
 The integrated migration journal retains both original additive SQL files and timestamps: Search is entry 4 (`0004_search`) and Notifications entry 5 (`0004_tough_mindworm`). Snapshot 0004 remains Search; snapshot 0005 combines both schemas and links to snapshot 0004. Applied baseline migrations are unchanged. Branch-specific deployed databases must be reviewed against their recorded migration history before upgrade.
 
-Import / Export is completed: [contract](../capabilities/import-export/CAPABILITY.md) and [evaluation](../IMPORT_EXPORT_MODULE_EVALUATION.md). It requires Jobs + Object Storage; Notifications/Audit remain optional composition. Clean consumers remain opt-in.
+Import / Export is completed: [contract](../capabilities/import-export/CAPABILITY.md) and [evaluation](evaluations/IMPORT_EXPORT_MODULE_EVALUATION.md). It requires Jobs + Object Storage; Notifications/Audit remain optional composition. Clean consumers remain opt-in.
 
 Ops / Admin provides guarded read-only `/admin/ops` and `/api/ops/summary`, privileged server-only `OPS_ADMIN_USER_IDS`, explicit application-owned optional adapters, no persistence. See [capability contract](../capabilities/ops-admin/CAPABILITY.md) for installation/removal and deadline limitations.
 
@@ -227,9 +227,9 @@ The combined root journal preserves entries 0–7 and their SQL/timestamps. Prov
 
 Snapshot links continue from `0007_snapshot.json`, retaining every preceding schema at each step. SQL filename prefixes deliberately differ from journal indices; `0008` and `0010` are unused SQL prefixes. Do not reorder by filename, rewrite applied SQL or substitute branch-local metadata. Existing branch-specific deployments require an operator review of recorded migration history before upgrading. Clean add-on consumers retain their own provider-local migration journals. Apply explicit application and Jobs migrations before startup; removal preserves the combined history and data.
 
-- Data Table (`data-table`, done, reference-enabled, optional) has no hard dependencies and uses native v9 controlled or internal state. The reference verification imports the authored component and runs the shared SSR/interactive fixture; clean consumers install the same component through the add-on. Hosted real-browser and full lifecycle verification passed. See the [contract](../capabilities/data-table/CAPABILITY.md) and [acceptance evidence](../DATA_TABLE_MODULE_EVALUATION.md).
+- Data Table (`data-table`, done, reference-enabled, optional) has no hard dependencies and uses native v9 controlled or internal state. The reference verification imports the authored component and runs the shared SSR/interactive fixture; clean consumers install the same component through the add-on. Hosted real-browser and full lifecycle verification passed. See the [contract](../capabilities/data-table/CAPABILITY.md) and [acceptance evidence](evaluations/DATA_TABLE_MODULE_EVALUATION.md).
 
-Rich Text (`rich-text`): completed, reference-enabled, `defaultInstalled: false`, no hard dependencies/services/migrations. Safe JSON/SSR and caller-owned persistence. [Contract](../capabilities/rich-text/CAPABILITY.md), [evaluation](../RICH_TEXT_MODULE_EVALUATION.md).
+Rich Text (`rich-text`): completed, reference-enabled, `defaultInstalled: false`, no hard dependencies/services/migrations. Safe JSON/SSR and caller-owned persistence. [Contract](../capabilities/rich-text/CAPABILITY.md), [evaluation](evaluations/RICH_TEXT_MODULE_EVALUATION.md).
 
 ## File UI (completed, reference-enabled)
 
@@ -242,11 +242,11 @@ Both independently reviewed source heads passed full hosted CI: Rich Text `47545
 
 ## Flow / Canvas (completed)
 
-The independent `flow-canvas` add-on pins @xyflow/react 12.12.0. Closed, server-safe graph v1 validation and HTML-safe serialization are separate from the client-only native visual editor. Root `/flow-test` composes two independent editors and application-owned async persistence races. No schema, migration, database, service or environment variable is added. Realtime, Object Storage and Audit Log remain optional application wiring. See [contract](../capabilities/flow-canvas/CAPABILITY.md) and [evaluation](../FLOW_CANVAS_MODULE_EVALUATION.md). Its reviewed source passed real hosted Chromium and full CI; combined-head CI remains mandatory before merge.
+The independent `flow-canvas` add-on pins @xyflow/react 12.12.0. Closed, server-safe graph v1 validation and HTML-safe serialization are separate from the client-only native visual editor. Root `/flow-test` composes two independent editors and application-owned async persistence races. No schema, migration, database, service or environment variable is added. Realtime, Object Storage and Audit Log remain optional application wiring. See [contract](../capabilities/flow-canvas/CAPABILITY.md) and [evaluation](evaluations/FLOW_CANVAS_MODULE_EVALUATION.md). Its reviewed source passed real hosted Chromium and full CI; combined-head CI remains mandatory before merge.
 
 ## Internationalization (completed)
 
-No hard capability edges. The reference `/i18n-test` resolves a server locale once and supplies canonical resources and initial formatted values; application routing/document attributes remain application-owned. Opt-in native i18next/react-i18next, no detection, persistence, backend loader or HTML translation. See [contract](../capabilities/internationalization/CAPABILITY.md) and [evaluation](../INTERNATIONALIZATION_MODULE_EVALUATION.md). The reviewed source passed generated install/production/removal and native browser gates; the combined head must pass them independently before merge.
+No hard capability edges. The reference `/i18n-test` resolves a server locale once and supplies canonical resources and initial formatted values; application routing/document attributes remain application-owned. Opt-in native i18next/react-i18next, no detection, persistence, backend loader or HTML translation. See [contract](../capabilities/internationalization/CAPABILITY.md) and [evaluation](evaluations/INTERNATIONALIZATION_MODULE_EVALUATION.md). The reviewed source passed generated install/production/removal and native browser gates; the combined head must pass them independently before merge.
 
 ## Flow / Canvas and Internationalization acceptance
 
@@ -254,7 +254,7 @@ Flow / Canvas source `a1a020cf7e75340e4f833c62db0d0b0e6b38d117` passed all 26 ho
 
 ## PWA / Offline (completed)
 
-Independent opt-in native injectManifest capability. Only fixed integrity-checked public HTML/icons; no SSR/API/auth/mutation cache. Consumer fallback paths default empty. Reference `/pwa-test` is enabled. See [contract](../capabilities/pwa-offline/CAPABILITY.md) and [evaluation](../PWA_OFFLINE_MODULE_EVALUATION.md). No hard dependencies, migrations or services.
+Independent opt-in native injectManifest capability. Only fixed integrity-checked public HTML/icons; no SSR/API/auth/mutation cache. Consumer fallback paths default empty. Reference `/pwa-test` is enabled. See [contract](../capabilities/pwa-offline/CAPABILITY.md) and [evaluation](evaluations/PWA_OFFLINE_MODULE_EVALUATION.md). No hard dependencies, migrations or services.
 
 There are now twenty-six completed, reference-enabled capabilities; all generated-consumer defaults remain false. Source `52f6fcb2309daad9b1474a1c2c313914f3403460` passed all 28 jobs in [hosted CI](https://github.com/formless63/demo-starter-tanstack/actions/runs/37066322525), including real Chromium root/scoped workers, credential omission, privacy boundaries, natural multi-tab updates, actual generated Start production lifecycle, owned retirement and final source-removed HTTP rebuild. This documentation/catalog promotion requires its own complete exact-head CI before merge; source success is not a promotion-head CI claim.
 

@@ -1,6 +1,6 @@
 # Invoice Ninja v1
 
-Status: done and reference-enabled after complete combined lifecycle, browser, pinned native-provider and canonical production/CI acceptance. Clean consumers remain opt-in. Hard dependencies are Jobs and Webhooks. Organizations, Audit Log and Notifications remain optional application composition. See [evaluation](../../INVOICE_NINJA_MODULE_EVALUATION.md).
+Status: done and reference-enabled after complete combined lifecycle, browser, pinned native-provider and canonical production/CI acceptance. Clean consumers remain opt-in. Hard dependencies are Jobs and Webhooks. Organizations, Audit Log and Notifications remain optional application composition. See [evaluation](../../docs/evaluations/INVOICE_NINJA_MODULE_EVALUATION.md).
 
 ## Boundary
 

@@ -1,6 +1,6 @@
 # AI
 
-Optional server-only model-access primitive using OpenAI SDK 7.25.0 behind an OpenAI-compatible Chat Completions adapter. Evaluation: [AI_MODULE_EVALUATION.md](../../AI_MODULE_EVALUATION.md). Maintenance: `.agents/skills/ai-change/SKILL.md`.
+Optional server-only model-access primitive using OpenAI SDK 7.25.0 behind an OpenAI-compatible Chat Completions adapter. Evaluation: [docs/evaluations/AI_MODULE_EVALUATION.md](../../docs/evaluations/AI_MODULE_EVALUATION.md). Maintenance: `.agents/skills/ai-change/SKILL.md`.
 
 ## Relationships and scope
 

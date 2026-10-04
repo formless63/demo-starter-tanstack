@@ -1,6 +1,6 @@
 # Medusa v1
 
-Status: done and reference-enabled after full combined lifecycle, browser and canonical production/CI acceptance. A disposable pinned Medusa 2.21.2 backend verifies native Admin GET authentication, products/orders/pages, exact totals, native product workflow subscriber delivery and source-matched order.placed event-bus delivery, followed by durable receipt/Jobs handoff and the actual standalone Node24 fixture worker consuming private existing Jobs payloads. No checkout/payment workflow or external provider was exercised. See [evaluation](../../MEDUSA_MODULE_EVALUATION.md). This acceptance does not certify financial workflows or an operator deployment.
+Status: done and reference-enabled after full combined lifecycle, browser and canonical production/CI acceptance. A disposable pinned Medusa 2.21.2 backend verifies native Admin GET authentication, products/orders/pages, exact totals, native product workflow subscriber delivery and source-matched order.placed event-bus delivery, followed by durable receipt/Jobs handoff and the actual standalone Node24 fixture worker consuming private existing Jobs payloads. No checkout/payment workflow or external provider was exercised. See [evaluation](../../docs/evaluations/MEDUSA_MODULE_EVALUATION.md). This acceptance does not certify financial workflows or an operator deployment.
 
 ## Boundary and installation
 
