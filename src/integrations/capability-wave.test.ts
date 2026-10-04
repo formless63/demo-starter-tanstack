@@ -22,7 +22,11 @@ const requiredWave = [
 const completed = catalog.capabilities.filter(
 	({ status }) => status === "done",
 );
-const identityCandidates = ["organizations", "authorization", "feature-flags"];
+const identityCapabilities = [
+	"organizations",
+	"authorization",
+	"feature-flags",
+];
 
 test("accepted reference enablement matches completed capabilities", () => {
 	// Require this wave while allowing future completed capabilities through discovery.
@@ -36,7 +40,7 @@ test("accepted reference enablement matches completed capabilities", () => {
 		expect(
 			completed.find((capability) => capability.id === id)?.defaultInstalled,
 		).toBe(false);
-	expect(completed.length).toBeGreaterThanOrEqual(26);
+	expect(completed.length).toBeGreaterThanOrEqual(29);
 	// Email runtime and awaited auth delivery must survive merges from the older base.
 	expect(pkg.dependencies.nodemailer).toBeTruthy();
 	expect(readFileSync("src/lib/auth.ts", "utf8")).toContain("sendMagicLink");
@@ -45,14 +49,14 @@ test("accepted reference enablement matches completed capabilities", () => {
 	);
 });
 
-test("prepared identity candidates remain unaccepted and opt-in", () => {
-	for (const id of identityCandidates) {
+test("accepted identity capabilities are reference-enabled and opt-in", () => {
+	for (const id of identityCapabilities) {
 		const candidate = catalog.capabilities.find(
 			(capability) => capability.id === id,
 		);
-		expect(candidate?.status).toBe("in-progress");
+		expect(candidate?.status).toBe("done");
 		expect(candidate?.defaultInstalled).toBe(false);
-		expect(catalog.referenceApplication.enabledCapabilities).not.toContain(id);
+		expect(catalog.referenceApplication.enabledCapabilities).toContain(id);
 		expect(existsSync(`capabilities/${id}/.add-on/info.json`)).toBe(true);
 		expect(existsSync(`capabilities/${id}/test/clean-install.json`)).toBe(true);
 		expect(existsSync(`src/integrations/${id}`)).toBe(true);
