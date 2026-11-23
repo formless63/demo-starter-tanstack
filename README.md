@@ -56,7 +56,7 @@ Baseline components are not optional capability modules. Future integrations in 
 | PWA / Offline | Done | Optional | None | Integrity-checked public offline notice and safe worker lifecycle | [PWA contract](capabilities/pwa-offline/CAPABILITY.md) |
 | Internationalization | Done | Optional | None | Request-local plain-text catalogs, CLDR plurals and canonical locale payloads | [Internationalization contract](capabilities/internationalization/CAPABILITY.md) |
 | Email | Done | Optional | No database/auth/capability dependency; SMTP when used | Bounded SMTP delivery, safe errors and awaited magic links | [Email contract](capabilities/email/CAPABILITY.md) |
-| Webhooks | Done | Optional | Jobs + baseline Node 24 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
+| Webhooks | Done | Optional | Jobs + baseline Node 26 | Standard Webhooks signing/raw verification, durable delivery and bounded retries | [Webhooks contract](capabilities/webhooks/CAPABILITY.md) |
 | Audit Log | Done | Optional | Baseline PostgreSQL + Drizzle | Append-oriented events, bounded safe context, atomic domain writes, keyset queries | [Audit Log contract](capabilities/audit-log/CAPABILITY.md) |
 | Cache / Coordination | Done | Optional | No capability dependency; Valkey on use | Ephemeral cache, atomic counters, advisory leases and pub/sub | [Cache contract](capabilities/cache-coordination/CAPABILITY.md) |
 | AI | Done | Optional | Baseline Node runtime; model provider only on use | Bounded text, streaming and Zod structured generation | [AI contract](capabilities/ai/CAPABILITY.md) |
@@ -75,7 +75,7 @@ See the [capability guide](docs/CAPABILITIES.md) for installation and removal se
 
 ## Quick start
 
-Use Bun 1.4.2, Node 24 LTS for production output, and Docker with Compose. GitHub OAuth or an OIDC provider is optional for initial local startup.
+Use the Bun and Node 26 LTS versions pinned in [mise.toml](mise.toml), plus Docker with Compose. GitHub OAuth or an OIDC provider is optional for initial local startup.
 
 ```bash
 cp .env.example .env.local

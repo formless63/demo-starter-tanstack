@@ -80,7 +80,7 @@ For a downstream lean application, follow `docs/STARTING-A-PROJECT.md`. Its Jobs
 - `bun run db:persistence:test`: own Compose project/volume, container recreation and retained marker; destroys only its fixture volume.
 - `NODE_ENV=production NITRO_PRESET=node-server bun run build`: production artifact when the shell otherwise has NODE_ENV=test. `E2E_BASE_URL=http://127.0.0.1:<port> bun run test:e2e` targets an already running production artifact rather than starting Vite.
 
-Hosted root verification and every catalog-derived lifecycle matrix job explicitly install Node 24.21.0, assert Node major 24, and log Node/Bun versions before runtime fixtures. Bun remains independently pinned through package.json.
+Hosted root verification and every catalog-derived lifecycle matrix job explicitly install Node 26.13.1, assert Node major 26, and log Node/Bun versions before runtime fixtures. Bun remains independently pinned through package.json.
 
 - `bun run ai:unit`: backendless configuration/input/output checks.
 - `bun run ai:compat`: actual SDK/local HTTP completion, incremental streaming, structured validation, errors, cancellation/timeouts/limits; no external provider.
@@ -94,7 +94,7 @@ Hosted root verification and every catalog-derived lifecycle matrix job explicit
 
 ## Realtime and Notifications
 
-`bun run realtime:unit` and `bun run notifications:unit` require no optional backends. `bun run realtime:transport` bundles the protocol fixture for Node24 and verifies both authenticated adapters/native heartbeat/stalled output. `bun run realtime:cache` exercises the optional application Cache backplane across two Node processes and disposable Valkey. `bun run notifications:smoke` needs explicit migrated fixture PostgreSQL/Jobs; `bun run notifications:compat` uses pinned disposable localhost ntfy. `bun run notifications:delivery` runs the actual bundled production Node worker with private Jobs payload/current record/target resolution and disposable Email/Mailpit+ntfy; never production data. Generic `add-ons:test realtime` / `notifications` prove install/build/start or migration/removal; all completed lifecycles and production artifact checks remain required. Root browser suite exercises both real cookie-authenticated transports and recipient read/unread UI in development and production.
+`bun run realtime:unit` and `bun run notifications:unit` require no optional backends. `bun run realtime:transport` bundles the protocol fixture for Node26 and verifies both authenticated adapters/native heartbeat/stalled output. `bun run realtime:cache` exercises the optional application Cache backplane across two Node processes and disposable Valkey. `bun run notifications:smoke` needs explicit migrated fixture PostgreSQL/Jobs; `bun run notifications:compat` uses pinned disposable localhost ntfy. `bun run notifications:delivery` runs the actual bundled production Node worker with private Jobs payload/current record/target resolution and disposable Email/Mailpit+ntfy; never production data. Generic `add-ons:test realtime` / `notifications` prove install/build/start or migration/removal; all completed lifecycles and production artifact checks remain required. Root browser suite exercises both real cookie-authenticated transports and recipient read/unread UI in development and production.
 
 - `bun run add-ons:verify:reference [id ...]`: discover installed reference boundary fixtures through lifecycle metadata. Root capability-wave tests invoke this same generic entrypoint; explicit tests own unique disposable services and cleanup.
 
@@ -102,7 +102,7 @@ Invoice Ninja: `bun run invoice-ninja:unit`, `bun run invoice-ninja:smoke` (disp
 
 - `bun run stripe:unit`: pinned SDK local wire, signature, cancellation and body-limit checks; no Stripe API request.
 - `STRIPE_FIXTURE_DATABASE_URL=<disposable PostgreSQL admin URL> bun run stripe:durable`: creates/drops only its own temporary database and tests scoped ledgers, receipts/Jobs rollback, reconciliation, privacy and replay cutoff.
-- `bun run add-ons:test stripe`: generic independent install/build, Bun/actual Node24 wire and PostgreSQL fixtures, removal/data retention/Jobs-Webhooks rebuild.
+- `bun run add-ons:test stripe`: generic independent install/build, Bun/actual Node26 wire and PostgreSQL fixtures, removal/data retention/Jobs-Webhooks rebuild.
 - Root-only `bun run stripe:migrations` checks upgrade from both earlier baselines using owned disposable databases and verifies all eight original SQL hashes/journal entries.
 - Root-only `bun run stripe:worker` bundles/runs the actual native standalone Jobs worker against an owned disposable database; optional Stripe remains unconfigured with safe closed output.
 

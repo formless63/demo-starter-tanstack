@@ -34,7 +34,7 @@ Only allowlisted projection/operation fields and static safe errors cross public
 
 ## Packaging, migration and removal
 
-Install the authored/compiled add-on through the generic catalog harness: `bun run add-ons:compile stripe`, `bun run add-ons:test stripe`. Custom dependency resolution uses the existing generic CLI URL server. The clean fixture runs local protocol/persistence proof on pinned Bun and actual Node24, builds, explicitly removes Stripe runtime/registration/package, rebuilds and checks retained data while keeping Jobs/Webhooks.
+Install the authored/compiled add-on through the generic catalog harness: `bun run add-ons:compile stripe`, `bun run add-ons:test stripe`. Custom dependency resolution uses the existing generic CLI URL server. The clean fixture runs local protocol/persistence proof on pinned Bun and actual Node 26, builds, explicitly removes Stripe runtime/registration/package, rebuilds and checks retained data while keeping Jobs/Webhooks.
 
 Root additive migrations `0011_stripe_v1.sql`, `0012_stripe_recovery.sql` and `0015_stripe_receipt_conflicts.sql` occupy combined journal indices 9–11 and cumulative snapshots `0009_snapshot.json`–`0011_snapshot.json`. Snapshot 0009 follows Invoice Ninja snapshot 0008; all retain the baseline and preceding provider schema. The eight baseline SQL files, journal entries/timestamps and hashes are preserved. Filename prefixes and journal indices intentionally differ; Medusa follows at indices 12–13. Clean consumers receive Stripe-only SQL at indices 0–2. Review branch-specific deployed histories before upgrading instead of rewriting applied history. Run explicit app migrations and Jobs migration/doctor before app/worker; neither starts by migrating or contacting Stripe.
 

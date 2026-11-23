@@ -33,7 +33,7 @@ try {
   const messages = await (await fetch(`${mailpitUrl}/api/v1/messages`)).json() as {messages:{ID:string;To:{Address:string}[]}[]}; assert.equal(messages.messages.length,1);assert.equal(messages.messages[0].To[0].Address,`current-${suffix}@example.test`);
   const message = await (await fetch(`${mailpitUrl}/api/v1/message/${messages.messages[0].ID}`)).json() as {Text:string};assert.ok(message.Text.includes("Reloaded authoritative body"));
   const events=(await(await fetch(`${ntfyUrl}/fixture/json?poll=1`)).text()).trim().split("\n").map(line=>JSON.parse(line));assert.ok(events.some(event=>event.message==="Reloaded authoritative body"));
-  console.info("Actual Node24 production worker: private atomic notification Jobs reload current records/targets and deliver once through existing Email/Mailpit and pinned ntfy");
+  console.info("Actual Node26 production worker: private atomic notification Jobs reload current records/targets and deliver once through existing Email/Mailpit and pinned ntfy");
 } finally {
   if(worker?.exitCode===null){worker.kill("SIGTERM");await new Promise<void>(resolve=>{const timer=setTimeout(()=>{worker?.kill("SIGKILL");resolve();},15000);worker?.once("exit",()=>{clearTimeout(timer);resolve();});});}
   await stopJobsClient(); await db.delete(notifications).where(eq(notifications.recipientId,recipientId));await db.delete(user).where(eq(user.id,recipientId));

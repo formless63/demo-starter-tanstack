@@ -4,7 +4,7 @@ Status: done. Optional (`defaultInstalled: false`); the root reference enables t
 
 ## Requirements and ownership
 
-Hard capability requirements: Jobs and Object Storage. Baseline: PostgreSQL18, Drizzle, Node24; Authentication is application composition. Notifications and Audit Log are optional application-owned adapters, never imported into the independent capability. One application-owned typed registry declares at most64 definitions. Definition names match `[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*`, maximum64; versions are bounded strings. Each definition supplies exact ordered columns, authoritative Zod schema, current scope authorization, transactional import and stable-key snapshot export callbacks. Unknown definitions fail invalid-input. Callbacks are trusted application code, must honor the supplied signal, and must not perform irreversible external I/O or independent commits.
+Hard capability requirements: Jobs and Object Storage. Baseline: PostgreSQL18, Drizzle, Node 26; Authentication is application composition. Notifications and Audit Log are optional application-owned adapters, never imported into the independent capability. One application-owned typed registry declares at most64 definitions. Definition names match `[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*`, maximum64; versions are bounded strings. Each definition supplies exact ordered columns, authoritative Zod schema, current scope authorization, transactional import and stable-key snapshot export callbacks. Unknown definitions fail invalid-input. Callbacks are trusted application code, must honor the supplied signal, and must not perform irreversible external I/O or independent commits.
 
 ## Cross-framework v1 contract
 

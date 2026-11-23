@@ -38,9 +38,13 @@ describe("real PostgreSQL audit primitive", () => {
 		await db.execute(sql`CREATE TABLE audit_test_domain (id text PRIMARY KEY)`);
 	}, 30000);
 	afterAll(async () => {
-		await pool.end();
-		await admin.query(`DROP DATABASE IF EXISTS "${databaseName}" WITH (FORCE)`);
-		await admin.end();
+		try {
+			await pool.end();
+			// Let PostgreSQL finish closing the pool's sessions before dropping the fixture.
+			await admin.query(`DROP DATABASE IF EXISTS "${databaseName}"`);
+		} finally {
+			await admin.end();
+		}
 	});
 	it("migrates a clean database with exactly the intended table, timestamp, UUID, JSONB, and indexes", async () => {
 		const columns = await db.execute(

@@ -11,8 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
-import { Route as AppOrganizationsRouteImport } from './routes/app.organizations'
-import { Route as ApiFlagsRouteImport } from './routes/api.flags'
 import { Route as ChartsTestRouteImport } from './routes/charts-test'
 import { Route as FlowTestRouteImport } from './routes/flow-test'
 import { Route as I18nTestRouteImport } from './routes/i18n-test'
@@ -20,6 +18,7 @@ import { Route as MarkdownTestRouteImport } from './routes/markdown-test'
 import { Route as PwaTestRouteImport } from './routes/pwa-test'
 import { Route as RichTextTestRouteImport } from './routes/rich-text-test'
 import { Route as AdminOpsRouteImport } from './routes/admin.ops'
+import { Route as ApiFlagsRouteImport } from './routes/api.flags'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiOpenapiDotjsonRouteImport } from './routes/api/openapi[.]json'
 import { Route as ApiTransfersStageRouteImport } from './routes/api/transfers-stage'
@@ -28,6 +27,7 @@ import { Route as AppFilesRouteImport } from './routes/app.files'
 import { Route as AppInvoicesRouteImport } from './routes/app.invoices'
 import { Route as AppMedusaRouteImport } from './routes/app.medusa'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
+import { Route as AppOrganizationsRouteImport } from './routes/app.organizations'
 import { Route as AppPaymentsRouteImport } from './routes/app.payments'
 import { Route as AppProjectsRouteImport } from './routes/app.projects'
 import { Route as AppTransfersRouteImport } from './routes/app.transfers'
@@ -87,6 +87,11 @@ const AdminOpsRoute = AdminOpsRouteImport.update({
   path: '/admin/ops',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiFlagsRoute = ApiFlagsRouteImport.update({
+  id: '/api/flags',
+  path: '/api/flags',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
@@ -125,6 +130,11 @@ const AppMedusaRoute = AppMedusaRouteImport.update({
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOrganizationsRoute = AppOrganizationsRouteImport.update({
+  id: '/organizations',
+  path: '/organizations',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPaymentsRoute = AppPaymentsRouteImport.update({
@@ -198,21 +208,7 @@ const ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute =
     getParentRoute: () => rootRouteImport,
   } as any)
 
-const ApiFlagsRoute = ApiFlagsRouteImport.update({
-  id: '/api/flags',
-  path: '/api/flags',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const AppOrganizationsRoute = AppOrganizationsRouteImport.update({
-  id: '/organizations',
-  path: '/organizations',
-  getParentRoute: () => AppRoute,
-} as any)
-
 export interface FileRoutesByFullPath {
-  '/app/organizations': typeof AppOrganizationsRoute
-  '/api/flags': typeof ApiFlagsRoute
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
@@ -222,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/pwa-test': typeof PwaTestRoute
   '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
+  '/api/flags': typeof ApiFlagsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
@@ -230,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/app/invoices': typeof AppInvoicesRoute
   '/app/medusa': typeof AppMedusaRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/organizations': typeof AppOrganizationsRoute
   '/app/payments': typeof AppPaymentsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
@@ -245,8 +243,6 @@ export interface FileRoutesByFullPath {
   '/api/integrations/invoice-ninja/webhooks/$connection/$event': typeof ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute
 }
 export interface FileRoutesByTo {
-  '/app/organizations': typeof AppOrganizationsRoute
-  '/api/flags': typeof ApiFlagsRoute
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/charts-test': typeof ChartsTestRoute
@@ -256,6 +252,7 @@ export interface FileRoutesByTo {
   '/pwa-test': typeof PwaTestRoute
   '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
+  '/api/flags': typeof ApiFlagsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
@@ -264,6 +261,7 @@ export interface FileRoutesByTo {
   '/app/invoices': typeof AppInvoicesRoute
   '/app/medusa': typeof AppMedusaRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/organizations': typeof AppOrganizationsRoute
   '/app/payments': typeof AppPaymentsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
@@ -279,8 +277,6 @@ export interface FileRoutesByTo {
   '/api/integrations/invoice-ninja/webhooks/$connection/$event': typeof ApiIntegrationsInvoiceNinjaWebhooksConnectionEventRoute
 }
 export interface FileRoutesById {
-  '/app/organizations': typeof AppOrganizationsRoute
-  '/api/flags': typeof ApiFlagsRoute
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
@@ -291,6 +287,7 @@ export interface FileRoutesById {
   '/pwa-test': typeof PwaTestRoute
   '/rich-text-test': typeof RichTextTestRoute
   '/admin/ops': typeof AdminOpsRoute
+  '/api/flags': typeof ApiFlagsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/transfers-stage': typeof ApiTransfersStageRoute
@@ -299,6 +296,7 @@ export interface FileRoutesById {
   '/app/invoices': typeof AppInvoicesRoute
   '/app/medusa': typeof AppMedusaRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/organizations': typeof AppOrganizationsRoute
   '/app/payments': typeof AppPaymentsRoute
   '/app/projects': typeof AppProjectsRoute
   '/app/transfers': typeof AppTransfersRoute
@@ -316,8 +314,6 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/app/organizations'
-    | '/api/flags'
     | '/'
     | '/app'
     | '/charts-test'
@@ -327,6 +323,7 @@ export interface FileRouteTypes {
     | '/pwa-test'
     | '/rich-text-test'
     | '/admin/ops'
+    | '/api/flags'
     | '/api/health'
     | '/api/openapi.json'
     | '/api/transfers-stage'
@@ -335,6 +332,7 @@ export interface FileRouteTypes {
     | '/app/invoices'
     | '/app/medusa'
     | '/app/notifications'
+    | '/app/organizations'
     | '/app/payments'
     | '/app/projects'
     | '/app/transfers'
@@ -350,8 +348,6 @@ export interface FileRouteTypes {
     | '/api/integrations/invoice-ninja/webhooks/$connection/$event'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/app/organizations'
-    | '/api/flags'
     | '/'
     | '/app'
     | '/charts-test'
@@ -361,6 +357,7 @@ export interface FileRouteTypes {
     | '/pwa-test'
     | '/rich-text-test'
     | '/admin/ops'
+    | '/api/flags'
     | '/api/health'
     | '/api/openapi.json'
     | '/api/transfers-stage'
@@ -369,6 +366,7 @@ export interface FileRouteTypes {
     | '/app/invoices'
     | '/app/medusa'
     | '/app/notifications'
+    | '/app/organizations'
     | '/app/payments'
     | '/app/projects'
     | '/app/transfers'
@@ -383,8 +381,6 @@ export interface FileRouteTypes {
     | '/api/integrations/stripe/webhooks/$connectionId'
     | '/api/integrations/invoice-ninja/webhooks/$connection/$event'
   id:
-    | '/app/organizations'
-    | '/api/flags'
     | '__root__'
     | '/'
     | '/app'
@@ -395,6 +391,7 @@ export interface FileRouteTypes {
     | '/pwa-test'
     | '/rich-text-test'
     | '/admin/ops'
+    | '/api/flags'
     | '/api/health'
     | '/api/openapi.json'
     | '/api/transfers-stage'
@@ -403,6 +400,7 @@ export interface FileRouteTypes {
     | '/app/invoices'
     | '/app/medusa'
     | '/app/notifications'
+    | '/app/organizations'
     | '/app/payments'
     | '/app/projects'
     | '/app/transfers'
@@ -419,7 +417,6 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  ApiFlagsRoute: typeof ApiFlagsRoute
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   ChartsTestRoute: typeof ChartsTestRoute
@@ -429,6 +426,7 @@ export interface RootRouteChildren {
   PwaTestRoute: typeof PwaTestRoute
   RichTextTestRoute: typeof RichTextTestRoute
   AdminOpsRoute: typeof AdminOpsRoute
+  ApiFlagsRoute: typeof ApiFlagsRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiOpenapiDotjsonRoute: typeof ApiOpenapiDotjsonRoute
   ApiTransfersStageRoute: typeof ApiTransfersStageRoute
@@ -446,20 +444,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/app/organizations': {
-      id: '/app/organizations'
-      path: '/organizations'
-      fullPath: '/app/organizations'
-      preLoaderRoute: typeof AppOrganizationsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/api/flags': {
-      id: '/api/flags'
-      path: '/api/flags'
-      fullPath: '/api/flags'
-      preLoaderRoute: typeof ApiFlagsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -523,6 +507,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOpsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/flags': {
+      id: '/api/flags'
+      path: '/api/flags'
+      fullPath: '/api/flags'
+      preLoaderRoute: typeof ApiFlagsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/health': {
       id: '/api/health'
       path: '/api/health'
@@ -577,6 +568,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/app/notifications'
       preLoaderRoute: typeof AppNotificationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/organizations': {
+      id: '/app/organizations'
+      path: '/organizations'
+      fullPath: '/app/organizations'
+      preLoaderRoute: typeof AppOrganizationsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/payments': {
@@ -674,24 +672,24 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
-  AppOrganizationsRoute: typeof AppOrganizationsRoute
   AppApiKeysRoute: typeof AppApiKeysRoute
   AppFilesRoute: typeof AppFilesRoute
   AppInvoicesRoute: typeof AppInvoicesRoute
   AppMedusaRoute: typeof AppMedusaRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
+  AppOrganizationsRoute: typeof AppOrganizationsRoute
   AppPaymentsRoute: typeof AppPaymentsRoute
   AppProjectsRoute: typeof AppProjectsRoute
   AppTransfersRoute: typeof AppTransfersRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppOrganizationsRoute: AppOrganizationsRoute,
   AppApiKeysRoute: AppApiKeysRoute,
   AppFilesRoute: AppFilesRoute,
   AppInvoicesRoute: AppInvoicesRoute,
   AppMedusaRoute: AppMedusaRoute,
   AppNotificationsRoute: AppNotificationsRoute,
+  AppOrganizationsRoute: AppOrganizationsRoute,
   AppPaymentsRoute: AppPaymentsRoute,
   AppProjectsRoute: AppProjectsRoute,
   AppTransfersRoute: AppTransfersRoute,
@@ -700,7 +698,6 @@ const AppRouteChildren: AppRouteChildren = {
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  ApiFlagsRoute: ApiFlagsRoute,
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   ChartsTestRoute: ChartsTestRoute,
@@ -710,6 +707,7 @@ const rootRouteChildren: RootRouteChildren = {
   PwaTestRoute: PwaTestRoute,
   RichTextTestRoute: RichTextTestRoute,
   AdminOpsRoute: AdminOpsRoute,
+  ApiFlagsRoute: ApiFlagsRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiOpenapiDotjsonRoute: ApiOpenapiDotjsonRoute,
   ApiTransfersStageRoute: ApiTransfersStageRoute,

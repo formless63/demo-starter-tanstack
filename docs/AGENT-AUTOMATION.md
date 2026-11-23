@@ -1,6 +1,6 @@
 # Project agent automation
 
-`AGENTS.md` is canonical guidance and `.agents/skills` is the canonical skill tree. `CLAUDE.md` and `.claude/skills` remain symlinks. Claude and Gemini project settings are thin adapters; `.codex/hooks.json` contains only Codex project runtime hooks. Policy lives once in `.agents/hooks` and requires Bun (Node 24 can run the shared scripts if Bun is unavailable; capability checks still require Bun).
+`AGENTS.md` is canonical guidance and `.agents/skills` is the canonical skill tree. `CLAUDE.md` and `.claude/skills` remain symlinks. Claude and Gemini project settings are thin adapters; `.codex/hooks.json` contains only Codex project runtime hooks. Policy lives once in `.agents/hooks` and requires Bun (Node 26 can run the shared scripts if Bun is unavailable; capability checks still require Bun).
 
 Project hooks execute local code with your privileges. Inspect the settings, shared launcher and scripts before granting normal client project/hook trust, including after updates. Never bypass hook trust in normal use. These guards supplement each client's sandbox and approvals; they never auto-approve tools.
 

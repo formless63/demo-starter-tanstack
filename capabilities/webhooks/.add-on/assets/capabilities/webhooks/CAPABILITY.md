@@ -4,7 +4,7 @@ Status: done; optional (`defaultInstalled: false`). The reference application en
 
 ## Requirements and boundaries
 
-**Requires:** Jobs. The catalog's actual TanStack add-on ID is `postgres-jobs`; `dependsOn: ["postgres-jobs"]` installs that add-on and its configured PostgreSQL Drizzle dependency. Node 24, strict TypeScript and Zod are starter prerequisites. **Integrates with:** Audit Log, Observability and API Platform optionally. **External:** remote webhook endpoints when delivering. **Conflicts:** none.
+**Requires:** Jobs. The catalog's actual TanStack add-on ID is `postgres-jobs`; `dependsOn: ["postgres-jobs"]` installs that add-on and its configured PostgreSQL Drizzle dependency. Node 26, strict TypeScript and Zod are starter prerequisites. **Integrates with:** Audit Log, Observability and API Platform optionally. **External:** remote webhook endpoints when delivering. **Conflicts:** none.
 
 No independent worker, endpoint database, management UI, API gateway, HTTP client framework, startup migration or other planned capability is included. Domain event schemas, subscription storage, tenant ownership, authorization, target URL/secret ownership and domain processing belong to the application. No endpoint is contacted at normal application/worker startup; health remains database-only.
 

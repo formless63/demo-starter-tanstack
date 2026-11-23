@@ -28,7 +28,7 @@ try {
   // v5.13.43 InvoiceFactory::create / Invoice\\MarkSent own that transition.
   stage = 'exact_balance'; assert.equal(raw.data.balance, '0')
   stage = 'invoice_get'; assert.equal((await providerRequest(connection, 'invoice', String(raw.data.id))).status, 200)
-  console.info('Native provider wire assertions passed on Node24')
+  console.info('Native provider wire assertions passed on Node26')
 }
 catch (error) {
   // Only locally authored stage names and closed package error codes leave the

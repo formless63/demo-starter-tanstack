@@ -25,7 +25,7 @@ try {
 	});
 	const status = await new Promise<number>((resolve, reject) => { child.once("error", reject); child.once("exit", (code) => resolve(code ?? 1)); });
 	if (status !== 0) throw new Error("Cache compatibility contract failed");
-	// Production Node 24 runs the same exact contract when explicitly supplied.
+	// Production Node 26 runs the same exact contract when explicitly supplied.
 	if (process.env.CACHE_COMPAT_NODE_SCRIPT) {
 		const node = spawn("node", [process.env.CACHE_COMPAT_NODE_SCRIPT], { env: { ...process.env, CACHE_URL: `redis://127.0.0.1:${address.port}` }, stdio: "inherit" });
 		const nodeStatus = await new Promise<number>((resolve, reject) => { node.once("error", reject); node.once("exit", (code) => resolve(code ?? 1)); });

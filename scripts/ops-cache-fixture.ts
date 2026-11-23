@@ -5,7 +5,7 @@ const commands:string[]=[];
 const proxy=createServer(socket=>{
  const upstream=connect({host:'127.0.0.1',port:Number(process.env.OPS_CACHE_FIXTURE_PORT ?? '6379')});let buffer=Buffer.alloc(0);
  socket.on('data',chunk=>{
-  buffer=Buffer.concat([buffer,chunk]);
+  buffer=Buffer.concat([buffer,typeof chunk === 'string' ? Buffer.from(chunk) : chunk]);
   while(buffer.length){
    const text=buffer.toString();const start=/^\*(\d+)\r\n/.exec(text);if(!start)throw new Error('RESP array expected');
    let offset=start[0].length;const values:string[]=[];let complete=true;

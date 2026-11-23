@@ -35,7 +35,7 @@ try {
   docker(['version', '--format', '{{.Server.Version}}'], 15_000)
   docker(['pull', image], 300_000)
   docker(['pull', 'mariadb:11.8'], 300_000)
-  docker(['pull', 'node:24-alpine'], 300_000)
+  docker(['pull', 'node:26-alpine'], 300_000)
   docker(['network', 'create', '--internal', network])
   docker(['run', '-d', '--name', database, '--network', network,
     '-e', 'MARIADB_ROOT_PASSWORD=disposable-root', '-e', 'MARIADB_DATABASE=ninja',
@@ -76,7 +76,7 @@ try {
   assert.equal(built.status, 0, 'Native provider wire bundle builds')
   docker(['run', '--rm', '--network', `container:${app}`, '-v', `${bundle}:/fixture.mjs:ro`,
     '-e', 'NODE_ENV=test', '-e', `GS_CLIENT_ID=${seeded.clientId}`, '-e', `GS_FIXTURE_TOKEN=${token}`,
-    'node:24-alpine', 'node', '/fixture.mjs'])
+    'node:26-alpine', 'node', '/fixture.mjs'])
   const proof = JSON.parse(docker(['exec', app, 'php', '/var/www/html/invoice-ninja-provider-proof.php']))
   assert.deepEqual(proof, { unsent: true, numericStringsAccepted: true, invoices: 1, payments: 0 })
   console.info('Actual Invoice Ninja 5.13.43: numeric-string native draft/GET and isolated unsent zero-tax/discount policy passed; no remote account or payment certification')
