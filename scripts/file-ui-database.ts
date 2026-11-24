@@ -38,7 +38,15 @@ try {
    assert.equal((await restarted.reserve(row)).record.state, 'removed');
    // Runtime removal retains schema and durable receipts; migration rerun cannot delete them.
    await migrate(db, { migrationsFolder: 'drizzle' }); assert.equal((await pool.query('select count(*)::int as n from file_ui_files')).rows[0].n, 1); assert.deepEqual((await pool.query('select hash,created_at from drizzle.__drizzle_migrations order by id')).rows, before);
-  } finally { await pool.end(); await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`); await rm(folder, { recursive: true, force: true }); }
+  } finally {
+   try {
+    await pool.end();
+    // Let closing pool sessions disconnect before dropping the fixture database.
+    await admin.query(`DROP DATABASE IF EXISTS "${name}"`);
+   } finally {
+    await rm(folder, { recursive: true, force: true });
+   }
+  }
  }
  console.info('File UI clean/upgrade migrations, frozen prior hashes, atomic ownership/CAS and durable restart/retained receipts passed.');
 } finally { await admin.end(); }

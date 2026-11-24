@@ -12,6 +12,7 @@ async function command(args:string[]) {
  await new Promise<void>((done,reject)=>{const child=spawn(process.execPath,args,{cwd:directory,stdio:'inherit',env:{...process.env,NODE_ENV:'production'}});child.on('error',reject);child.on('exit',code=>code===0?done():reject(new Error(`PWA fixture command failed: ${code}`)));});
 }
 let servingBase='/';let privateReads=0;let unsafeHeaders=false;let errorPage=false;let tamper=false;
+let publishedWorker:Buffer|undefined;
 const publicCredentials:string[]=[];
 const httpTrace: {path:string;status:number;type:string;cache:string;cookiePresent:boolean;destination:string;mode:string}[]=[];
 async function waitForWorker(page:Page,label:string,predicate:()=>boolean|Promise<boolean>) {
@@ -43,7 +44,9 @@ const server=createServer(async(request,response)=>{
   const file=join(directory,'dist/client',relative);
   if(!file.startsWith(join(directory,'dist/client')+'/')){response.statusCode=400;response.end();return;}
   let bytes:Buffer;
-  try{assert.ok((await stat(file)).isFile());bytes=await readFile(file);}catch{bytes=await readFile(join(directory,'dist/client/index.html'));}
+  // Keep serving the deployed worker until the next complete build is published.
+  if(relative==='pwa-offline-sw.js'&&publishedWorker)bytes=publishedWorker;
+  else try{assert.ok((await stat(file)).isFile());bytes=await readFile(file);}catch{bytes=await readFile(join(directory,'dist/client/index.html'));}
   if(relative.startsWith('pwa-offline/'))publicCredentials.push(request.headers.cookie??'');
   if(tamper&&relative==='pwa-offline/offline.html')bytes=Buffer.from('private surprise');
   response.setHeader('content-type',relative.endsWith('.js')?'text/javascript':relative.endsWith('.png')?'image/png':relative.endsWith('.webmanifest')?'application/manifest+json':'text/html; charset=utf-8');
@@ -64,7 +67,8 @@ try {
  await writeFile(join(directory,'index.html'),'<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PWA production fixture</title><div id="root"></div><script type="module" src="/scripts/pwa-client-fixture.tsx"></script></html>');
  await writeFile(join(directory,'vite.config.ts'),"import {defineConfig} from 'vite';import react from '@vitejs/plugin-react';import {pwaOffline} from './scripts/pwa-vite';export default defineConfig({plugins:[react(),...pwaOffline()],build:{outDir:'dist/client'}});");
  await command(['x','vite','build']);
- const built=await readFile(join(directory,'dist/client/pwa-offline-sw.js'),'utf8');
+ publishedWorker=await readFile(join(directory,'dist/client/pwa-offline-sw.js'));
+ const built=publishedWorker.toString('utf8');
  assert.ok(!built.includes('__WB_MANIFEST'),'Native production injection completed');
  assert.ok(!built.includes('manifest.webmanifest'),'Manifest is not silently precached');
  if(process.argv.includes('--build-only')){console.info('Native production fixture build and exact injected manifest passed; browser not run');process.exitCode=0;}
@@ -95,17 +99,31 @@ try {
  const second=await context.newPage();await second.goto(`${origin}/pwa-test`);await waitForWorker(second,'second controlled tab',()=>!!navigator.serviceWorker.controller);
  await writeFile(join(directory,'src/integrations/pwa-offline/pwa-offline-sw.ts'),`${await readFile(join(directory,'src/integrations/pwa-offline/pwa-offline-sw.ts'),'utf8')}\n// fixture version two\n`);
  await command(['x','vite','build']);
- const updateWorker=context.waitForEvent('serviceworker');await page.getByRole('button',{name:'Check for updates'}).click();const waitingWorker=await updateWorker;await waitForWorker(page,'updated worker waiting',async()=>!!(await navigator.serviceWorker.getRegistration())?.waiting);
+ const updatedBytes=await readFile(join(directory,'dist/client/pwa-offline-sw.js'));
+ assert.notDeepEqual(updatedBytes,publishedWorker,'New deployment must change the worker bytes');
+ const updateWorker=context.waitForEvent('serviceworker',worker=>worker.url()===`${origin}/pwa-offline-sw.js`);
+ publishedWorker=updatedBytes;
+ // Exercise discovery by another controlled tab before the explicit check.
+ const [waitingWorker]=await Promise.all([updateWorker,(async()=>{
+  await second.evaluate(async()=>{await (await navigator.serviceWorker.getRegistration())?.update();});
+  await waitForWorker(second,'second tab discovers update first',async()=>!!(await navigator.serviceWorker.getRegistration())?.waiting);
+  await page.getByRole('button',{name:'Check for updates'}).click();
+ })()]);
+ await waitForWorker(page,'updated worker waiting',async()=>!!(await navigator.serviceWorker.getRegistration())?.waiting);
  await expect(page.getByRole('button',{name:'Later'})).toBeVisible();await page.getByRole('button',{name:'Later'}).click();await expect(page.getByLabel('Unsaved draft')).toHaveValue('Do not lose this draft');
  await page.close();assert.equal(await second.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration())?.waiting),true,'Other open tab prevents activation');
  await second.close();await waitingWorker.evaluate(async()=>{for(let attempts=0;attempts<500;attempts++){if(!(self as unknown as ServiceWorkerGlobalScope).registration.waiting)return;await new Promise(resolve=>setTimeout(resolve,20));}throw new Error('Natural activation timed out');});page=await context.newPage();await page.goto(`${origin}/pwa-test`);await waitForWorker(page,'new version naturally active',async()=>{const registration=await navigator.serviceWorker.getRegistration();return !!registration?.active&&!registration.waiting;});
  await page.evaluate(async()=>{await (await caches.open('unrelated-owner')).put('/unrelated',new Response('keep'));});
  await page.getByRole('button',{name:'Enable offline notice'}).click();
  await writeFile(configFile,config.replace('retired: false','retired: true'));await command(['x','vite','build']);
- const retirementEvent=context.waitForEvent('serviceworker');await page.getByRole('button',{name:'Check for updates'}).click();const retiringWorker=await retirementEvent;await waitForWorker(page,'retirement worker waiting',async()=>!!(await navigator.serviceWorker.getRegistration())?.waiting);await page.close();await retiringWorker.evaluate(async()=>{for(let attempts=0;attempts<500;attempts++){if(!(self as unknown as ServiceWorkerGlobalScope).registration.waiting)return;await new Promise(resolve=>setTimeout(resolve,20));}throw new Error('Natural activation timed out');});
+ const retirement=await readFile(join(directory,'dist/client/pwa-offline-sw.js'));
+ assert.notDeepEqual(retirement,publishedWorker,'Retirement must change the worker bytes');
+ const retirementEvent=context.waitForEvent('serviceworker',worker=>worker.url()===`${origin}/pwa-offline-sw.js`);
+ publishedWorker=retirement;
+ const [retiringWorker]=await Promise.all([retirementEvent,page.getByRole('button',{name:'Check for updates'}).click()]);
+ await waitForWorker(page,'retirement worker waiting',async()=>!!(await navigator.serviceWorker.getRegistration())?.waiting);await page.close();await retiringWorker.evaluate(async()=>{for(let attempts=0;attempts<500;attempts++){if(!(self as unknown as ServiceWorkerGlobalScope).registration.waiting)return;await new Promise(resolve=>setTimeout(resolve,20));}throw new Error('Natural activation timed out');});
  page=await context.newPage();await page.goto(`${origin}/pwa-test`);await waitForWorker(page,'retirement unregistered',async()=>!(await navigator.serviceWorker.getRegistration()));
  assert.deepEqual(await page.evaluate(()=>caches.keys()),['unrelated-owner'],'Retirement deletes only owned caches');
- const retirement=await readFile(join(directory,'dist/client/pwa-offline-sw.js'));
  // Save a fixture-only proof and exact persistent retirement artifact before code removal.
  if(JSON.parse(await readFile(join(root,'package.json'),'utf8')).name==='pwa-offline-clean-install'){
   await writeFile(join(root,'public/pwa-offline-sw.js'),retirement);
@@ -114,6 +132,7 @@ try {
  await context.close();
  // Native install rejects both privacy headers and changed bytes before caching.
  await writeFile(configFile,config);await command(['x','vite','build']);
+ publishedWorker=await readFile(join(directory,'dist/client/pwa-offline-sw.js'));
  for(const mode of ['headers','integrity']){
   unsafeHeaders=mode==='headers';tamper=mode==='integrity';const denied=await browser.newContext();observe(denied,mode);console.info(`[PWA stage] rejects ${mode}`);const tab=await denied.newPage();await tab.goto(`${origin}/pwa-test`);await tab.getByRole('button',{name:'Enable offline notice'}).click();
   await expect(tab.getByRole('status').first()).toContainText('error');
@@ -124,6 +143,7 @@ try {
  await writeFile(configFile,config.replace(/base:\s*['"]\/['"]/,'base: "/demo/"'));
  await writeFile(join(directory,'vite.config.ts'),"import {defineConfig} from 'vite';import react from '@vitejs/plugin-react';import {pwaOffline} from './scripts/pwa-vite';export default defineConfig({base:'/demo/',plugins:[react(),...pwaOffline()],build:{outDir:'dist/client'}});");
  await command(['x','vite','build']);
+ publishedWorker=await readFile(join(directory,'dist/client/pwa-offline-sw.js'));
  for(const asset of ['pwa-offline-sw.js',...await readdir(join(directory,'public/pwa-offline')).then(files=>files.map(file=>`pwa-offline/${file}`))]){
   const response=await fetch(`${origin}/demo/${asset}`);assert.equal(response.status,200);const bytes=Buffer.from(await response.arrayBuffer());assert.deepEqual(bytes,await readFile(join(directory,'dist/client',asset)));console.info('[PWA scoped HTTP]',JSON.stringify({path:`/demo/${asset}`,status:response.status,type:response.headers.get('content-type'),cache:response.headers.get('cache-control'),sha256:createHash('sha256').update(bytes).digest('hex')}));
  }

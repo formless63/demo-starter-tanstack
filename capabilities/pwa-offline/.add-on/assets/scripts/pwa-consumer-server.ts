@@ -14,19 +14,21 @@ export async function startConsumer() {
  process.env.NODE_ENV='production';
  const runtime=await import(pathToFileURL(resolve('dist/server/server.js')).href);
  assert.equal(typeof runtime.default.fetch,'function','Actual generated Start production handler');
- const options={retire:false,denyPng:false,assetRequests:0};
+ const options={retire:false,denyPng:false,assetRequests:0,workerOverride:undefined as Buffer|undefined};
  const server=createServer(async(request,response)=>{
   try{
    const origin=`http://${request.headers.host}`;const url=new URL(request.url??'/',origin);const path=join(resolve('dist/client'),url.pathname);
    if(!path.startsWith(resolve('dist/client')+'/'))throw new Error('Fixture path escape');
    let file=path;if(options.retire&&url.pathname==='/pwa-offline-sw.js')file=resolve('public/pwa-offline-sw.js');
-   let isFile=false;try{isFile=(await stat(file)).isFile();}catch{}
+   const publishedWorker=url.pathname==='/pwa-offline-sw.js'&&!options.retire?options.workerOverride:undefined;
+   let isFile=Boolean(publishedWorker);
+   if(!isFile){try{isFile=(await stat(file)).isFile();}catch{}}
    if(isFile){
     if(url.pathname.startsWith('/pwa-offline/'))options.assetRequests++;
     const png=file.endsWith('.png');const html=file.endsWith('.html');
     response.setHeader('content-type',png?'image/png':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.webmanifest')?'application/manifest+json':'text/html; charset=utf-8');
     response.setHeader('cache-control',url.pathname.startsWith('/pwa-offline/')?(png?(options.denyPng?'private, no-store':'public, max-age=31536000, immutable'):html?'public, max-age=300':'no-store'):'no-store');
-    response.end(await readFile(file));return;
+    response.end(publishedWorker??await readFile(file));return;
    }
    const result:Response=await runtime.default.fetch(new Request(url));response.statusCode=result.status;result.headers.forEach((value,key)=>response.setHeader(key,value));response.end(Buffer.from(await result.arrayBuffer()));
   }catch{response.statusCode=500;response.end('Fixture failure');}

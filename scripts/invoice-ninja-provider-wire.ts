@@ -3,14 +3,15 @@ import { InvoiceNinjaError } from '../src/integrations/invoice-ninja/errors'
 import { providerRequest, createProviderDraft } from '../src/integrations/invoice-ninja/transport.server'
 import { entity } from '../src/integrations/invoice-ninja/projection'
 
-assert.equal(Number(process.versions.node.split('.')[0]), 24)
 const clientId = process.env.GS_CLIENT_ID, apiToken = process.env.GS_FIXTURE_TOKEN
 assert(clientId && apiToken)
 // This process shares the isolated provider container's network namespace.
 // The literal loopback rule stays intact; no host port or external API is used.
 const connection = { baseUrl: 'http://127.0.0.1:8000', apiToken }
-let stage = 'client_get'
+let stage = 'runtime'
 try {
+  assert.equal(Number(process.versions.node.split('.')[0]), 26)
+  stage = 'client_get'
   assert.equal((await providerRequest(connection, 'client', clientId)).status, 200)
   stage = 'draft_post'
   const response = await createProviderDraft(connection, {
